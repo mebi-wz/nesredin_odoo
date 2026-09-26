@@ -1,0 +1,67 @@
+services:
+
+  odoo19:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: nesredin_odoo:19.0
+
+    container_name: dp_nesredin_odoo19
+
+    depends_on:
+      - db19
+
+    ports:
+      - "127.0.0.1:8092:8069"
+
+    volumes:
+      - dp_nesredin_odoo19-web-data:/var/lib/odoo
+
+      # Current Git repository containing custom addons
+      - .:/mnt/custom_addons:rw
+
+      # Odoo configuration
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+
+    environment:
+      HOST: db19
+      USER: odoo_nesredin
+      PASSWORD: odoo_nesredin
+
+    restart: unless-stopped
+
+    networks:
+      - nesredin_odoo_network
+
+
+  db19:
+    image: postgres:15
+
+    container_name: dp_nesredin_odoo19_db
+
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo_nesredin
+      POSTGRES_PASSWORD: odoo_nesredin
+
+    volumes:
+      - dp_nesredin_odoo19-db-data:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+    networks:
+      - nesredin_odoo_network
+
+
+volumes:
+
+  dp_nesredin_odoo19-web-data:
+
+  dp_nesredin_odoo19-db-data:
+
+
+networks:
+
+  nesredin_odoo_network:
+    driver: bridge
