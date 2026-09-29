@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Product Template Main Form View -->
+    <record id="product_template_only_form_view_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.ibms</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="attributes">
+                <attribute name="string">Product Code</attribute>
+            </xpath>
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="part_number"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Product (Variant) Form View -->
+    <record id="product_normal_form_view_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.product.form.inherit.ibms</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="attributes">
+                <attribute name="string">Product Code</attribute>
+            </xpath>
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="part_number"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Template List / Tree View -->
+    <record id="product_template_tree_view_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.template.list.inherit.ibms</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="after">
+                <field name="part_number" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Template Search View -->
+    <record id="product_template_search_view_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.template.search.inherit.ibms</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="part_number" string="Part Number" filter_domain="[('part_number', 'ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
