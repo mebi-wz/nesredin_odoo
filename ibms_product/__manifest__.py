@@ -11,19 +11,21 @@ IBMS Customizations:
 - Adds "Product Part Number" field to products
 - Adds "Analytics" tab to Warehouse configuration
 - Links Warehouse/Shop to customer invoices for automated branch analytics
-- Dedicated Location Transfers form with Source/Destination Warehouses and Analytics
+- Dedicated stock.location.transfer model and views with Draft -> Submitted -> Approved lifecycle
 - Warehouse-level user role and access restrictions
     """,
     'author': 'IBMS',
     'license': 'LGPL-3',
     'depends': ['product', 'stock', 'account', 'analytic'],
     'data': [
+        'security/ir.model.access.csv',
         'security/warehouse_security.xml',
+        'data/ir_sequence_data.xml',
         'views/product_views.xml',
         'views/stock_warehouse_views.xml',
         'views/account_move_views.xml',
-        'views/stock_picking_views.xml',
         'views/res_users_views.xml',
+        'views/stock_location_transfer_views.xml',
     ],
     'installable': True,
     'application': False,
