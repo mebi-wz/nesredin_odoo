@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Purchase Order Form View - Local RFQ Field -->
+    <record id="view_purchase_order_form_local_rfq" model="ir.ui.view">
+        <field name="name">purchase.order.form.local.rfq</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <field name="local_rfq_id" string="Local RFQ" readonly="1" invisible="not local_rfq_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

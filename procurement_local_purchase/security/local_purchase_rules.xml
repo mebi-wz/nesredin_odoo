@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Multi-Company Rule -->
+        <record id="rule_local_purchase_requisition_multi_company" model="ir.rule">
+            <field name="name">Local Purchase Requisition Multi-Company</field>
+            <field name="model_id" ref="model_local_purchase_requisition"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_local_purchase_requisition_line_multi_company" model="ir.rule">
+            <field name="name">Local Purchase Requisition Line Multi-Company</field>
+            <field name="model_id" ref="model_local_purchase_requisition_line"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_local_payment_request_multi_company" model="ir.rule">
+            <field name="name">Local Payment Request Multi-Company</field>
+            <field name="model_id" ref="model_local_payment_request"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <!-- Personal Rule for Requesters -->
+        <record id="rule_local_purchase_requisition_personal" model="ir.rule">
+            <field name="name">Local Purchase Requisition Personal</field>
+            <field name="model_id" ref="model_local_purchase_requisition"/>
+            <field name="domain_force">[('requested_by', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('procurement_store_requisition.group_store_requisition_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Global Access for Verifiers and Managers -->
+        <record id="rule_local_purchase_requisition_all" model="ir.rule">
+            <field name="name">Local Purchase Requisition All (Verifiers+)</field>
+            <field name="model_id" ref="model_local_purchase_requisition"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[
+                (4, ref('procurement_store_requisition.group_store_requisition_verifier')),
+                (4, ref('procurement_store_requisition.group_store_requisition_budget_manager')),
+                (4, ref('group_local_purchase_pr_manager')),
+                (4, ref('group_local_purchase_ceo'))
+            ]"/>
+        </record>
+    </data>
+</odoo>

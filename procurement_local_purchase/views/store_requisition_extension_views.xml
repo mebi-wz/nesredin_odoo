@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Store Requisition to add Create PR button -->
+    <record id="view_store_requisition_form_inherit_pr" model="ir.ui.view">
+        <field name="name">store.requisition.form.inherit.pr</field>
+        <field name="model">store.requisition</field>
+        <field name="inherit_id" ref="procurement_store_requisition.view_store_requisition_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_prs" type="object" class="oe_stat_button" icon="fa-list-alt" invisible="pr_count == 0">
+                    <field name="pr_count" widget="statinfo" string="Purchase Reqs"/>
+                </button>
+            </div>
+            <xpath expr="//button[@name='action_store_process']" position="after">
+                <!-- Create PR button: now automated via 'Process' button, so we hide it here -->
+                <button name="action_create_pr" type="object"
+                        string="Create PR" 
+                          invisible="state != 'budget_approved' or not has_shortage"
+                         groups="procurement_store_requisition.group_store_requisition_manager"
+                        class="oe_highlight"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Shortage Wizard to add Create SIV & PR button -->
+    <record id="view_store_shortage_wizard_form_inherit_pr" model="ir.ui.view">
+        <field name="name">store.requisition.wizard.form.inherit.pr</field>
+        <field name="model">store.requisition.wizard</field>
+        <field name="inherit_id" ref="procurement_store_requisition.view_store_requisition_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_create_siv_only']" position="after">
+                <button name="action_create_siv_and_pr" 
+                        string="Create SIV &amp; PR" 
+                        type="object" 
+                        class="btn-primary"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

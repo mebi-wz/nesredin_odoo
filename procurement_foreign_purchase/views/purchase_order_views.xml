@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Moved view_purchase_order_form_customs to procurement_foreign_operations to place Customs Cost after Foreign Payments -->
+</odoo>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_foreign_rfq_multi_company" model="ir.rule">
+        <field name="name">Foreign RFQ Multi-Company</field>
+        <field name="model_id" ref="model_foreign_rfq"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_procurement_currency_request_multi_company" model="ir.rule">
+        <field name="name">Procurement Currency Request Multi-Company</field>
+        <field name="model_id" ref="model_procurement_currency_request"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

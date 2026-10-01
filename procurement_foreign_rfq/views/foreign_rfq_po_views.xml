@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_purchase_order_form_foreign_rfq" model="ir.ui.view">
+        <field name="name">purchase.order.form.foreign.rfq</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Header fields (Only Foreign RFQ & Exchange Rate) -->
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <field name="foreign_rfq_id"
+                       string="Foreign RFQ"
+                       readonly="1"
+                       invisible="request_type != 'foreign'"/>
+                <field name="exchange_rate"
+                       string="Exchange Rate"
+                       invisible="request_type != 'foreign'"/>
+            </xpath>
+
+            <!-- Line No before product -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_id']" position="before">
+                <field name="line_no" readonly="1"/>
+            </xpath>
+
+            <!-- Product Description after name -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='name']" position="after">
+                <field name="product_description"/>
+            </xpath>
+
+            <!-- Unit Price ETB after price_unit -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="after">
+                <field name="price_unit_etb"
+                       string="Unit Price (ETB)"
+                       readonly="1"
+                       optional="show"
+                       column_invisible="parent.request_type != 'foreign'"/>
+            </xpath>
+
+            <!-- Subtotal USD and ETB after price_subtotal -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_subtotal']" position="after">
+                <field name="price_subtotal_usd"
+                       string="Subtotal (USD)"
+                       readonly="1"
+                       optional="show"
+                       column_invisible="parent.request_type != 'foreign'"/>
+                <field name="price_subtotal_etb"
+                       string="Subtotal (ETB)"
+                       readonly="1"
+                       optional="show"
+                       column_invisible="parent.request_type != 'foreign'"/>
+            </xpath>
+
+            <!-- Footer summary fields (FOOTER ONLY) -->
+            <xpath expr="//field[@name='tax_totals']" position="after">
+                <field name="currency_id_etb" invisible="1"/>
+                <field name="amount_total_usd"
+                       widget="monetary"
+                       options="{'currency_field': 'currency_id'}"
+                       string="Total (USD)"
+                       readonly="1"
+                       invisible="request_type != 'foreign'"/>
+                <field name="amount_total_etb"
+                       widget="monetary"
+                       options="{'currency_field': 'currency_id_etb'}"
+                       string="Total (ETB / Birr)"
+                       readonly="1"
+                       invisible="request_type != 'foreign'"
+                       class="oe_subtotal_footer_separator"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

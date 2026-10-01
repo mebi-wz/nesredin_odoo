@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu for Foreign Purchase Orders -->
+    <menuitem id="menu_foreign_purchase_orders"
+              name="Purchase Orders"
+              parent="procurement_base.menu_foreign_purchase_root"
+              action="action_foreign_purchase_order"
+              groups="procurement_foreign_purchase.group_foreign_purchase_operation_manager"
+              sequence="20"/>
+    <!-- Foreign Vendors -->
+    <record id="action_foreign_vendors" model="ir.actions.act_window">
+        <field name="name">Foreign Vendors</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('vendor_type', '=', 'foreign')]</field>
+        <field name="context">{'default_vendor_type': 'foreign', 'default_supplier_rank': 1}</field>
+    </record>
+
+    <menuitem id="menu_foreign_vendors"
+              name="Foreign Vendors"
+              parent="procurement_base.menu_foreign_purchase_root"
+              action="action_foreign_vendors"
+              sequence="50"/>
+</odoo>
+

@@ -1,0 +1,36 @@
+{
+    "name": "Foreign RFQ",
+    "version": "19.0.1.6",
+    "category": "Inventory/Procurement",
+    "summary": "Foreign RFQ / Proforma for procurement process",
+    "author": "Consulting",
+    "depends": [
+        "procurement_base",
+        "procurement_foreign_purchase",
+    ],
+    "data": [
+        # "security/foreign_rfq_security.xml",
+        "security/foreign_rfq_record_rule.xml",
+        "security/ir.model.access.csv",
+        "data/foreign_rfq_data.xml",
+        "views/procurement_currency_request_action.xml",
+        "views/nbe_config_views.xml",
+        "views/foreign_rfq_views.xml",
+        "views/procurement_currency_request_views.xml",
+        "views/foreign_purchase_requisition_views.xml",
+
+        "wizard/merge_rfq_wizard_views.xml",
+        "views/foreign_rfq_actions.xml",
+        "views/foreign_rfq_po_views.xml",
+        "views/foreign_rfq_menus.xml",
+        "views/foreign_rfq_report_action.xml",
+        "views/foreign_rfq_report_template.xml",
+    ],
+    "demo": [
+        "demo/foreign_rfq_demo.xml",
+    ],
+    "installable": True,
+    "application": False,
+    "auto_install": False,
+    "license": "LGPL-3",
+}

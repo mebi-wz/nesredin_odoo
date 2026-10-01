@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_foreign_rfq,access_foreign_rfq,model_foreign_rfq,base.group_user,1,1,1,1
+access_foreign_rfq_line,access_foreign_rfq_line,model_foreign_rfq_line,base.group_user,1,1,1,1
+access_purchase_port_loading,access_purchase_port_loading,model_purchase_port_loading,base.group_user,1,1,1,1
+access_foreign_rfq_merge_wizard,foreign.rfq.merge.wizard,model_foreign_rfq_merge_wizard,base.group_user,1,1,1,1
+access_procurement_currency_request,procurement.currency.request,model_procurement_currency_request,base.group_user,1,1,1,1
+access_nbe_config,nbe.config,model_nbe_config,base.group_user,1,1,1,1

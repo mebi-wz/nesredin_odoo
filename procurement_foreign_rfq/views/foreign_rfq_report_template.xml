@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_foreign_rfq_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row">
+                            <!-- Supplier details on the left -->
+                            <div class="col-6">
+                                <strong>Supplier:</strong>
+                                <div t-if="doc.vendor_id">
+                                    <span t-field="doc.vendor_id.name" style="font-weight: bold;"/><br/>
+                                    <span t-field="doc.vendor_id.street"/><br/>
+                                    <span t-if="doc.vendor_id.street2" t-field="doc.vendor_id.street2"/><br/>
+                                    <span t-field="doc.vendor_id.city"/>, <span t-field="doc.vendor_id.country_id.name"/><br/>
+                                    <span t-if="doc.vendor_id.phone">Phone: <span t-field="doc.vendor_id.phone"/></span>
+                                </div>
+                                <div t-else="" class="text-muted">
+                                    No Vendor Assigned
+                                </div>
+                            </div>
+                            <!-- Shipping details on the right -->
+                            <div class="col-6 text-end">
+                                <strong>Shipping &amp; Delivery:</strong>
+                                <div>
+                                    <span t-if="doc.shipping_destination">Destination: <span t-field="doc.shipping_destination"/></span>
+                                    <span t-else="">Destination: As per Proforma Invoice</span>
+                                    <br/>
+                                    <span t-if="doc.shipping_origin">Origin: <span t-field="doc.shipping_origin"/></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 class="mt-4 mb-4">
+                            <span t-field="doc.name"/>
+                        </h2>
+
+                        <!-- Info Grid -->
+                        <div class="row mt-3 mb-3 border-top border-bottom py-2" style="font-size: 13px;">
+                            <div class="col-3">
+                                <strong>RFQ Date:</strong>
+                                <p class="m-0" t-field="doc.date_rfq" t-options='{"widget": "date"}'/>
+                            </div>
+                            <div class="col-3">
+                                <strong>Proforma Invoice:</strong>
+                                <p class="m-0" t-field="doc.proforma_invoice_no"/>
+                                <span class="text-muted" t-field="doc.proforma_invoice_date" t-options='{"widget": "date"}'/>
+                            </div>
+                            <div class="col-3">
+                                <strong>Payment Terms:</strong>
+                                <p class="m-0" t-field="doc.payment_terms"/>
+                            </div>
+                            <div class="col-3">
+                                <strong>Currency:</strong>
+                                <p class="m-0" t-field="doc.currency_id.name"/>
+                                <span class="text-muted" t-if="doc.exchange_rate">Rate: <t t-esc="doc.exchange_rate"/></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4" style="font-size: 13px;">
+                            <div class="col-3" t-if="doc.mod_of_shipment">
+                                <strong>Mode of Shipment:</strong>
+                                <p class="m-0" t-field="doc.mod_of_shipment"/>
+                            </div>
+                            <div class="col-3" t-if="doc.port_of_loading">
+                                <strong>Port of Loading:</strong>
+                                <p class="m-0" t-field="doc.port_of_loading.name"/>
+                            </div>
+                            <div class="col-3" t-if="doc.port_of_discharge">
+                                <strong>Port of Discharge:</strong>
+                                <p class="m-0" t-field="doc.port_of_discharge.name"/>
+                            </div>
+                            <div class="col-3" t-if="doc.port_of_final_destination">
+                                <strong>Final Destination:</strong>
+                                <p class="m-0" t-field="doc.port_of_final_destination.name"/>
+                            </div>
+                        </div>
+
+                        <!-- Products Table -->
+                        <table class="table table-sm o_main_table mt-4" style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 5%;">No</th>
+                                    <th class="text-start" style="width: 45%;">Product Description</th>
+                                    <th class="text-center" style="width: 10%;">UoM</th>
+                                    <th class="text-end" style="width: 10%;">Qty</th>
+                                    <th class="text-end" style="width: 15%;">Unit Price</th>
+                                    <th class="text-end" style="width: 15%;">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.line_ids" t-as="line">
+                                    <tr>
+                                        <td class="text-center">
+                                            <span t-field="line.line_no"/>
+                                        </td>
+                                        <td class="text-start">
+                                            <span t-field="line.product_id.name"/><br/>
+                                            <small class="text-muted" t-if="line.description and line.description != line.product_id.name">
+                                                <span t-field="line.description"/>
+                                            </small>
+                                            <div t-if="line.hs_code" class="text-muted small">
+                                                <strong>HS Code:</strong> <span t-field="line.hs_code"/>
+                                                <span t-if="line.hs_description"> - <span t-field="line.hs_description"/></span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="line.uom_id.name"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="line.quantity"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="line.price_unit" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Totals Section -->
+                        <div class="row justify-content-end" style="page-break-inside: avoid;">
+                            <div class="col-5">
+                                <table class="table table-sm border-0">
+                                    <tr class="border-black o_total">
+                                        <td><strong>Total (<span t-field="doc.currency_id.name"/>)</strong></td>
+                                        <td class="text-end">
+                                            <strong t-field="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="doc.currency_id != doc.company_id.currency_id">
+                                        <td>Exchange Rate</td>
+                                        <td class="text-end">
+                                            <span t-field="doc.exchange_rate"/>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-black" t-if="doc.currency_id != doc.company_id.currency_id">
+                                        <td><strong>Total (ETB)</strong></td>
+                                        <td class="text-end">
+                                            <strong t-field="doc.amount_total_etb" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Store Requisition under Local Procurement -->
+    <menuitem
+        id="menu_store_requisition"
+        name="Store Requisitions"
+        parent="procurement_base.menu_local_procurement_root"
+        action="action_store_requisition"
+        groups="procurement_store_requisition.group_store_requisition_user"
+        sequence="10"/>
+
+</odoo>

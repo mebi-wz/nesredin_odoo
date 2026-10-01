@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.procurement</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="90"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Procurement" string="Procurement" name="procurement">
+                    <block title="Procurement Settings" name="procurement_settings">
+                        <setting title="CEO Approval Threshold" help="Local Purchase Requisitions with total amount below this threshold will skip CEO approval.">
+                            <field name="pr_ceo_approval_threshold"/>
+                        </setting>
+                        <setting title="RFQ Creation Threshold" help="Limit RFQ creation based on total amount.">
+                            <group>
+                                <field name="rfq_threshold_from"/>
+                                <field name="rfq_threshold_to"/>
+                            </group>
+                        </setting>
+                    </block>
+                    <block title="Letter of Credit (LC)" name="lc_settings">
+                        <setting title="LC Validity Duration" help="Number of days from the issue date until the LC expires. The expiry date will auto-compute when setting the issue date.">
+                            <field name="lc_expiry_days"/>
+                        </setting>
+                        <setting title="LC Expiry Alert" help="Show a warning on the LC form when the number of remaining days falls below this value.">
+                            <field name="lc_alert_days"/>
+                        </setting>
+                    </block>
+                    <block title="Receipt Settings" name="po_receipt_settings">
+                        <setting title="Receipt Date Automation" help="Automatically set incoming stock receipt scheduled dates to the Purchase Order expected arrival date.">
+                            <field name="set_po_date_as_receipt_date"/>
+                        </setting>
+                    </block>
+
+                </app>
+
+            </xpath>
+        </field>
+    </record>
+</odoo>

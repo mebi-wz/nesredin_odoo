@@ -1,0 +1,52 @@
+<odoo>
+<record id="view_current_market_analysis_form" model="ir.ui.view">
+    <field name="name">current.market.analysis.form</field>
+    <field name="model">current.market.analysis</field>
+    <field name="arch" type="xml">
+        <form string="Current Market Analysis">
+            <sheet>
+                <group>
+                    <field name="product_id" readonly="1"/>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom">
+                        <field name="importer"/>
+                        <field name="manufacturer"/>
+                        <field name="uom_id"/>
+                        <field name="available_stock"/>
+                        <field name="selling_unit_price"/>
+                        <field name="epss_stock_volume"/>
+                        <field name="local_manufacturer_stock_rm_status"/>
+                    </list>
+                </field>
+            </sheet>
+        </form>
+    </field>
+</record>
+
+<record id="view_future_market_analysis_form" model="ir.ui.view">
+    <field name="name">future.market.analysis.form</field>
+    <field name="model">future.market.analysis</field>
+    <field name="arch" type="xml">
+        <form string="Future Market Analysis">
+            <sheet>
+                <group>
+                    <field name="product_id" readonly="1"/>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom">
+                        <field name="importer"/>
+                        <field name="manufacturer"/>
+                        <field name="uom_id"/>
+                        <field name="private_unit_price"/>
+                        <field name="private_quantity"/>
+                        <field name="private_ordered_date"/>
+                        <field name="epss_unit_price"/>
+                        <field name="epss_winer_manufacturer"/>
+                    </list>
+                </field>
+            </sheet>
+        </form>
+    </field>
+</record>
+</odoo>

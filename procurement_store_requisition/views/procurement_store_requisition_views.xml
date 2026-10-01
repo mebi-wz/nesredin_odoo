@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST -->
+    <record id="view_store_requisition_list" model="ir.ui.view">
+        <field name="name">store.requisition.list</field>
+        <field name="model">store.requisition</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="requested_by"/>
+                <field name="department_id"/>
+                <field name="date_requisition"/>
+                <field name="state"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ['submitted', 'verified', 'budget_approved', 'waiting']"
+                       decoration-success="state == 'processed'"
+                       decoration-primary="state == 'received'"
+                       decoration-danger="state == 'cancelled'"
+                       widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_store_requisition_form" model="ir.ui.view">
+        <field name="name">store.requisition.form</field>
+        <field name="model">store.requisition</field>
+        <field name="arch" type="xml">
+            <form string="Store Requisition">
+                <header>
+                    <button name="action_approve" type="object"
+                            string="Submit" invisible="state != 'draft'" class="oe_highlight"
+                            groups="procurement_store_requisition.group_store_requisition_user"/>
+                    <button name="action_approve" type="object"
+                            string="Dept Manager Approve" invisible="state != 'submitted'" class="oe_highlight"
+                            groups="procurement_store_requisition.group_store_requisition_verifier"/>
+                    <button name="action_approve" type="object"
+                            string="Finance Approve" invisible="state != 'verified'" class="oe_highlight"
+                            groups="procurement_store_requisition.group_store_requisition_budget_manager"/>
+                    <!-- Process → only when stock exists -->
+                    <button name="action_store_process"
+                            type="object"
+                            string="Process"
+                            class="oe_highlight"
+                            invisible="state != 'budget_approved' or has_shortage"
+                            groups="procurement_store_requisition.group_store_requisition_manager"/>
+                   
+                    <button name="action_approve" type="object"
+                            string="Closed" invisible="state != 'processed' or not is_requester" class="oe_highlight"
+                            groups="procurement_store_requisition.group_store_requisition_user"/>
+
+                    <button name="action_draft" type="object"
+                            string="Reset to Draft" invisible="state != 'cancelled'"
+                            groups="procurement_store_requisition.group_store_requisition_user"/>
+
+                    <button name="action_cancel" type="object"
+                            string="Cancel" invisible="state not in ['draft', 'submitted', 'verified', 'budget_approved']"
+                            groups="procurement_store_requisition.group_store_requisition_manager"/>
+                    <field name="is_requester" invisible="1"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,verified,budget_approved,received"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_pickings" type="object" class="oe_stat_button" icon="fa-truck" invisible="picking_count == 0">
+                            <field name="picking_count" widget="statinfo" string="Pickings"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="requested_by" readonly="state != 'draft'"/>
+                            <field name="department_id" readonly="state != 'draft'"/>
+                            <field name="cost_center_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="date_requisition" readonly="state != 'draft'"/>
+                            <field name="warehouse_id" readonly="state != 'draft'"/>
+                            <field name="location_id" invisible="1"/>
+                            <field name="purpose" readonly="state != 'draft'" placeholder="Reason for requisition..."/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products" name="products">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id" readonly="state != 'draft'"/>
+                                    <field name="uom_id" readonly="state != 'draft'"/>
+                                    <field name="qty_on_hand" readonly="1" force_save="1" column_invisible="parent.state != 'budget_approved'"/>
+                                    <field name="stock_status" 
+                                           decoration-success="stock_status == 'available'" 
+                                           decoration-warning="stock_status == 'partial'" 
+                                           decoration-danger="stock_status == 'shortage'" 
+                                           widget="badge" 
+                                           readonly="1" 
+                                           force_save="1" 
+                                           column_invisible="1"/>
+                                    <field name="quantity" readonly="state != 'draft'"/>
+                                    <field name="unit_price" readonly="state != 'draft'"/>
+                                    <field name="cost_center_id" optional="show"/>
+                                    <field name="total_price" readonly="state != 'draft'"/>
+                                    <field name="budget_category_id" string="Budgetary Position" column_invisible="parent.state != 'verified'"/>
+                                    <field name="remaining_budget" readonly="1" column_invisible="parent.state != 'verified'"/>
+                                    <field name="account_id" column_invisible="parent.state != 'verified'" />
+                                    <field name="qty_transferred" readonly="1" invisible="parent.state == 'draft'"/>
+                                    <field name="issued_qty" invisible="parent.state not in ['budget_approved', 'waiting', 'partial']" readonly="parent.state not in ['budget_approved', 'waiting', 'partial']"/>
+                                    <field name="state" column_invisible="True"/>
+   
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+</odoo>

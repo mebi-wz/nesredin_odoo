@@ -1,0 +1,51 @@
+<odoo>
+
+    <!-- Demo Analytic Plan -->
+    <record id="demo_analytic_plan" model="account.analytic.plan">
+        <field name="name">Demo Plan</field>
+    </record>
+
+    <!-- Demo Analytic Account (Budget Category) -->
+    <record id="demo_budget_category" model="account.analytic.account">
+        <field name="name">Demo Budget Category</field>
+        <field name="plan_id" ref="demo_analytic_plan"/>
+    </record>
+
+    <!-- Demo Budget Analytic -->
+    <record id="demo_budget_analytic" model="budget.analytic">
+        <field name="name">Demo Budget 2026</field>
+        <field name="date_from" eval="time.strftime('%Y-01-01')"/>
+        <field name="date_to" eval="time.strftime('%Y-12-31')"/>
+        <field name="state">confirmed</field>
+    </record>
+
+    <!-- Demo Budget Line -->
+    <record id="demo_budget_line_1" model="budget.line">
+        <field name="budget_analytic_id" ref="demo_budget_analytic"/>
+        <field name="budget_amount">10000.0</field>
+        <field name="account_id" ref="demo_budget_category"/>
+    </record>
+
+    <!-- Demo Product -->
+    <record id="demo_product_1" model="product.product">
+        <field name="name">Demo Product 1</field>
+        <field name="type">consu</field>
+    </record>
+
+    <!-- Demo Store Requisition -->
+    <record id="demo_store_requisition_1" model="store.requisition">
+        <field name="name">MTIV/OF/26/00001</field>
+        <field name="warehouse_id" ref="stock.warehouse0"/>
+        <field name="request_type">local</field>
+        <field name="purpose">Demo requisition for testing</field>
+        <field name="date_requisition" eval="datetime.now()"/>
+        <field name="line_ids" eval="[
+            (0, 0, {
+                'product_id': ref('demo_product_1'),
+                'quantity': 5,
+                'unit_price': 100.0
+            })
+        ]"/>
+    </record>
+
+</odoo>

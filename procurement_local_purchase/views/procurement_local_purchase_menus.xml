@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Local Requisition under Local Procurement -->
+    <menuitem
+        id="menu_local_purchase_requisition"
+        name="Purchase Request"
+        parent="procurement_base.menu_local_procurement_root"
+        action="action_local_purchase_requisitions"
+        groups="procurement_store_requisition.group_store_requisition_user"
+        sequence="20"/>
+   <menuitem
+        id="menu_local_payment_request"
+        name="Payment Request Without PO"
+        parent="procurement_base.menu_local_procurement_root"
+        action="action_local_payment_request"
+        groups="procurement_store_requisition.group_store_requisition_user"
+        sequence="30"/>
+
+    <menuitem
+        id="menu_local_purchase_orders"
+        name="Purchase Orders"
+        parent="procurement_base.menu_local_procurement_root"
+        action="action_local_purchase_orders"
+        groups="procurement_local_purchase.group_local_purchase_pr_manager,procurement_local_purchase.group_local_purchase_ceo"
+        sequence="40"/>
+
+    <record id="action_local_vendors" model="ir.actions.act_window">
+        <field name="name">Local Vendors</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('vendor_type', '=', 'local')]</field>
+        <field name="context">{'default_vendor_type': 'local', 'default_supplier_rank': 1}</field>
+    </record>
+
+    <menuitem
+        id="menu_local_vendors"
+        name="Local Vendors"
+        parent="procurement_base.menu_local_procurement_root"
+        action="action_local_vendors"
+        sequence="50"/>
+
+</odoo>

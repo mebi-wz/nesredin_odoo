@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- LC List View -->
+    <record id="view_foreign_lc_list" model="ir.ui.view">
+        <field name="name">foreign.lc.list</field>
+        <field name="model">foreign.lc</field>
+        <field name="arch" type="xml">
+            <list string="Payment Instruments"
+                  decoration-danger="is_expired == True">
+                <field name="name"/>
+                <field name="instrument_type"/>
+                <field name="lc_number" string="Instrument Reference"/>
+                <field name="purchase_order_id"/>
+                <field name="vendor_id"/>
+                <field name="lc_type" invisible="instrument_type != 'lc'"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id"/>
+                <field name="issuing_bank"/>
+                <field name="issue_date"/>
+                <field name="start_date"/>
+                <field name="expiry_date"/>
+                <field name="days_to_expiry"/>
+                <field name="is_expired" column_invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('issued', 'amended')"
+                       decoration-success="state == 'active'"
+                       decoration-danger="state == 'expired'"
+                       decoration-muted="state in ('closed', 'cancelled')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- LC Form View -->
+    <record id="view_foreign_lc_form" model="ir.ui.view">
+        <field name="name">foreign.lc.form</field>
+        <field name="model">foreign.lc</field>
+        <field name="arch" type="xml">
+            <form string="Payment Instrument">
+                <header>
+                    <button name="action_issue" string="Submit" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_activate" string="Activate" type="object" invisible="state != 'issued'" class="oe_highlight"/>
+                    <button name="action_amend" string="Amend" type="object" invisible="state != 'active'"/>
+                    <button name="action_expire" string="Mark Expired" type="object" invisible="state not in ('active', 'amended')"/>
+                    <button name="action_close" string="Close" type="object" invisible="state not in ('active', 'amended', 'expired')"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('closed', 'cancelled')"/>
+                    <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,expired,closed"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="not is_expired">
+                        <strong>This Instrument has expired!</strong> Expiry date has passed.
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not is_near_expiry">
+                        <strong>Warning:</strong> This Instrument expires in <field name="days_to_expiry" class="oe_inline"/> days.
+                    </div>
+                    <field name="is_expired" invisible="1"/>
+                    <field name="is_near_expiry" invisible="1"/>
+
+                    <!-- Main Info Groups -->
+                    <group>
+                        <group>
+                            <field name="purchase_order_id" readonly="state != 'draft'"/>
+                            <field name="instrument_type" readonly="state != 'draft'"/>
+                            <field name="lc_number" string="Reference Number" readonly="state not in ('draft', 'issued')"/>
+                            <field name="lc_type" invisible="instrument_type != 'lc'" required="instrument_type == 'lc'" readonly="state not in ('draft', 'issued')"/>
+                            <field name="issue_date" readonly="state not in ('draft', 'issued')"/>
+                            <field name="expiry_date" readonly="state not in ('draft', 'issued', 'amended')"/>
+                            <field name="last_shipment_date" readonly="state not in ('draft', 'issued', 'amended')"/>
+                        </group>
+                        <group>
+                            <field name="issuing_bank" readonly="state not in ('draft', 'issued')"/>
+                            <field name="bank_branch" readonly="state not in ('draft', 'issued')"/>
+                            <field name="request_approved_date"/>
+                            <field name="total_amount_usd" readonly="1"/>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="exchange_rate" readonly="1"/>
+                            <field name="total_amount_etb" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Approved Dates -->
+                    <separator string="Approved Dates" invisible="instrument_type != 'lc'"/>
+                    <group invisible="instrument_type != 'lc'">
+                        <group>
+                            <field name="draft_lc_approved_date"/>
+                            <field name="draft_lc_approved_date_supplier"/>
+                        </group>
+                        <group>
+                            <field name="lc_send_date_supplier"/>
+                            <field name="lc_received_date_bank"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="LC Draft Reconciliation" name="draft_reconciliation" invisible="instrument_type != 'lc'">
+                            <field name="draft_reconciliation_ids">
+                                <list editable="bottom">
+                                    <field name="step_order" string="Step Order"/>
+                                    <field name="name" string="Name"/>
+                                    <field name="state" string="State" widget="badge"
+                                           decoration-success="state == 'right'"
+                                           decoration-danger="state == 'wrong'"
+                                           decoration-warning="state == 'pending'"/>
+                                    <field name="remark" string="Remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Amendments" name="amendments" invisible="instrument_type == 'tt'">
+                            <field name="amendment_ids">
+                                <list editable="bottom">
+                                    <field name="amendment_no"/>
+                                    <field name="amendment_date"/>
+                                    <field name="new_amount"/>
+                                    <field name="new_expiry_date"/>
+                                    <field name="description"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Attachments" name="attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Remarks" name="remarks">
+                            <field name="remarks"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_local_rfq_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row">
+                            <!-- Supplier details on the left -->
+                            <div class="col-6">
+                                <strong>Supplier:</strong>
+                                <div>
+                                    <span style="font-weight: bold;">Multiple Suppliers (Winning Quotes)</span><br/>
+                                    <span>As detailed in the Comparison table below.</span>
+                                </div>
+                            </div>
+                            <!-- Requester details on the right -->
+                            <div class="col-6 text-end">
+                                <strong>Request Details:</strong>
+                                <div>
+                                    <span t-if="doc.requested_by">Officer: <span t-field="doc.requested_by.name"/></span><br/>
+                                    <span t-if="doc.requisition_id">Source Requisition: <span t-field="doc.requisition_id.name"/></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 class="mt-4 mb-4">
+                            <span>Local Request for Quotation # </span>
+                            <span t-field="doc.name"/>
+                        </h2>
+
+                        <!-- Info Grid -->
+                        <div class="row mt-3 mb-4 border-top border-bottom py-2" style="font-size: 13px;">
+                            <div class="col-3">
+                                <strong>RFQ Date:</strong>
+                                <p class="m-0" t-field="doc.date_rfq" t-options='{"widget": "date"}'/>
+                            </div>
+                            <div class="col-3">
+                                <strong>Source Requisition:</strong>
+                                <p class="m-0" t-field="doc.requisition_id.name"/>
+                            </div>
+                            <div class="col-3">
+                                <strong>Selection Method:</strong>
+                                <p class="m-0" t-field="doc.winner_selection_method"/>
+                            </div>
+                            <div class="col-3">
+                                <strong>Currency:</strong>
+                                <p class="m-0" t-field="doc.company_id.currency_id.name"/>
+                            </div>
+                        </div>
+
+                        <!-- Products Table -->
+                        <table class="table table-sm o_main_table mt-4" style="font-size: 13px;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 5%;">No</th>
+                                    <th class="text-start" style="width: 35%;">Product Description</th>
+                                    <th class="text-center" style="width: 10%;">UoM</th>
+                                    <th class="text-end" style="width: 10%;">Qty</th>
+                                    <th class="text-start" style="width: 20%;">Winning Supplier</th>
+                                    <th class="text-end" style="width: 10%;">Unit Price</th>
+                                    <th class="text-end" style="width: 10%;">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="i" t-value="1"/>
+                                <t t-foreach="doc.quote_ids.filtered(lambda q: q.selected)" t-as="quote">
+                                    <tr>
+                                        <td class="text-center">
+                                            <span t-esc="i"/>
+                                        </td>
+                                        <td class="text-start">
+                                            <span t-field="quote.product_id.name"/><br/>
+                                            <small class="text-muted" t-if="quote.pr_line_id.description and quote.pr_line_id.description != quote.product_id.name">
+                                                <span t-field="quote.pr_line_id.description"/>
+                                            </small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="quote.pr_line_id.product_uom_id.name"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="quote.pr_line_id.quantity"/>
+                                        </td>
+                                        <td class="text-start">
+                                            <span t-field="quote.partner_id.name"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="quote.price_unit" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-field="quote.total_price" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                    <t t-set="i" t-value="i+1"/>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Totals Section -->
+                        <div class="row justify-content-end" style="page-break-inside: avoid;">
+                            <div class="col-5">
+                                <table class="table table-sm border-0">
+                                    <tr class="border-black o_total">
+                                        <td><strong>Total Amount</strong></td>
+                                        <td class="text-end">
+                                            <strong t-field="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Committee Actions & Approvals -->
+                        <div class="mt-4" t-if="doc.approval_ids" style="page-break-inside: avoid;">
+                            <div style="font-size: 16px; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px;">
+                                Committee Approvals
+                            </div>
+                            <table class="table table-sm" style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Committee Member</th>
+                                        <th>Action Taken</th>
+                                        <th>Date &amp; Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="doc.approval_ids" t-as="action">
+                                        <tr>
+                                            <td><span t-field="action.user_id.name"/></td>
+                                            <td><span t-field="action.action_type"/></td>
+                                            <td><span t-field="action.approval_date" t-options='{"widget": "datetime"}'/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="mt-4" style="page-break-inside: avoid;">
+                            <div style="font-size: 16px; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px;">
+                                Terms and Conditions
+                            </div>
+                            <div style="font-size: 13px;">
+                                <p class="m-1">1. Products should have minimum 80% of its shelf life on arrival.</p>
+                                <p class="m-1">2. Language used for writing label, leaflet and other documents shall be English.</p>
+                                <p class="m-1">3. All packing should be suitable for transport.</p>
+                                <p class="m-1">4. The price is inclusive of all taxes unless stated otherwise.</p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

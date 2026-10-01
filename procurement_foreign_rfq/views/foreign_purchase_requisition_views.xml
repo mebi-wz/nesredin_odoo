@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_foreign_purchase_requisition_form_inherit_rfq" model="ir.ui.view">
+        <field name="name">foreign.purchase.requisition.form.inherit.rfq</field>
+        <field name="model">foreign.purchase.requisition</field>
+        <field name="inherit_id" ref="procurement_foreign_purchase.view_foreign_purchase_requisition_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_create_rfq" type="object" string="Create RFQ" invisible="state != 'approved'" class="oe_highlight"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_pos" type="object" class="oe_stat_button" icon="fa-shopping-cart" invisible="po_count == 0">
+                    <field name="po_count" widget="statinfo" string="Purchase Orders"/>
+                </button>
+                <button name="action_view_rfqs" type="object" class="oe_stat_button" icon="fa-file-text-o" invisible="rfq_count == 0">
+                    <field name="rfq_count" widget="statinfo" string="RFQs"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>
