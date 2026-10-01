@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="purchase.menu_purchase_root" name="Procurement"/>
+
+
+    <!-- Shared Local Procurement Root Menu (under Purchase) -->
+    <menuitem
+        id="menu_local_procurement_root"
+        name="Local Procurement"
+        parent="purchase.menu_purchase_root"
+        sequence="0"/>
+    <menuitem id="menu_foreign_purchase_root" name="Foreign Procurement"
+              parent="purchase.menu_purchase_root"
+              sequence="0"/>
+
+</odoo>

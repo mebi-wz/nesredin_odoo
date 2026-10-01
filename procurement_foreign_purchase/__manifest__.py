@@ -1,0 +1,32 @@
+{
+    "name": "Foreign Procurement",
+    "version": "19.0.1.4",
+    "category": "Inventory/Procurement",
+    "summary": "Foreign purchase requisition for procurement process",
+    "author": "Consulting",
+    "depends": [
+        "procurement_base",
+        "procurement_store_requisition",
+        "base_account_budget",
+        "stock_landed_costs",
+    ],
+    "data": [
+        "security/foreign_purchase_security.xml",
+        "security/foreign_purchase_record_rule.xml",
+        "security/ir.model.access.csv",
+        "data/foreign_purchase_data.xml",
+        "views/procurement_foreign_purchase_views.xml",
+        "views/procurement_foreign_purchase_actions.xml",
+        "views/procurement_foreign_purchase_menus.xml",
+        "views/procurement_foreign_ma_view.xml",
+        "views/procurement_foreign_potential_vendors.xml",
+        "views/purchase_order_views.xml",
+    ],
+    "demo": [
+        "demo/foreign_purchase_demo.xml",
+    ],
+    "installable": True,
+    "application": False,
+    "auto_install": False,
+    "license": "LGPL-3",
+}

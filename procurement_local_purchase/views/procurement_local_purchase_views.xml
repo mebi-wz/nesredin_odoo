@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST -->
+    <record id="view_local_purchase_requisition_list" model="ir.ui.view">
+        <field name="name">local.purchase.requisition.list</field>
+        <field name="model">local.purchase.requisition</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="requested_by"/>
+                <field name="department_id"/>
+                <field name="date_requisition"/>
+                <field name="state"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ['submitted', 'verified', 'budget_approved']"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'cancelled'"
+                       widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_local_purchase_requisition_form" model="ir.ui.view">
+        <field name="name">local.purchase.requisition.form</field>
+        <field name="model">local.purchase.requisition</field>
+        <field name="arch" type="xml">
+            <form string="Purchase Request">
+              <header>
+                <!-- Submit -->
+                <button name="action_submit" type="object"
+                        string="Submit"
+                        invisible="state != 'draft'"
+                        class="oe_highlight"
+                        groups="procurement_store_requisition.group_store_requisition_user"/>
+
+                <!-- Dept Manager -->
+                <button name="action_approve" type="object"
+                        string="Dept Manager Approve"
+                        invisible="state != 'submitted'"
+                        class="oe_highlight"
+                        groups="procurement_local_purchase.group_local_purchase_dept_manager"/>
+
+                <!-- Finance -->
+                <button name="action_approve" type="object"
+                        string="Finance Approve"
+                        invisible="state != 'verified'"
+                        class="oe_highlight"
+                        groups="procurement_store_requisition.group_store_requisition_budget_manager"/>
+
+                <!-- PR Manager Button Removed -->
+
+                <!-- CEO (only reached if above threshold) -->
+                <button name="action_approve" type="object"
+                        string="CEO Approve"
+                        invisible="state != 'pr_manager_approved'"
+                        class="oe_highlight"
+                        groups="procurement_local_purchase.group_local_purchase_ceo"/>
+
+                <!-- Reject -->
+                <button name="action_cancel" type="object"
+                        string="Reject"
+                        invisible="state not in ['submitted', 'verified', 'pr_manager_approved']"
+                        groups="procurement_local_purchase.group_local_purchase_dept_manager,procurement_local_purchase.group_local_purchase_ceo"/>
+
+                <!-- Create PO — shows when approved and method is po -->
+                <button name="action_create_po" type="object"
+                        string="Create PO"
+                        invisible="state != 'approved' or procurement_method != 'po' or po_count > 0"
+                        class="oe_highlight"
+                        groups="procurement_local_purchase.group_local_purchase_dept_manager,procurement_local_purchase.group_local_purchase_ceo"/>
+
+                <button name="action_draft" type="object"
+                        string="Reset to Draft"
+                        invisible="state != 'cancelled'"
+                        groups="procurement_store_requisition.group_store_requisition_user"/>
+
+                <field name="state" widget="statusbar"
+                    statusbar_visible="draft,submitted,verified,pr_manager_approved,approved"/>
+            </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_pos" type="object" class="oe_stat_button" icon="fa-shopping-cart" invisible="po_count == 0">
+                            <field name="po_count" widget="statinfo" string="Purchase Orders"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="requested_by" readonly="state not in ['draft', 'submitted']"/>
+                            <field name="department_id" readonly="state != 'draft'"/>
+                            <field name="cost_center_id" readonly="state != 'draft'"/>
+                            <field name="purchase_type" invisible="1"/>
+                            <field name="amount_total" invisible="1"/>
+                            <field name="store_requisition_id" readonly="1" invisible="store_requisition_id == 0" string="Store Requisition"/>
+
+                        </group>
+                        <group>
+                            <field name="product_type" readonly="state != 'draft'"/>
+                            <field name="date_requisition" readonly="state != 'draft'"/>
+                            <field name="procurement_method" />
+                            <field name="purpose" readonly="state != 'draft'" placeholder="Reason for requisition..."/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products" name="products">
+                            <field name="line_ids" >
+                                <list editable="bottom">
+                                    <field name="product_id" readonly="state != 'draft'"/>
+                                    <field name="description" readonly="state != 'draft'"/>
+                                    <field name="product_uom_id" readonly="state != 'draft'"/>
+                                    <field name="quantity" readonly="state != 'draft'"/>
+                                    <field name="cost_center_id" readonly="state != 'draft'" optional="show"/>
+                                    <field name="budget_category_id" string="Budgetary Position" column_invisible="parent.state != 'verified'"/>
+                                    <field name="account_id" column_invisible="True"/>
+                                    <field name="remaining_budget" column_invisible="parent.state != 'verified'"/>
+                                    <field name="unit_price" readonly="state != 'draft'"/>
+                                    <field name="total_price" readonly="state != 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+</odoo>

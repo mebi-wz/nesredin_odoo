@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_foreign_rfq" model="ir.actions.report">
+        <field name="name">Foreign RFQ</field>
+        <field name="model">foreign.rfq</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">procurement_foreign_rfq.report_foreign_rfq_template</field>
+        <field name="report_file">procurement_foreign_rfq.report_foreign_rfq_template</field>
+        <field name="print_report_name">'RFQ - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_foreign_rfq"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_local_purchase_requisitions" model="ir.actions.act_window">
+        <field name="name">Local Purchase Requisitions</field>
+        <field name="res_model">local.purchase.requisition</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first local purchase requisition
+            </p>
+        </field>
+    </record>
+
+    <record id="action_local_purchase_orders" model="ir.actions.act_window">
+        <field name="name">Local Purchase Orders</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('request_type', '=', 'local')]</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Local Purchase Orders found
+            </p>
+        </field>
+    </record>
+
+    <!-- Inherit PO List View -->
+    <record id="purchase_order_view_tree_inherit_local" model="ir.ui.view">
+        <field name="name">purchase.order.list.inherit.local</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="local_purchase_request_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit PO Form View -->
+    <record id="purchase_order_form_inherit_local" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.local</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="local_purchase_request_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

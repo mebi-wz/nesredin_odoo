@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_foreign_payment_request,foreign.payment.request,model_foreign_payment_request,base.group_user,1,1,1,1
+access_foreign_payment_request_line,foreign.payment.request.line,model_foreign_payment_request_line,base.group_user,1,1,1,1
+access_purchase_import_margin,purchase.import.margin,model_purchase_import_margin,base.group_user,1,1,1,1
+access_foreign_lc,foreign.lc,model_foreign_lc,base.group_user,1,1,1,1
+access_foreign_lc_amendment,foreign.lc.amendment,model_foreign_lc_amendment,base.group_user,1,1,1,1
+access_foreign_lc_draft_reconciliation,foreign.lc.draft.reconciliation,model_foreign_lc_draft_reconciliation,base.group_user,1,1,1,1
+access_purchase_shipping_reconciliation,purchase.shipping.reconciliation,model_purchase_shipping_reconciliation,base.group_user,1,1,1,1
+access_foreign_rfq_cost_line,foreign.rfq.cost.line,model_foreign_rfq_cost_line,base.group_user,1,1,1,1
+access_stock_landed_cost_summary,stock.landed.cost.summary,model_stock_landed_cost_summary,base.group_user,1,1,1,1

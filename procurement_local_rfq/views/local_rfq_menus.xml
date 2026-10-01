@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Local RFQ under Local Procurement -->
+    <menuitem
+        id="menu_local_rfq"
+        name="Request for Quotation"
+        parent="procurement_base.menu_local_procurement_root"
+        action="action_local_rfq"
+        sequence="30"/>
+
+</odoo>

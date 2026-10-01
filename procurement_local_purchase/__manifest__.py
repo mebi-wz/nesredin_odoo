@@ -1,0 +1,32 @@
+{
+    "name": "Local Procurement",
+    "version": "19.0.1.5",
+    "category": "Inventory/Procurement",
+    "summary": "Local purchase requisition for procurement process",
+    "author": "Mehbuba",
+    "depends": [
+        "procurement_base",
+        "procurement_store_requisition",
+        "base_account_budget",
+        "stock_landed_costs",
+    ],
+    "data": [
+        "security/local_purchase_security.xml",
+        "security/local_purchase_rules.xml",
+        "security/ir.model.access.csv",
+        "data/local_purchase_data.xml",
+        "data/payment_request_sequence.xml",
+        "views/procurement_local_purchase_views.xml",
+        "views/local_payment_request_views.xml",
+        "views/store_requisition_extension_views.xml",
+        "views/procurement_local_purchase_actions.xml",
+        "views/procurement_local_purchase_menus.xml",
+    ],
+    "demo": [
+        "demo/local_purchase_demo.xml",
+    ],
+    "installable": True,
+    "application": False,
+    "auto_install": False,
+    "license": "LGPL-3",
+}

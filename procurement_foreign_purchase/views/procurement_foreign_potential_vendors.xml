@@ -1,0 +1,30 @@
+<odoo>
+<record id="view_potential_vendors_form" model="ir.ui.view">
+    <field name="name">potential.vendors.form</field>
+    <field name="model">potential.vendors</field>
+    <field name="arch" type="xml">
+        <form string="Potential Vendors">
+            <sheet>
+                <group>
+                    <field name="requisition_line_id" readonly="1"/>
+                </group>
+
+                <notebook>
+                    <page string="Vendors">
+                        <field name="line_ids">
+                            <list editable="bottom">
+                                <field name="manufacturer"/>
+                                <field name="price"/>
+                                <field name="shelf_life_in_month"/>
+                                <field name="foreign_is_sup_registered"/>
+                             
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+
+            </sheet>
+        </form>
+    </field>
+</record>
+</odoo>

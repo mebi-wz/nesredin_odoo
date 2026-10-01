@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_foreign_purchase_requisition_list" model="ir.ui.view">
+        <field name="name">foreign.purchase.requisition.list</field>
+        <field name="model">foreign.purchase.requisition</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="requested_by"/>
+                <field name="department_id"/>
+                <field name="date_requisition"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ('submitted', 'manager_verified', 'budget_approved')"
+                       decoration-danger="state == 'rejected'"
+                       decoration-success="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_foreign_purchase_requisition_form" model="ir.ui.view">
+        <field name="name">foreign.purchase.requisition.form</field>
+        <field name="model">foreign.purchase.requisition</field>
+        <field name="arch" type="xml">
+            <form string="Foreign Purchase Request">
+                <header>
+                    <button name="action_approve" type="object" string="Submit" invisible="state != 'draft'" class="oe_highlight" groups="procurement_foreign_purchase.group_foreign_purchase_user"/>
+                    <button name="action_approve" type="object" string="Manager Verify" invisible="state != 'submitted'" class="oe_highlight" groups="procurement_foreign_purchase.group_foreign_purchase_manager"/>
+                    <button name="action_approve" type="object" string="Finance Approve" invisible="state != 'manager_verified'" class="oe_highlight" groups="procurement_foreign_purchase.group_foreign_purchase_budget"/>
+                    <button name="action_approve" type="object" string="CEO Approve" invisible="state != 'budget_approved'" class="oe_highlight" groups="procurement_foreign_purchase.group_foreign_purchase_ceo"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ['approved', 'cancelled', 'rejected', 'rfq_created']" groups="procurement_foreign_purchase.group_foreign_purchase_manager"/>
+                    <button name="action_draft" type="object" string="Reset to Draft" invisible="state != 'cancelled'" groups="procurement_foreign_purchase.group_foreign_purchase_user"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,manager_verified,budget_approved,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="requested_by" readonly="state != 'draft'"/>
+                            <field name="department_id" readonly="state != 'draft'"/>
+                            <field name="cost_center_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="product_type" readonly="state != 'draft'"/>
+                            <field name="date_requisition" readonly="state != 'draft'"/>
+                            <field name="purpose" readonly="state != 'draft'"/>
+                         
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products" name="products">
+                            <field name="line_ids" >
+                                <list editable="bottom">
+                                    <field name="line_no" readonly="1"/>
+                                    <field name="product_id" readonly="state != 'draft'"/>
+                                    <field name="description" readonly="state != 'draft'"/>
+                                    <field name="product_uom_id" readonly="state != 'draft'"/>
+                                    <field name="quantity" readonly="state != 'draft'"/>
+                                    <field name="cost_center_id" readonly="state != 'draft'" column_invisible="1"/>
+                                    <field name="unit_price" readonly="state != 'draft'"/>
+                                    <field name="total_price" readonly="state != 'draft'"/>
+                                    <field name="budget_category_id" string="Budgetary Position" column_invisible="parent.state != 'manager_verified'"/>
+                                    <field name="account_id" column_invisible="True"/>
+                                    <field name="remaining_budget" readonly="1" column_invisible="parent.state != 'manager_verified'"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="amount_total" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </page>
+                        <page string="Requested Product info" name="requestedproductinfo">
+                        <field name="line_ids" readonly="1">
+                            <list create="false" delete="false">
+                                <field name="line_no" readonly="1"/>
+                                <field name="product_id" readonly="1"/>
+                                <field name="is_budget_product" readonly="1"/>
+                                <field name="avg_monthly_consumption" readonly="1"/>
+                                <field name="current_balance" readonly="1"/>
+                                <field name="estimated_selling_price" readonly="1"/>
+                                <field name="margin" readonly="1"/>
+                                <field name="arrival_time" readonly="1"/>
+                            </list>
+                        </field>
+                        </page>
+                        <page string="Current Market Analysis" name="current_market">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="line_no" readonly="1"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <button name="open_current_market_analysis"
+                                            type="object"
+                                            string="Current Market"
+                                            icon="fa-line-chart"
+                                            class="btn-primary"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Future Market Analysis" name="future_market">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="line_no" readonly="1"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <button name="open_future_market_analysis"
+                                            type="object"
+                                            string="Future Market"
+                                            icon="fa-line-chart"
+                                            class="btn-primary"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Potential Vendors" name="potential_vendors">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="line_no" readonly="1"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <button name="action_open_potential_vendors"
+                                            type="object"
+                                            string="Potential Vendors"
+                                            icon="fa-users"
+                                            class="btn-primary"/>
+                                </list>
+                            </field>
+                        </page>
+                         <page string="Analysis Report" name="analysis_report">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="line_no" readonly="1"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="product_uom_id" readonly="1"/>
+                                    <field name="current_balance"/>
+                                    <field name="avg_monthly_consumption"/>
+                                    <field name="order_qty_and_current_stock"/>
+                                    <field name="four_month_qty"/>
+                                    <field name="six_month_qty"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+<!-- 
+    <record id="view_foreign_purchase_requisition_search" model="ir.ui.view">
+        <field name="name">foreign.purchase.requisition.search</field>
+        <field name="model">foreign.purchase.requisition</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="requested_by"/>
+                <field name="department_id"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Requester" name="group_by_requester" context="{'group_by': 'requested_by'}"/>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+</odoo>

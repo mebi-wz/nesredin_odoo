@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- Privilege for Committee - Use the shared category -->
+        <record id="privilege_local_rfq_committee" model="res.groups.privilege">
+            <field name="name">Local RFQ: Committee</field>
+            <field name="category_id" ref="procurement_store_requisition.category_store_requisition"/>
+            <field name="sequence">70</field>
+        </record>
+
+        <!-- New Group for Local RFQ Committee -->
+        <record id="group_local_rfq_committee" model="res.groups">
+            <field name="name">Allowed</field>
+            <field name="privilege_id" ref="privilege_local_rfq_committee"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="sequence">1</field>
+        </record>
+
+    </data>
+</odoo>

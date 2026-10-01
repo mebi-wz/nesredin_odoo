@@ -1,0 +1,80 @@
+<odoo>
+    <!-- Users -->
+    <record id="user_demo" model="res.users">
+        <field name="name">Demo User rfq</field>
+        <field name="login">demo1</field>
+    </record>
+    
+    <!-- Analytic Plans -->
+    <record id="analytic_plan_default" model="account.analytic.plan">
+        <field name="name">Default Plan</field>
+    </record>
+    <!-- Departments -->
+    <record id="dept_it" model="hr.department">
+        <field name="name">IT Department</field>
+    </record>
+
+    <!-- Analytic Accounts / Cost Centers -->
+    <record id="cost_center_it" model="account.analytic.account">
+        <field name="name">IT Department</field>
+        <field name="plan_id" ref="analytic_plan_default"/>
+    </record>
+
+    <!-- Budget Analytic -->
+    <record id="demo_budget_analytic_it" model="budget.analytic">
+        <field name="name">IT Budget 2026</field>
+        <field name="date_from" eval="time.strftime('%Y-01-01')"/>
+        <field name="date_to" eval="time.strftime('%Y-12-31')"/>
+        <field name="state">confirmed</field>
+    </record>
+    
+    <!-- Budget Line -->
+    <record id="demo_budget_line_it" model="budget.line">
+        <field name="budget_analytic_id" ref="demo_budget_analytic_it"/>
+        <field name="budget_amount">50000.0</field>
+        <!-- In Odoo 17+, budget.line mixins might automatically map plan fields. For demo, we might need to set the account_id explicitly if it's there -->
+        <field name="account_id" ref="cost_center_it"/>
+    </record>
+
+    <!-- Products -->
+    <record id="product_laptop" model="product.product">
+        <field name="name">Laptop</field>
+        <field name="type">consu</field>  
+    </record>
+    <record id="product_mouse" model="product.product">
+        <field name="name">Mouse</field>
+        <field name="type">consu</field>
+    </record>
+
+    <!-- Purchase Requisition with Lines -->
+    <record id="pr_demo_1" model="local.purchase.requisition">
+        <field name="name">PR-DL26/00001</field>
+        <field name="requested_by" ref="user_demo"/>
+        <field name="department_id" ref="dept_it"/>
+        <field name="procurement_method">rfq</field>
+        <field name="purpose">Demo purchase requisition for IT equipment</field>
+        <field name="state">draft</field>
+        <field name="line_ids" eval="[(0, 0, {
+            'product_id': ref('product_laptop'),
+            'quantity': 2,
+            'budget_category_id': ref('demo_budget_line_it'),
+        }), (0, 0, {
+            'product_id': ref('product_mouse'),
+            'quantity': 5,
+            'budget_category_id': ref('demo_budget_line_it'),
+        })]"/>
+    </record>
+
+
+    <!-- Purchase Order created from requisition -->
+    <record id="po_demo_1" model="purchase.order">
+        <field name="partner_id" ref="base.res_partner_1"/> <!-- default partner -->
+        <field name="local_purchase_request_id" ref="pr_demo_1"/>
+        <field name="origin">PR-DL26/00001</field>
+        <field name="state">draft</field>
+        <field name="order_line" eval="[
+            (0, 0, {'product_id': ref('product_laptop'), 'product_qty': 2, 'price_unit': 1200, 'date_planned': '2026-02-13 00:00:00'}),
+            (0, 0, {'product_id': ref('product_mouse'), 'product_qty': 5, 'price_unit': 25, 'date_planned': '2026-02-13 00:00:00'})
+        ]"/>
+    </record>
+</odoo>

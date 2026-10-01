@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Foreign PO Sequence -->
+        <record id="seq_po_foreign" model="ir.sequence">
+            <field name="name">Purchase Order Foreign</field>
+            <field name="code">purchase.order.foreign</field>
+            <field name="prefix">PO-F%(range_y)s</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+            <field name="use_date_range">True</field>
+        </record>
+
+        <!-- Local PO Sequence -->
+        <record id="seq_po_local" model="ir.sequence">
+            <field name="name">Purchase Order Local</field>
+            <field name="code">purchase.order.local</field>
+            <field name="prefix">PO-L%(range_y)s</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+            <field name="use_date_range">True</field>
+        </record>
+    </data>
+</odoo>

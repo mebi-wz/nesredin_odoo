@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="privilege_local_purchase_dept_manager" model="res.groups.privilege">
+            <field name="name">Local Purchase: Dept Manager</field>
+            <field name="category_id" ref="procurement_store_requisition.category_store_requisition"/>
+            <field name="sequence">45</field>
+        </record>
+
+        <!-- Privileges for checkboxes - Reference the shared category from store_requisition -->
+        <record id="privilege_local_purchase_pr_manager" model="res.groups.privilege">
+            <field name="name">Local Purchase: PR Manager</field>
+            <field name="category_id" ref="procurement_store_requisition.category_store_requisition"/>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="privilege_local_purchase_ceo" model="res.groups.privilege">
+            <field name="name">Local Purchase: CEO</field>
+            <field name="category_id" ref="procurement_store_requisition.category_store_requisition"/>
+            <field name="sequence">60</field>
+        </record>
+
+        <!-- New Groups for Local Purchase -->
+        <record id="group_local_purchase_dept_manager" model="res.groups">
+            <field name="name">Allowed</field>
+            <field name="privilege_id" ref="privilege_local_purchase_dept_manager"/>
+            <field name="implied_ids" eval="[(4, ref('procurement_store_requisition.group_store_requisition_user'))]"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="group_local_purchase_pr_manager" model="res.groups">
+            <field name="name">Allowed</field>
+            <field name="privilege_id" ref="privilege_local_purchase_pr_manager"/>
+            <field name="implied_ids" eval="[(4, ref('group_local_purchase_dept_manager'))]"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="group_local_purchase_ceo" model="res.groups">
+            <field name="name">Allowed</field>
+            <field name="privilege_id" ref="privilege_local_purchase_ceo"/>
+            <field name="implied_ids" eval="[(4, ref('group_local_purchase_pr_manager'))]"/>
+            <field name="sequence">1</field>
+        </record>
+
+    </data>
+</odoo>

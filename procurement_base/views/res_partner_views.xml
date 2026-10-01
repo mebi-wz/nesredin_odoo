@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Inherit partner form view to add vendor_type -->
+        <record id="view_partner_form_vendor_type" model="ir.ui.view">
+            <field name="name">res.partner.form.vendor.type</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='category_id']" position="after">
+                    <field name="vendor_type"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Inherit partner tree view to add vendor_type -->
+        <record id="view_partner_tree_vendor_type" model="ir.ui.view">
+            <field name="name">res.partner.tree.vendor.type</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//list" position="attributes">
+                    <attribute name="multi_edit">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='email']" position="after">
+                    <field name="vendor_type" optional="show"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

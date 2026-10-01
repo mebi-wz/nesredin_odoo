@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="seq_local_purchase_requisition" model="ir.sequence">
+            <field name="name">Local Purchase Requisition</field>
+            <field name="code">local.purchase.requisition</field>
+            <field name="prefix">PR-L%(range_y)s</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+            <field name="use_date_range">True</field>
+        </record>
+    </data>
+</odoo>

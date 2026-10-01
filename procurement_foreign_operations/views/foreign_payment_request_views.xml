@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Payment Request List View -->
+    <record id="view_foreign_payment_request_list" model="ir.ui.view">
+        <field name="name">foreign.payment.request.list</field>
+        <field name="model">foreign.payment.request</field>
+        <field name="arch" type="xml">
+            <list string="Payment Requests">
+                <field name="name"/>
+                <field name="purchase_order_id" readonly="1"/>
+                <field name="vendor_id"/>
+                <field name="payment_type" readonly="1"/>
+                <field name="amount" sum="Total Amount"/>
+                <field name="request_date"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-success="state in ('approved', 'paid')"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Payment Request Form View -->
+    <record id="view_foreign_payment_request_form" model="ir.ui.view">
+        <field name="name">foreign.payment.request.form</field>
+        <field name="model">foreign.payment.request</field>
+        <field name="arch" type="xml">
+            <form string="Payment Request">
+                <header>
+                    <button name="action_submit" string="Submit" type="object" invisible="state != 'draft'" class="oe_highlight" groups="procurement_foreign_purchase.group_foreign_purchase_user"/>
+                    <button name="action_approve" string="Approve &amp; Create Bill" type="object" invisible="state != 'submitted'" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_pay" string="Mark as Paid" type="object" invisible="state != 'approved'" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('paid', 'cancelled')" groups="procurement_foreign_purchase.group_foreign_purchase_manager"/>
+                    <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'cancelled'" groups="procurement_foreign_purchase.group_foreign_purchase_user"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                         <button name="action_view_vendor_bill" type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                                invisible="not vendor_bill_id">
+                            <field name="vendor_bill_id" invisible="1"/>
+                            <span>Vendor Bill</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Request Information">
+                            <field name="purchase_order_id" readonly="1"/>
+                            <field name="vendor_id" readonly="state != 'draft'"/>
+                            <field name="requested_by" readonly="1"/>
+                            <field name="request_date" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                        <group string="Payment Details">
+                            <field name="payment_type" readonly="state != 'draft'"/>
+                            <field name="amount" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Landed Cost Products" name="products_tab">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <!-- <field name="amount" sum="Total"/> -->
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Additional Info" name="extra_info">
+                            <group>
+                                <group>
+                                    <field name="due_date" readonly="state != 'draft'"/>
+                                    <field name="payment_reference" readonly="state not in ('draft', 'approved')"/>
+                                    <field name="payment_date" readonly="1" invisible="state != 'paid'"/>
+                                </group>
+                            </group>
+                            <separator string="Description"/>
+                            <field name="description" readonly="state != 'draft'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

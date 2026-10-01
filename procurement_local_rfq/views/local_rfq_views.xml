@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST -->
+    <record id="view_local_rfq_list" model="ir.ui.view">
+        <field name="name">local.rfq.list</field>
+        <field name="model">local.rfq</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="requisition_id"/>
+                <field name="requested_by"/>
+                <field name="date_rfq"/>
+                <field name="amount_total" optional="show" sum="Total"/>
+                <field name="state"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state in ['winner-picked', 'checked', 'committee-approved']"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'cancel'"
+                       widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_local_rfq_quote_pivot" model="ir.ui.view">
+        <field name="name">local.rfq.quote.pivot</field>
+        <field name="model">local.rfq.quote</field>
+        <field name="arch" type="xml">
+            <pivot string="Comparison Matrix" display_quantity="0" sample="1">
+                <field name="product_id" type="row"/>
+                <field name="partner_id" type="col"/>
+                <field name="price_unit" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_local_rfq_comparison_matrix" model="ir.actions.act_window">
+        <field name="name">Comparison Matrix</field>
+        <field name="res_model">local.rfq.quote</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="view_local_rfq_quote_pivot"/>
+        <field name="context">{'search_default_rfq_id': active_id}</field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_local_rfq_form" model="ir.ui.view">
+        <field name="name">local.rfq.form</field>
+        <field name="model">local.rfq</field>
+        <field name="arch" type="xml">
+            <form string="Request for Quotation">
+                <header>
+                    <button name="action_submit" type="object"
+                            string="Submit" invisible="state != 'draft'" class="oe_highlight"/>
+                    
+                    <button name="action_select_winners" type="object"
+                            string="Pick Winners" invisible="state not in ['draft']"/>
+
+                    <button name="action_check" type="object"
+                            string="Check" invisible="state != 'winner-picked'" class="oe_highlight" 
+                            groups="procurement_local_rfq.group_local_rfq_committee"/>
+
+                    <button name="action_committee_approve" type="object"
+                            string="Committee Approve" invisible="state != 'checked'" class="oe_highlight" 
+                            groups="procurement_local_rfq.group_local_rfq_committee"/>
+                    
+                    <button name="action_committee_reject" type="object"
+                            string="Reject" invisible="state != 'checked'" class="btn-danger" 
+                            groups="procurement_local_rfq.group_local_rfq_committee"/>
+
+                    <button name="action_approve" type="object"
+                            string="GM/CEO Approve" invisible="state != 'committee-approved'" class="oe_highlight" 
+                            groups="procurement_local_purchase.group_local_purchase_pr_manager"/>
+
+                    <button name="action_create_po" type="object"
+                            string="Create PO" invisible="state != 'approved' or po_count > 0" class="oe_highlight"
+                            groups="procurement_local_purchase.group_local_purchase_pr_manager"/>
+
+                    <button name="action_cancel" type="object"
+                            string="Cancel" invisible="state in ['approved', 'cancel','po-created']"
+                            groups="procurement_local_purchase.group_local_purchase_pr_manager"/>
+
+                    <button name="action_draft" type="object"
+                            string="Reset to Draft" invisible="state not in ['cancel']"/>
+
+                    <button name="action_view_comparison_matrix" type="object"
+                            string="Comparison Matrix" class="btn-secondary" icon="fa-table"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,winner-picked,checked,committee-approved,approved"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_pos" type="object" class="oe_stat_button" icon="fa-shopping-cart" invisible="po_count == 0">
+                            <field name="po_count" widget="statinfo" string="Purchase Orders"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="requisition_id" readonly="1"/>
+                            <field name="requested_by" invisible="1"/>
+                            <field name="date_rfq" readonly="state != 'draft'"/>
+                            <field name="committee_ids" readonly="state != 'draft'" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="winner_selection_method" readonly="state != 'draft'"/>
+                            <field name="vendor_ids" widget="many2many_tags" readonly="state != 'draft'"/>
+                            <field name="amount_total" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Request for Quotation" name="comparison">
+                            <field name="quote_ids" readonly="state != 'draft'">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="pr_line_id" readonly="1" force_save="1" column_invisible="True"/>
+                                    <field name="product_id" readonly="1" force_save="1"/>
+                                    <field name="partner_id" readonly="1" force_save="1"/>
+                                    <field name="cost_center_id" readonly="1" force_save="1" optional="show"/>
+                                    <field name="price_unit"/>
+                                    <field name="total_price" readonly="1" force_save="1"/>
+                                    <field name="financial_percent" optional="hide"/>
+                                    <field name="technical_percent" optional="hide"/>
+                                    <field name="total_percent"/>
+                                    <field name="selected" widget="boolean_toggle" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Committee Sign-offs" name="approvals" invisible="state == 'draft'">
+                            <field name="approval_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="user_id"/>
+                                    <field name="action_type"/>
+                                    <field name="approval_date"/>
+                                    <field name="comment"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+   
+</odoo>

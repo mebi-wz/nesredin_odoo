@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_local_rfq,access_local_rfq,model_local_rfq,base.group_user,1,1,1,1
+access_local_rfq_committee_action,access_local_rfq_committee_action,model_local_rfq_committee_action,base.group_user,1,1,1,1
+access_local_rfq_quote,access_local_rfq_quote,model_local_rfq_quote,base.group_user,1,1,1,1

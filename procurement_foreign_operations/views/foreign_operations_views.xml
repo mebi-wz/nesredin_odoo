@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Purchase Order Form - Foreign Operations Tabs -->
+    <record id="view_purchase_order_form_foreign_ops" model="ir.ui.view">
+        <field name="name">purchase.order.form.foreign.ops</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Header Buttons -->
+            <xpath expr="//header" position="inside">
+                 <button name="action_create_lc" string="Create LC/TT/CAD" type="object" class="oe_highlight" invisible="request_type != 'foreign' or state in ('purchase', 'done') or lc_count &gt; 0" groups="procurement_foreign_purchase.group_foreign_purchase_operation_manager"/>
+                <button name="action_open_margin_modal" string="Manage Margins" type="object" class="oe_highlight" invisible="request_type != 'foreign' or has_standard_bill"/>
+                <button name="action_draft_landed_cost" string="Draft Landed Cost" type="object" class="oe_highlight" invisible="request_type != 'foreign' or landed_cost_count &gt; 0" groups="account.group_account_invoice"/>
+                <button name="action_create_payment_request" string="Create Payment" type="object" class="oe_highlight" invisible="request_type != 'foreign' " groups="procurement_foreign_purchase.group_foreign_purchase_operation_manager"/>
+            </xpath>
+
+            <xpath expr="//button[@name='action_create_invoice']" position="attributes">
+                <attribute name="invisible">state not in ('purchase', 'done') or invoice_status in ('invoiced', 'no') or (request_type == 'foreign' and has_margin_lines)</attribute>
+            </xpath>
+
+            <!-- Sheet Content -->
+            <xpath expr="//sheet" position="inside">
+                <widget name="web_ribbon" title="Margin Billed" bg_color="bg-success" invisible="margin_bill_status != 'full'"/>
+                <widget name="web_ribbon" title="Margin Partial" bg_color="bg-info" invisible="margin_bill_status != 'partial'"/>
+            </xpath>
+
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="has_margin_lines" invisible="1"/>
+                <field name="has_standard_bill" invisible="1"/>
+                <field name="margin_bill_status" widget="badge" 
+                       decoration-warning="margin_bill_status == 'to_bill'"
+                       decoration-info="margin_bill_status == 'partial'" 
+                       decoration-success="margin_bill_status == 'full'" 
+                       decoration-muted="margin_bill_status == 'no'" 
+                       invisible="request_type != 'foreign'" readonly="1"/>
+            </xpath>
+
+            <!-- Smart Buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_landed_costs" type="object" class="oe_stat_button" icon="fa-truck"
+                        invisible="landed_cost_count == 0">
+                    <field name="landed_cost_count" widget="statinfo" string="Landed Costs"/>
+                </button>
+                <button name="action_view_lcs" type="object" class="oe_stat_button" icon="fa-file-text-o"
+                        invisible="lc_count == 0">
+                    <field name="lc_count" widget="statinfo" string="Letters of Credit"/>
+                </button>
+                <button name="action_view_payment_requests" type="object" class="oe_stat_button" icon="fa-money"
+                        invisible="payment_request_count == 0">
+                    <field name="payment_request_count" widget="statinfo" string="Payment Requests"/>
+                </button>
+            </xpath>
+
+
+            <!-- Add tabs after the existing notebook pages -->
+            <xpath expr="//notebook" position="inside">
+                <!-- ORDERING TAB -->
+                <page string="Ordering" name="ordering_tab" invisible="request_type != 'foreign'">
+                    <notebook>
+                        <!-- Import Permit -->
+                        <page string="Import Permit Insurance" name="import_permit">
+                        <group>
+                            <!-- Insurance -->
+                                <group string="Insurance Detail">
+                                    <field name="insurance_policy_no"/>
+                                    <field name="insurer_name"/>
+                                    <field name="insurance_date"/>
+                                    <field name="insurance_premium_cost"/>
+                                    <field name="insurance_attachment" widget="many2many_binary"/>
+                                </group>
+                                <group string="Import Permit Detail">
+                                    <field name="import_permit_number"/>
+                                    <field name="import_permit_date"/>
+                                    <field name="import_permit_approved"/>
+                                    <field name="lpco_number"/>
+                                    <field name="deposit_amount"/>
+                                    <field name="deposit_date"/>
+                                    <field name="bank_service_charge"/>
+                                    <field name="import_permit_attachment" widget="many2many_binary"/>
+                                </group>
+                            </group>
+            
+
+                    
+                        </page>
+
+                        <!-- LC -->
+                        <page string="LC" name="lc">
+                            <field name="lc_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="lc_number"/>
+                                    <field name="lc_type"/>
+                                    <field name="amount"/>
+                                    <field name="currency_id"/>
+                                    <field name="issuing_bank"/>
+                                    <field name="issue_date"/>
+                                    <field name="start_date"/>
+                                    <field name="expiry_date"/>
+                                    <field name="days_to_expiry"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'draft'"
+                                           decoration-warning="state in ('issued', 'amended')"
+                                           decoration-success="state == 'active'"
+                                           decoration-danger="state == 'expired'"
+                                           decoration-muted="state in ('closed', 'cancelled')"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </page>
+
+                <!-- SHIPMENT TAB -->
+                <page string="Shipment" name="shipment_tab" invisible="request_type != 'foreign'">
+                    <group>
+                        <group string="SHIPMENT DOCUMENT">
+                            <field name="first_shipment_amount"/>
+                            <field name="is_shipment_partial"/>
+                            <field name="est_ship_date"/>
+                            <field name="est_prod_comp_date"/>
+                            <field name="scan_copy_received_date"/>
+                            <field name="ship_doc_org_received_date"/>
+                            <field name="org_doc_sent_supp_bank"/>
+                        </group>
+                        <group string="SHIPMENT DOCUMENT">
+                            <field name="org_doc_sent_courier"/>
+                            <field name="courier_tracking_no"/>
+                            <field name="org_doc_received_bank"/>
+                            <field name="shipment_discrepancy"/>
+                            <field name="org_doc_collected_bank"/>
+                            <field name="shipment_exchange_rate"/>
+                            <field name="lc_settlement"/>
+                            <field name="settlement_date"/>
+                            <field name="org_doc_handed_fin"/>
+                            <field name="supplier_payment_date"/>
+                        </group>
+                    </group>
+
+                    <separator string="DELIVER ORDER"/>
+                    <group>
+                        <group>
+                            <field name="is_do"/>
+                        </group>
+                    </group>
+
+                    <separator string="Shipping Reconcilations"/>
+                    <field name="shipping_reconciliation_ids">
+                        <list editable="bottom">
+                            <field name="step_order" string="Step Order"/>
+                            <field name="name" string="Name"/>
+                            <field name="state" string="State" widget="badge"
+                                   decoration-success="state == 'right'"
+                                   decoration-danger="state == 'wrong'"
+                                   decoration-warning="state == 'pending'"/>
+                            <field name="remark" string="Remark"/>
+                        </list>
+                    </field>
+                </page>
+
+                <!-- GOODS CLEARANCE TAB -->
+                <page string="Good Clearance" name="clearance_tab" invisible="request_type != 'foreign'">
+                    <group>
+                        <group string="FREIGHT PAYMENT">
+                            <field name="mod_of_shipment"/>
+                            <field name="arrival_date_fin_dest"/>
+                            <field name="freight_paid_date"/>
+                            <field name="freight_settlement"/>
+                            <field name="container_deposit"/>
+                            <field name="container_status"/>
+                            <field name="ship_doc_settlement"/>
+                            <field name="declaration_number"/>
+                            <field name="custom_duty_tax"/>
+                            <field name="withholding_tax"/>
+                            <field name="tax_paid_date"/>
+                            <field name="accep_duty_tax"/>
+                            <field name="additional_duty_tax"/>
+                            <field name="actual_duty_tax_paid"/>
+                        </group>
+                        <group string="ADDITIONAL INFO">
+                            <field name="release_permit_fda"/>
+                            <field name="release_permit"/>
+                            <field name="storage_cost"/>
+                            <field name="demurrage_cost"/>
+                            <field name="local_transport_cost"/>
+                            <field name="loading_unloading"/>
+                            <field name="delivery_to_warehouse"/>
+                        </group>
+                    </group>
+                </page>
+
+                <!-- POST CLEARANCE TAB -->
+                <page string="Post Clearance" name="post_clearance_tab" invisible="request_type != 'foreign'">
+                    <group>
+                        <group string="INVENTORY">
+                            <field name="packing_list"/>
+                            <field name="warehouse_arrival_date"/>
+                            <field name="grn_rec"/>
+                            <field name="rec_discrepancy"/>
+                        </group>
+                        <group string="ADDITIONAL INFO">
+                            <field name="grn_to_finance"/>
+                            <field name="declaration_receive"/>
+                            <field name="delinquent_sett_date"/>
+                            <field name="transitor_payment"/>
+                            <field name="pc_container_deposit"/>
+                            <field name="transitor_payment_done"/>
+                        </group>
+                    </group>
+                </page>
+
+                <!-- FOREIGN PAYMENTS TAB -->
+                <page string="Foreign Payments" name="foreign_payments_tab" invisible="request_type != 'foreign'">
+                    <field name="payment_request_ids">
+                        <list>
+                            <field name="name"/>
+                            <field name="payment_type"/>
+                            <field name="vendor_id"/>
+                            <field name="amount"/>
+                            <field name="currency_id"/>
+                            <field name="exchange_rate"/>
+                            <field name="amount_etb" sum="Total ETB"/>
+                            <field name="request_date"/>
+                            <field name="state" widget="badge"
+                                   decoration-info="state == 'draft'"
+                                   decoration-warning="state == 'submitted'"
+                                   decoration-success="state in ('approved', 'paid')"
+                                   decoration-muted="state == 'cancelled'"/>
+                        </list>
+                    </field>
+                </page>
+
+                <page string="Customs Cost" name="customs_cost" invisible="request_type != 'foreign'">
+                    <field name="order_line">
+                        <list editable="bottom" create="false" delete="false">
+                            <field name="product_id" readonly="1"/>
+                            <field name="product_qty" string="Quantity" readonly="1" sum="Total Quantity"/>
+                            <field name="price_unit" string="Actual Product Cost" readonly="1" sum="Total Actual Cost"/>
+                            <field name="exchange_rate_related" string="Exchange Rate"/>
+                            <field name="price_unit_etb" string="Actual Cost (ETB)" readonly="1" sum="Total Actual Cost ETB"/>
+                            <field name="price_subtotal" string="Sub Total" readonly="1" sum="Total Sub Total"/>
+                            <field name="customs_product_cost" sum="Total Customs Cost"/>
+                            <field name="cost_difference" readonly="1" decoration-danger="cost_difference &gt; 0" decoration-success="cost_difference &lt; 0" sum="Total Variance"/>
+                        </list>
+                    </field>
+                </page>
+
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Extend Foreign RFQ Form - Actual Performance -->
+    <record id="foreign_rfq_view_form_inherit_ops" model="ir.ui.view">
+        <field name="name">foreign.rfq.form.inherit.ops</field>
+        <field name="model">foreign.rfq</field>
+        <field name="inherit_id" ref="procurement_foreign_rfq.view_foreign_rfq_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='cost_tab']" position="inside">
+                <group>
+                    <group>
+                        <field name="inventory_amount_usd"/>
+                        <field name="inventory_amount_etb"/>
+                        <field name="total_landed_cost"/>
+                        <field name="total_rfq_cost" class="oe_subtotal_footer_separator"/>
+                        <field name="coefficient"/>
+                    </group>
+                    <group>
+                        <div class="oe_edit_only" invisible="not purchase_order_id">
+                            <button name="action_fetch_actual_costs" string="Fetch Actuals from Bills" type="object" 
+                                    class="btn-secondary mb-2" icon="fa-refresh" 
+                                    help="Synchronize the list with actual costs from vendor bills."/>
+                        </div>
+                        <field name="cost_line_ids" nolabel="1" readonly="1">
+                            <list>
+                                <field name="product_id" string="Cost Type"/>
+                                <field name="amount" sum="Total Landed Cost"/>
+                            </list>
+                        </field>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Hide Create Landed Costs button from Vendor Bill -->
+    <!--
+    <record id="view_move_form_inherit_hide_landed_costs" model="ir.ui.view">
+        <field name="name">account.move.form.inherit.hide.landed.costs</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_create_landed_costs']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+    -->
+
+    <!-- Margin Configuration Modal Form View -->
+    <record id="view_purchase_order_margin_modal_form" model="ir.ui.view">
+        <field name="name">purchase.order.margin.modal.form</field>
+        <field name="model">purchase.order</field>
+        <field name="arch" type="xml">
+            <form string="Manage Margins">
+                <sheet>
+                    <group col="4">
+                        <field name="name" readonly="1"/>
+                        <field name="partner_id" readonly="1"/>
+                        <field name="amount_total" readonly="1" string="Total Amount (USD)"/>
+                        <field name="amount_total_display" readonly="1" string="Total (ETB)"/>
+                        <field name="margin_bill_status" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Margin Installments" name="margins">
+                            <field name="margin_line_ids">
+                                <list editable="bottom">
+                                    <field name="margin_order" optional="show" string="Installment"/>
+                                    <field name="margin_percent" sum="Total %" width="8%"/>
+                                    <field name="calculation" optional="show"/>
+                                    <field name="usd_amount" string="USD" sum="Total USD" width="12%"/>
+                                    <field name="exchange_rate" string="Exch. Rate" width="10%"/>
+                                    <field name="etb_amount" string="ETB" sum="Total ETB" width="12%"/>
+                                    <field name="account_id" options="{'no_create': True}"/>
+                                    <field name="lc_reference" options="{'no_create': True, 'no_open': True}" optional="hide"/>
+                                    <field name="move_id" readonly="1" optional="show" string="Bill"/>
+                                    <button name="action_create_bill" type="object" string="CREATE BILL" 
+                                            class="oe_highlight btn-sm" 
+                                            invisible="move_id != False or parent.state not in ('purchase', 'done')"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button string="Save &amp; Close" class="btn-primary" special="save"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <!-- Extend Landed Cost Form - Add Product Summary Tab -->
+    <record id="view_stock_landed_cost_form_foreign_ops" model="ir.ui.view">
+        <field name="name">stock.landed.cost.form.foreign.ops</field>
+        <field name="model">stock.landed.cost</field>
+        <field name="inherit_id" ref="stock_landed_costs.view_stock_landed_cost_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='picking_ids']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='vendor_bill_id']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='cost_lines']/list" position="attributes">
+                <attribute name="create">0</attribute>
+            </xpath>
+            <xpath expr="//notebook/page[last()]" position="after">
+                <page string="Product Summary">
+                    <field name="summary_line_ids" readonly="1">
+                        <list>
+                            <field name="product_id"/>
+                            <field name="quantity" sum="Total Quantity"/>
+                            <field name="customs_cost_value" sum="Total Customs Value"/>
+                            <field name="former_cost" sum="Total Original Value"/>
+                            <field name="new_cost" sum="Total New Value"/>
+                            <field name="allocated_cost" sum="Total Landed Cost Added"/>
+                            <field name="proportion" sum="Total Proportion"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

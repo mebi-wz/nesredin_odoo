@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_foreign_purchase_requisition"
+              name="Purchase Request"
+              parent="procurement_base.menu_foreign_purchase_root"
+              action="action_foreign_purchase_requisition"
+              groups="procurement_foreign_purchase.group_foreign_purchase_user"
+              sequence="10"/>
+</odoo>

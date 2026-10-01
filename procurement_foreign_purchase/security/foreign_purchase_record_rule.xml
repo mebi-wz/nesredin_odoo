@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_foreign_purchase_requisition_multi_company" model="ir.rule">
+        <field name="name">Foreign Purchase Requisition Multi-Company</field>
+        <field name="model_id" ref="model_foreign_purchase_requisition"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

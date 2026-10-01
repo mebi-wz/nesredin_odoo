@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_procurement_currency_request_tree" model="ir.ui.view">
+        <field name="name">procurement.currency.request.tree</field>
+        <field name="model">procurement.currency.request</field>
+        <field name="arch" type="xml">
+            <list string="Currency Requests">
+                <field name="name"/>
+                <field name="rfq_id"/>
+                <field name="supplier_id"/>
+                <field name="date_request"/>
+                <field name="total_amount_usd" sum="Total USD"/>
+                <field name="exchange_rate"/>
+                <field name="total_amount_etb" sum="Total ETB"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state in ('queued', 'progress')" decoration-success="state == 'approved'" decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_procurement_currency_request_form" model="ir.ui.view">
+        <field name="name">procurement.currency.request.form</field>
+        <field name="model">procurement.currency.request</field>
+        <field name="arch" type="xml">
+            <form string="Currency Request">
+                <header>
+                    <button name="action_queue" string="Queue" type="object" invisible="state != 'draft'" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_progress" string="In Progress" type="object" invisible="state != 'queued'" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_approve" string="Approve" type="object" invisible="state != 'progress'" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('approved','cancelled')" groups="account.group_account_invoice"/>
+                    <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'cancelled'" groups="account.group_account_invoice"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,queued,progress,approved"/>
+                </header>
+                <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_view_rfq" type="object" class="oe_stat_button" icon="fa-list-alt" invisible="not rfq_id">
+                            <span class="o_stat_text">RFQ</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Request Information">
+                            <field name="rfq_id" readonly="1"/>
+                            <field name="requested_by" readonly="1"/>
+                            <field name="date_request" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Supplier &amp; Payment">
+                            <field name="supplier_id" readonly="1"/>
+                            <field name="proforma_invoice" readonly="1"/>
+                            <field name="purpose" readonly="1"/>
+                            <field name="nbe_id" readonly="1"/>
+                            <field name="payment_due_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Currency Details">
+                            <field name="currency_id" readonly="1"/>
+                            <field name="total_amount_usd" readonly="1"/>
+                            <field name="exchange_rate" readonly="1"/>
+                            <field name="total_amount_etb"/>
+                            <field name="amount_in_word" readonly="1"/>
+                        </group>
+                        <group string="Bank Information">
+                            <field name="bank_id" readonly="state != 'draft'"/>
+                            <field name="branch" readonly="state != 'draft'"/>
+                            <field name="approved_date" readonly="1" invisible="not approved_date"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="demo_foreign_purchase_requisition_1" model="foreign.purchase.requisition">
+        <field name="requested_by" ref="base.user_admin"/>
+        <field name="date_requisition" eval="datetime.now()"/>
+        <field name="purpose">Demo Requisition for Office Supplies</field>
+        <field name="state">draft</field>
+    </record>
+</odoo>

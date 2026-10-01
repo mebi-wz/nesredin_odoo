@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- =====================================================================
+             Multi-company rule: applies to ALL users (no group = global rule).
+             This is the base filter that runs for everyone before group rules.
+        ===================================================================== -->
+        <record id="rule_store_requisition_multi_company" model="ir.rule">
+            <field name="name">Store Requisition: Multi-Company</field>
+            <field name="model_id" ref="model_store_requisition"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <!-- =====================================================================
+             REQUESTER (group_store_requisition_user):
+             Can only see records they personally requested.
+        ===================================================================== -->
+        <record id="rule_store_requisition_personal" model="ir.rule">
+            <field name="name">Store Requisition: Requester (Own records only)</field>
+            <field name="model_id" ref="model_store_requisition"/>
+            <field name="domain_force">[('requested_by', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_store_requisition_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- =====================================================================
+             VERIFIER (group_store_requisition_verifier):
+             Sees ALL records (unrestricted). This overrides the personal rule
+             because Odoo applies a logical OR between rules in the same group.
+             Since verifier implies user, both rules apply, but the verifier rule
+             [(1,'=',1)] makes it always True so all records are visible.
+        ===================================================================== -->
+        <record id="rule_store_requisition_all" model="ir.rule">
+            <field name="name">Store Requisition: Verifier (See all)</field>
+            <field name="model_id" ref="model_store_requisition"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_store_requisition_verifier'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- =====================================================================
+             BUDGET MANAGER (group_store_requisition_budget_manager):
+             Sees records awaiting their approval (verified state and beyond)
+             PLUS any records they personally requested.
+             The 'submitted' state (waiting dept manager/verifier) is excluded —
+             they don't need to act there. The 'verified' state is where they step in.
+        ===================================================================== -->
+        <record id="rule_store_requisition_budget_manager" model="ir.rule">
+            <field name="name">Store Requisition: Budget Manager (Approval queue + Own)</field>
+            <field name="model_id" ref="model_store_requisition"/>
+            <field name="domain_force">
+                ['|',
+                    ('requested_by', '=', user.id),
+                    ('state', 'in', ['verified', 'budget_approved', 'waiting', 'processed', 'received', 'cancelled'])
+                ]
+            </field>
+            <field name="groups" eval="[(4, ref('group_store_requisition_budget_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- =====================================================================
+             STORE MANAGER (group_store_requisition_manager):
+             Sees records awaiting their approval (budget_approved and beyond)
+             PLUS any records they personally requested.
+        ===================================================================== -->
+        <record id="rule_store_requisition_store_manager" model="ir.rule">
+            <field name="name">Store Requisition: Store Manager (Approval queue + Own)</field>
+            <field name="model_id" ref="model_store_requisition"/>
+            <field name="domain_force">
+                ['|',
+                    ('requested_by', '=', user.id),
+                    ('state', 'in', ['budget_approved', 'waiting', 'processed', 'received', 'cancelled'])
+                ]
+            </field>
+            <field name="groups" eval="[(4, ref('group_store_requisition_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+    </data>
+</odoo>

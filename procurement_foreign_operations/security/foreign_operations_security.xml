@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Payment Request Multi-Company Rule -->
+        <record id="rule_foreign_payment_request_multi_company" model="ir.rule">
+            <field name="name">Foreign Payment Request Multi-Company</field>
+            <field name="model_id" ref="model_foreign_payment_request"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_foreign_payment_request_line_multi_company" model="ir.rule">
+            <field name="name">Foreign Payment Request Line Multi-Company</field>
+            <field name="model_id" ref="model_foreign_payment_request_line"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <!-- Margin Multi-Company Rule -->
+        <record id="rule_purchase_import_margin_multi_company" model="ir.rule">
+            <field name="name">Purchase Import Margin Multi-Company</field>
+            <field name="model_id" ref="model_purchase_import_margin"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <!-- Shipping Reconciliation Multi-Company Rule -->
+        <record id="rule_purchase_shipping_reconciliation_multi_company" model="ir.rule">
+            <field name="name">Shipping Reconciliation Multi-Company</field>
+            <field name="model_id" ref="model_purchase_shipping_reconciliation"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <!-- LC Multi-Company Rule -->
+        <record id="rule_foreign_lc_multi_company" model="ir.rule">
+            <field name="name">Foreign LC Multi-Company</field>
+            <field name="model_id" ref="model_foreign_lc"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_foreign_lc_amendment_multi_company" model="ir.rule">
+            <field name="name">Foreign LC Amendment Multi-Company</field>
+            <field name="model_id" ref="model_foreign_lc_amendment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record id="rule_foreign_lc_draft_reconciliation_multi_company" model="ir.rule">
+            <field name="name">Foreign LC Draft Reconciliation Multi-Company</field>
+            <field name="model_id" ref="model_foreign_lc_draft_reconciliation"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+    </data>
+</odoo>
