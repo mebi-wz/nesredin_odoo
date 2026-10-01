@@ -10,6 +10,7 @@ class PurchaseOrder(models.Model):
         ('local', 'Local'),
         ('foreign', 'Foreign'),
     ], string='Request Type', default='local')
+    exchange_rate = fields.Float(string='Exchange Rate', default=1.0, digits=(12, 4))
     
     partner_id = fields.Many2one(
         'res.partner',

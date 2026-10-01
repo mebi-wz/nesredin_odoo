@@ -287,6 +287,7 @@ class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     foreign_purchase_request_id = fields.Many2one('foreign.purchase.requisition', string='Source Foreign Requisition')
+    exchange_rate = fields.Float(string='Exchange Rate', default=1.0, digits=(12, 4))
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
@@ -305,8 +306,8 @@ class PurchaseOrderLine(models.Model):
     @api.depends('customs_product_cost', 'price_unit')
     def _compute_cost_difference(self):
         for rec in self:
-            etb_price = rec.price_unit * (rec.order_id.exchange_rate or 1.0)
-            rec.cost_difference = rec.customs_product_cost - etb_price
+            rate = (getattr(rec.order_id, 'exchange_rate', 1.0) if rec.order_id else 1.0) or 1.0
+            rec.cost_difference = (rec.customs_product_cost or 0.0) - (rec.price_unit * rate)
 
 class ForeignPurchaseRequisitionLine(models.Model):
     _name = 'foreign.purchase.requisition.line'
