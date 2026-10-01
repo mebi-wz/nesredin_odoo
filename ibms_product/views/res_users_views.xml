@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_inherit_ibms_warehouse" model="ir.ui.view">
+        <field name="name">res.users.form.inherit.ibms.warehouse</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']//group[1]" position="after">
+                <group string="Warehouse Access &amp; Restrictions">
+                    <field name="default_warehouse_id" options="{'no_create': True}"/>
+                    <field name="allowed_warehouse_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

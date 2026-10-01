@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_warehouse_inherit_ibms_analytics" model="ir.ui.view">
+        <field name="name">stock.warehouse.form.inherit.ibms.analytics</field>
+        <field name="model">stock.warehouse</field>
+        <field name="inherit_id" ref="stock.view_warehouse"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='technical_info']" position="before">
+                <page string="Analytics" name="analytics">
+                    <group>
+                        <group string="Analytic Accounting">
+                            <field name="analytic_account_id"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
