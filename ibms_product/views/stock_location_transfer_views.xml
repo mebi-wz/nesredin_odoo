@@ -15,11 +15,14 @@
                 <field name="dest_analytic_account_id" string="Destination Analytic Account" optional="show"/>
                 <field name="dest_warehouse_id" string="Destination Warehouse"/>
                 <field name="requested_by_id" string="Requested By" widget="many2one_avatar_user"/>
+                <field name="sent_by_id" string="Sent By" widget="many2one_avatar_user" optional="show"/>
+                <field name="received_by_id" string="Received By" widget="many2one_avatar_user" optional="show"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
                 <field name="state" string="Status" widget="badge"
-                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'draft'"
                        decoration-warning="state == 'submitted'"
-                       decoration-success="state == 'approved'"
+                       decoration-info="state in ('approved', 'in_transit')"
+                       decoration-success="state == 'received'"
                        decoration-danger="state == 'cancel'"/>
             </list>
         </field>
@@ -34,13 +37,34 @@
         <field name="arch" type="xml">
             <form string="Location Transfer">
                 <header>
-                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                    <!-- Step 0: Requester submits -->
+                    <button name="action_submit" type="object" string="Submit"
+                            class="btn-primary"
                             invisible="state != 'draft'"/>
-                    <button name="action_approve" type="object" string="Approve" class="btn-success"
+
+                    <!-- Step 1: Manager approves — creates picking, doesn't validate -->
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-success"
                             invisible="state != 'submitted'"/>
+
+                    <!-- Step 2: Source warehouse staff marks items as sent -->
+                    <button name="action_send" type="object" string="Mark as Sent"
+                            class="btn-primary"
+                            confirm="Confirm that all items have been physically packed and dispatched from the source warehouse?"
+                            invisible="state != 'approved'"/>
+
+                    <!-- Step 3: Destination warehouse staff confirms receipt -->
+                    <button name="action_receive" type="object" string="Confirm Receipt"
+                            class="btn-success"
+                            confirm="Confirm that all items have been physically received at the destination warehouse?"
+                            invisible="state != 'in_transit'"/>
+
+                    <!-- Cancel (allowed in draft, submitted, approved, in_transit) -->
                     <button name="action_cancel" type="object" string="Cancel"
-                            invisible="state in ('approved', 'cancel')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                            invisible="state in ('received', 'cancel')"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,approved,in_transit,received"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -83,14 +107,23 @@
                         <group string="Details">
                             <field name="date"/>
                             <field name="requested_by_id" widget="many2one_avatar_user"
-                                   readonly="state == 'approved'"/>
+                                   readonly="state != 'draft'"/>
                             <field name="company_id" invisible="1"/>
+                        </group>
+                        <!-- Dispatch & Receipt tracking (visible once in transit) -->
+                        <group string="Dispatch &amp; Receipt" invisible="state not in ('in_transit', 'received')">
+                            <field name="sent_by_id" widget="many2one_avatar_user" readonly="1"/>
+                            <field name="sent_date" readonly="1"/>
+                            <field name="received_by_id" widget="many2one_avatar_user" readonly="1"
+                                   invisible="state != 'received'"/>
+                            <field name="received_date" readonly="1"
+                                   invisible="state != 'received'"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Products to Transfer" name="products">
                             <field name="line_ids"
-                                   readonly="state in ('approved', 'cancel')">
+                                   readonly="state not in ('draft',)">
                                 <list editable="bottom" string="Products">
                                     <field name="product_id" options="{'no_create': True, 'no_create_edit': True, 'no_quick_create': True}"/>
                                     <field name="description" optional="show"/>
@@ -125,6 +158,9 @@
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Submitted" name="submitted" domain="[('state', '=', 'submitted')]"/>
                 <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="In Transit" name="in_transit" domain="[('state', '=', 'in_transit')]"/>
+                <filter string="Received" name="received" domain="[('state', '=', 'received')]"/>
+                <filter string="Cancelled" name="cancel" domain="[('state', '=', 'cancel')]"/>
                 <group>
                     <filter string="Source Warehouse" name="group_by_source_wh" context="{'group_by': 'source_warehouse_id'}"/>
                     <filter string="Destination Warehouse" name="group_by_dest_wh" context="{'group_by': 'dest_warehouse_id'}"/>

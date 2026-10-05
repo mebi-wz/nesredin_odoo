@@ -15,6 +15,6 @@ class ResUsers(models.Model):
     )
     default_warehouse_id = fields.Many2one(
         'stock.warehouse',
-        string='Default Warehouse',
+        string='Primary Branch Warehouse',
         help="Primary branch or warehouse for this user.",
     )

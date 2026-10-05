@@ -22,6 +22,8 @@ class StockLocationTransfer(models.Model):
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
         ('approved', 'Approved'),
+        ('in_transit', 'In Transit'),
+        ('received', 'Received'),
         ('cancel', 'Cancelled'),
     ], string='Status', default='draft', copy=False, tracking=True)
 
@@ -38,6 +40,34 @@ class StockLocationTransfer(models.Model):
         default=lambda self: self.env.user,
         required=True,
         tracking=True
+    )
+
+    sent_by_id = fields.Many2one(
+        'res.users',
+        string='Sent By',
+        readonly=True,
+        copy=False,
+        tracking=True
+    )
+
+    sent_date = fields.Datetime(
+        string='Sent On',
+        readonly=True,
+        copy=False
+    )
+
+    received_by_id = fields.Many2one(
+        'res.users',
+        string='Received By',
+        readonly=True,
+        copy=False,
+        tracking=True
+    )
+
+    received_date = fields.Datetime(
+        string='Received On',
+        readonly=True,
+        copy=False
     )
 
     # -------------------------------------------------------------
@@ -135,7 +165,6 @@ class StockLocationTransfer(models.Model):
             ])
             if self.source_warehouse_id and self.source_warehouse_id not in warehouses:
                 self.source_warehouse_id = False
-
             if len(warehouses) == 1:
                 self.source_warehouse_id = warehouses[0].id
             elif not warehouses:
@@ -152,7 +181,6 @@ class StockLocationTransfer(models.Model):
             ])
             if self.dest_warehouse_id and self.dest_warehouse_id not in warehouses:
                 self.dest_warehouse_id = False
-
             if len(warehouses) == 1:
                 self.dest_warehouse_id = warehouses[0].id
             elif not warehouses:
@@ -182,12 +210,17 @@ class StockLocationTransfer(models.Model):
             transfer.state = 'submitted'
 
     def action_approve(self):
+        """
+        STEP 1 — Manager approves the request.
+        Creates the stock.picking (internal transfer) but does NOT validate it yet.
+        The picking stays in 'Ready' state waiting for the source to physically dispatch.
+        """
         Picking = self.env['stock.picking']
         for transfer in self:
             if not transfer.line_ids:
                 raise ValidationError(_("No products specified to transfer!"))
 
-            # Determine picking type (Internal transfer of source warehouse)
+            # Determine picking type (internal transfer of source warehouse)
             picking_type = transfer.source_warehouse_id.int_type_id
             if not picking_type:
                 picking_type = self.env['stock.picking.type'].search([
@@ -201,9 +234,11 @@ class StockLocationTransfer(models.Model):
                 ], limit=1)
 
             if not picking_type:
-                raise ValidationError(_("No internal transfer operation type found for warehouse %s.") % transfer.source_warehouse_id.name)
+                raise ValidationError(
+                    _("No internal transfer operation type found for warehouse %s.") % transfer.source_warehouse_id.name
+                )
 
-            # Create physical stock.picking
+            # Create the physical stock.picking — do NOT validate it yet
             picking_vals = {
                 'picking_type_id': picking_type.id,
                 'location_id': transfer.location_id.id,
@@ -226,17 +261,72 @@ class StockLocationTransfer(models.Model):
             picking.action_confirm()
             picking.action_assign()
 
-            # Set quantity done, mark picked, and validate
-            for move in picking.move_ids:
-                move.quantity = move.product_uom_qty
-                move.picked = True
-            picking.button_validate()
-
             transfer.picking_id = picking.id
             transfer.state = 'approved'
 
+    def action_send(self):
+        """
+        STEP 2 — Source warehouse staff confirms items have been physically dispatched.
+        Only users belonging to the source warehouse (via allowed_warehouse_ids) can do this.
+        """
+        for transfer in self:
+            user = self.env.user
+            allowed_whs = user.allowed_warehouse_ids
+            if allowed_whs and transfer.source_warehouse_id not in allowed_whs:
+                raise ValidationError(
+                    _("Only staff from '%s' can mark this transfer as sent.") % transfer.source_warehouse_id.name
+                )
+            transfer.write({
+                'state': 'in_transit',
+                'sent_by_id': user.id,
+                'sent_date': fields.Datetime.now(),
+            })
+            transfer.message_post(
+                body=_("📦 Items dispatched from <b>%s</b> by %s.") % (
+                    transfer.source_warehouse_id.name,
+                    user.name,
+                )
+            )
+
+    def action_receive(self):
+        """
+        STEP 3 — Destination warehouse staff confirms items have been physically received.
+        Only users belonging to the destination warehouse (via allowed_warehouse_ids) can do this.
+        Validates the stock.picking to 'done', completing the actual stock movement.
+        """
+        for transfer in self:
+            user = self.env.user
+            allowed_whs = user.allowed_warehouse_ids
+            if allowed_whs and transfer.dest_warehouse_id not in allowed_whs:
+                raise ValidationError(
+                    _("Only staff from '%s' can confirm receipt for this transfer.") % transfer.dest_warehouse_id.name
+                )
+
+            if not transfer.picking_id:
+                raise ValidationError(_("No stock picking found for this transfer. Please contact your manager."))
+
+            # Set quantity done on all moves and validate
+            for move in transfer.picking_id.move_ids:
+                move.quantity = move.product_uom_qty
+                move.picked = True
+            transfer.picking_id.button_validate()
+
+            transfer.write({
+                'state': 'received',
+                'received_by_id': user.id,
+                'received_date': fields.Datetime.now(),
+            })
+            transfer.message_post(
+                body=_("✅ Items received at <b>%s</b> by %s. Stock transfer completed.") % (
+                    transfer.dest_warehouse_id.name,
+                    user.name,
+                )
+            )
+
     def action_cancel(self):
         for transfer in self:
+            if transfer.state == 'received':
+                raise ValidationError(_("A completed (Received) transfer cannot be cancelled."))
             if transfer.picking_id and transfer.picking_id.state not in ('done', 'cancel'):
                 transfer.picking_id.action_cancel()
             transfer.state = 'cancel'
