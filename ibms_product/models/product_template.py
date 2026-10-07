@@ -13,6 +13,12 @@ class ProductTemplate(models.Model):
         copy=False,
         help="Manufacturer or internal part number for this product.",
     )
+    wholesale_price = fields.Float(
+        string='Wholesale Price',
+        digits='Product Price',
+        default=0.0,
+        help="Wholesale selling price for this product.",
+    )
 
     @api.constrains('default_code')
     def _check_default_code_unique(self):
@@ -28,3 +34,19 @@ class ProductTemplate(models.Model):
                         _("The Product Code '%(code)s' is already used by product '%(product)s'. Product Code must be unique!")
                         % {'code': code, 'product': duplicate.display_name}
                     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('default_code'):
+                raise ValidationError(_("Product Code is required for product registration!"))
+            if not vals.get('part_number'):
+                raise ValidationError(_("Product Part Number is required for product registration!"))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if 'default_code' in vals and not vals.get('default_code'):
+            raise ValidationError(_("Product Code cannot be empty!"))
+        if 'part_number' in vals and not vals.get('part_number'):
+            raise ValidationError(_("Product Part Number cannot be empty!"))
+        return super().write(vals)

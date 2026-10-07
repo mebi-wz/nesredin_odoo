@@ -33,6 +33,13 @@ class AccountMove(models.Model):
         return moves
 
 
+    @api.onchange('partner_id')
+    def _onchange_partner_id_update_prices(self):
+        for line in self.invoice_line_ids:
+            if line.product_id:
+                line._compute_price_unit()
+
+
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
@@ -41,3 +48,22 @@ class AccountMoveLine(models.Model):
         if self.move_id.warehouse_id and self.move_id.warehouse_id.analytic_account_id:
             if not self.analytic_distribution:
                 self.analytic_distribution = {str(self.move_id.warehouse_id.analytic_account_id.id): 100.0}
+
+    @api.depends('product_id', 'product_uom_id', 'move_id.partner_id.customer_type')
+    def _compute_price_unit(self):
+        super()._compute_price_unit()
+        for line in self:
+            if not line.product_id or line.display_type in ('line_section', 'line_subsection', 'line_note') or line.is_imported:
+                continue
+            if line.move_id.is_sale_document(include_receipts=True):
+                partner = line.move_id.partner_id.commercial_partner_id or line.move_id.partner_id
+                if partner and partner.customer_type == 'wholesaler' and line.product_id.wholesale_price > 0:
+                    line.price_unit = line.product_id._get_tax_included_unit_price(
+                        line.move_id.company_id,
+                        line.move_id.currency_id,
+                        line.move_id.date,
+                        'sale',
+                        fiscal_position=line.move_id.fiscal_position_id,
+                        product_uom=line.product_uom_id,
+                        product_price_unit=line.product_id.wholesale_price,
+                    )

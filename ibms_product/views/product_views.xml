@@ -9,9 +9,23 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='default_code']" position="attributes">
                 <attribute name="string">Product Code</attribute>
+                <attribute name="required">1</attribute>
             </xpath>
             <xpath expr="//field[@name='default_code']" position="after">
-                <field name="part_number"/>
+                <field name="part_number" required="1"/>
+            </xpath>
+            <xpath expr="//label[@for='list_price']" position="attributes">
+                <attribute name="string">Retail Price</attribute>
+            </xpath>
+            <xpath expr="//div[@name='list_price_uom']" position="after">
+                <label for="wholesale_price"/>
+                <div name="wholesale_price_uom">
+                    <field name="wholesale_price" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                    <span groups="uom.group_uom" invisible="type == 'combo'">
+                        per
+                        <field name="uom_name" class="oe_inline"/>
+                    </span>
+                </div>
             </xpath>
         </field>
     </record>
@@ -25,9 +39,10 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='default_code']" position="attributes">
                 <attribute name="string">Product Code</attribute>
+                <attribute name="required">1</attribute>
             </xpath>
             <xpath expr="//field[@name='default_code']" position="after">
-                <field name="part_number"/>
+                <field name="part_number" required="1"/>
             </xpath>
         </field>
     </record>
@@ -41,6 +56,12 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='default_code']" position="after">
                 <field name="part_number" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='list_price']" position="attributes">
+                <attribute name="string">Retail Price</attribute>
+            </xpath>
+            <xpath expr="//field[@name='list_price']" position="after">
+                <field name="wholesale_price" string="Wholesale Price" widget="monetary" options="{'currency_field': 'currency_id'}" optional="show"/>
             </xpath>
         </field>
     </record>

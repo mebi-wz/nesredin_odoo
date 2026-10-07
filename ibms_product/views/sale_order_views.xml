@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_inherit_ibms_warehouse" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.ibms.warehouse</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_stock.view_order_form_inherit_sale_stock"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <!-- Place Analytic Account and Warehouse directly after Customer in the main header -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="analytic_account_id" options="{'no_create': True}" readonly="state == 'sale'"/>
+                <field name="warehouse_id"
+                       domain="[('analytic_account_id', '=', analytic_account_id)] if analytic_account_id else []"
+                       options="{'no_create': True}"
+                       force_save="1"
+                       readonly="state == 'sale'"/>
+            </xpath>
+            <!-- Hide the duplicate Warehouse field in the Delivery/Shipping section -->
+            <xpath expr="//group[@name='sale_shipping']//field[@name='warehouse_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
