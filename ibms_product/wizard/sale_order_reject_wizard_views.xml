@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_order_reject_wizard_form" model="ir.ui.view">
+        <field name="name">sale.order.reject.wizard.form</field>
+        <field name="model">sale.order.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Sales Order">
+                <p class="text-muted">
+                    Provide the reason for rejecting this order. The quotation will be sent back to <strong>Draft</strong> so the salesperson can review and adjust it.
+                </p>
+                <group>
+                    <field name="order_id" invisible="1"/>
+                    <field name="reason" placeholder="e.g. Price too low, excess credit balance, require 50% deposit before approval..." required="1"/>
+                </group>
+                <footer>
+                    <button string="Confirm Rejection" name="action_confirm_rejection" type="object" class="btn-danger"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sale_order_reject_wizard" model="ir.actions.act_window">
+        <field name="name">Reject Sales Order</field>
+        <field name="res_model">sale.order.reject.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

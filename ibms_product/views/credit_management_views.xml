@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List / Tree View for Credit Management -->
+    <record id="view_partner_credit_management_tree" model="ir.ui.view">
+        <field name="name">res.partner.credit.management.list</field>
+        <field name="model">res.partner</field>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <list string="Credit Management" decoration-danger="credit_status == 'blocked'" decoration-warning="credit_status == 'warning'">
+                <field name="display_name" string="Customer"/>
+                <field name="customer_type" widget="badge"/>
+                <field name="phone" optional="show"/>
+                <field name="email" optional="hide"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="credit" string="Total Receivable" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="active_limit" string="Limit Active" widget="boolean_toggle"/>
+                <field name="warning_stage" string="Warning Limit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="blocking_stage" string="Blocking Limit" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="credit_status" widget="badge"
+                       decoration-success="credit_status == 'normal'"
+                       decoration-warning="credit_status == 'warning'"
+                       decoration-danger="credit_status == 'blocked'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View for Credit Management -->
+    <record id="view_partner_credit_management_form" model="ir.ui.view">
+        <field name="name">res.partner.credit.management.form</field>
+        <field name="model">res.partner</field>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <form string="Customer Credit Management">
+                <sheet>
+                    <div class="oe_title">
+                        <span class="text-muted">Customer Credit Account</span>
+                        <h1>
+                            <field name="name" placeholder="Customer Name" required="1"/>
+                        </h1>
+                        <field name="customer_type" widget="radio" options="{'horizontal': true}"/>
+                    </div>
+                    <group>
+                        <group string="Customer Details">
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="street"/>
+                            <field name="city"/>
+                        </group>
+                        <group string="Credit Configuration &amp; Status">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="credit" string="Total Receivable / Due" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                            <field name="credit_status" widget="badge"
+                                   decoration-success="credit_status == 'normal'"
+                                   decoration-warning="credit_status == 'warning'"
+                                   decoration-danger="credit_status == 'blocked'"/>
+                            <field name="active_limit" string="Enable Credit Limit" widget="boolean_toggle"/>
+                            <field name="warning_stage" string="Warning Limit (Br)" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="not active_limit"/>
+                            <field name="blocking_stage" string="Blocking Limit (Br)" widget="monetary" options="{'currency_field': 'currency_id'}" invisible="not active_limit"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View for Credit Management -->
+    <record id="view_partner_credit_management_search" model="ir.ui.view">
+        <field name="name">res.partner.credit.management.search</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <search string="Search Credit Management">
+                <field name="name" string="Customer"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <separator/>
+                <filter string="Credit Limit Active" name="active_limit" domain="[('active_limit', '=', True)]"/>
+                <filter string="Has Outstanding Receivable" name="has_credit" domain="[('credit', '&gt;', 0)]"/>
+                <separator/>
+                <filter string="Wholesalers" name="wholesalers" domain="[('customer_type', '=', 'wholesaler')]"/>
+                <filter string="Retailers" name="retailers" domain="[('customer_type', '=', 'retailer')]"/>
+                <group>
+                    <filter string="Customer Type" name="group_customer_type" context="{'group_by': 'customer_type'}"/>
+                    <filter string="Limit Active" name="group_active_limit" context="{'group_by': 'active_limit'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Window Action -->
+    <record id="action_credit_management" model="ir.actions.act_window">
+        <field name="name">Credit Management</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_partner_credit_management_search"/>
+        <field name="context">{'default_customer_rank': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage Customer Credit Limits &amp; Outstanding Receivables
+            </p>
+            <p>
+                Configure credit limits, warning thresholds, and monitor overdue or outstanding balances.
+            </p>
+        </field>
+    </record>
+
+    <!-- Explicit view references for the action -->
+    <record id="action_credit_management_view_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_partner_credit_management_tree"/>
+        <field name="act_window_id" ref="action_credit_management"/>
+    </record>
+
+    <record id="action_credit_management_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_partner_credit_management_form"/>
+        <field name="act_window_id" ref="action_credit_management"/>
+    </record>
+
+    <!-- Menu Item in Accounting: Customers -> Credit Management -->
+    <menuitem id="menu_credit_management_accounting"
+              name="Credit Management"
+              parent="account.menu_finance_receivables"
+              action="action_credit_management"
+              sequence="12"/>
+
+    <!-- Menu Item in Sales: Orders -> Credit Management -->
+    <menuitem id="menu_credit_management_sales"
+              name="Credit Management"
+              parent="sale.sale_order_menu"
+              action="action_credit_management"
+              sequence="25"/>
+</odoo>

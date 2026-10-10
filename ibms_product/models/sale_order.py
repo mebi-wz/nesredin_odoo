@@ -1,17 +1,126 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    state = fields.Selection(
+        selection_add=[('to_approve', 'Waiting Approval')],
+        ondelete={'to_approve': 'set default'},
+    )
+    approver_id = fields.Many2one(
+        'res.users',
+        string='Approved By',
+        copy=False,
+        readonly=True,
+        tracking=True,
+        help="Manager who approved this sales order.",
+    )
+    approval_date = fields.Datetime(
+        string='Approval Date',
+        copy=False,
+        readonly=True,
+        tracking=True,
+    )
+    rejection_reason = fields.Text(
+        string='Rejection Reason',
+        copy=False,
+        readonly=True,
+        tracking=True,
+        help="Reason provided by the manager when rejecting this order.",
+    )
     analytic_account_id = fields.Many2one(
         'account.analytic.account',
-        string='Analytic Account',
+        string='Location',
         check_company=True,
         copy=False,
-        help="Cost Center / Analytic account for this branch.",
+        help="Location / Branch cost center for this order.",
     )
+    payment_proof = fields.Binary(
+        string='Payment Proof / Receipt',
+        attachment=True,
+        copy=False,
+        help="Upload payment screenshot, bank transfer slip, Telebirr/CBE Birr confirmation, or receipt.",
+    )
+    payment_proof_filename = fields.Char(string='Payment Proof Filename', copy=False)
+    payment_note = fields.Char(
+        string='Payment Note / Reference',
+        copy=False,
+        help="Add notes about the payment, e.g. Transaction ID, bank deposit reference, Telebirr/CBE Birr confirmation code, etc.",
+    )
+
+    def action_submit_approval(self):
+        for order in self:
+            if not order.order_line:
+                raise UserError(_("You cannot submit an empty quotation for approval. Please add products first."))
+            order.write({
+                'state': 'to_approve',
+                'rejection_reason': False,
+            })
+            order.message_post(
+                body=_("Quotation submitted for manager approval by %s.") % self.env.user.name,
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+            )
+
+    def action_approve(self):
+        for order in self:
+            if not self.env.user.has_group('sales_team.group_sale_manager'):
+                raise UserError(_("Only Sales Managers can approve sales orders."))
+            order.write({
+                'approver_id': self.env.user.id,
+                'approval_date': fields.Datetime.now(),
+                'rejection_reason': False,
+            })
+            order.message_post(
+                body=_("<b>Order Approved</b> by %s.") % self.env.user.name,
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+            )
+            order.action_confirm()
+
+    def action_reject_wizard(self):
+        self.ensure_one()
+        if not self.env.user.has_group('sales_team.group_sale_manager'):
+            raise UserError(_("Only Sales Managers can reject sales orders."))
+        return {
+            'name': _('Reject Sales Order'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order.reject.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_order_id': self.id},
+        }
+
+    def _confirmation_error_message(self):
+        self.ensure_one()
+        if self.state == 'to_approve':
+            if any(
+                not line.display_type
+                and not line.is_downpayment
+                and not line.product_id
+                for line in self.order_line
+            ):
+                return _("Some order lines are missing a product, you need to correct them before going further.")
+            return False
+        return super()._confirmation_error_message()
+
+    def action_confirm(self):
+        for order in self:
+            if not self.env.user.has_group('sales_team.group_sale_manager'):
+                raise UserError(_("Sales Orders require approval from a Sales Manager before confirmation. Please click 'Submit for Approval'."))
+        return super().action_confirm()
+
+    def _prepare_invoice(self):
+        invoice_vals = super()._prepare_invoice()
+        if self.payment_proof:
+            invoice_vals['payment_proof'] = self.payment_proof
+            invoice_vals['payment_proof_filename'] = self.payment_proof_filename
+        if self.payment_note:
+            invoice_vals['payment_note'] = self.payment_note
+        return invoice_vals
 
     @api.model
     def default_get(self, fields_list):

@@ -10,6 +10,11 @@
                 <field name="warehouse_id"
                        invisible="move_type not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund', 'in_receipt')"
                        readonly="state != 'draft'"/>
+                <field name="payment_proof_filename" invisible="1"/>
+                <field name="payment_proof" widget="image" filename="payment_proof_filename" options="{'size': [110, 110]}"
+                       invisible="move_type not in ('out_invoice', 'out_refund', 'out_receipt')"/>
+                <field name="payment_note" placeholder="Txn ID, Bank Ref, Telebirr / CBE confirmation..."
+                       invisible="move_type not in ('out_invoice', 'out_refund', 'out_receipt')"/>
             </xpath>
         </field>
     </record>

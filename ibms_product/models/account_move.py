@@ -12,6 +12,18 @@ class AccountMove(models.Model):
         readonly=False,
         help="Warehouse/Branch linked to this invoice. Invoice lines will automatically inherit its Analytic Account for reporting.",
     )
+    payment_proof = fields.Binary(
+        string='Payment Proof / Receipt',
+        attachment=True,
+        copy=False,
+        help="Upload payment screenshot, bank transfer slip, Telebirr/CBE Birr confirmation, or receipt.",
+    )
+    payment_proof_filename = fields.Char(string='Payment Proof Filename', copy=False)
+    payment_note = fields.Char(
+        string='Payment Note / Reference',
+        copy=False,
+        help="Notes about payment, e.g. Transaction ID, bank deposit reference, Telebirr/CBE Birr confirmation code, etc.",
+    )
 
     @api.onchange('warehouse_id')
     def _onchange_warehouse_id_analytics(self):

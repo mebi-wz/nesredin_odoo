@@ -146,6 +146,7 @@ class ResPartner(models.Model):
          credit and debit amount"""
         for rec in self:
             if not rec.id:
+                rec.due_amount = 0.0
                 continue
             rec.due_amount = rec.credit - rec.debit
 
