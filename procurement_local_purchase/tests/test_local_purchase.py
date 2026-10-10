@@ -90,7 +90,9 @@ class TestLocalPurchase(TransactionCase):
 
         
         requisition.action_submit()
+        self.assertEqual(requisition.state, 'submitted', "Requisition should be in submitted state")
         requisition.action_approve()
+        self.assertEqual(requisition.state, 'approved', "Requisition should be in approved state after single approval")
         
         # Test PO action context
         action = requisition.action_create_po()

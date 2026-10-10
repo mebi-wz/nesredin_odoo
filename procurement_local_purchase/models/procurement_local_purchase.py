@@ -68,7 +68,7 @@ class LocalPurchaseRequisition(models.Model):
     purpose = fields.Text(string='Purpose')
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('submitted', 'Waiting Dept Manager Approval'),
+        ('submitted', 'Waiting Approval'),
         ('verified', 'Waiting Finance Approval'),
         ('pr_manager_approved', 'Waiting CEO Approval'),
         ('approved', 'Ready for Procurement'),
@@ -174,32 +174,14 @@ class LocalPurchaseRequisition(models.Model):
     def action_approve(self):
         self.ensure_one()
 
-        state_map = {
-            'draft': 'submitted',
-            'submitted': 'verified',        # Dept Manager → Finance
-            'pr_manager_approved': 'approved',         # CEO → approved
-        }
-
-        # Threshold check: now happens after Finance Approval ('verified')
-        if self.state == 'verified':
-            threshold = self.company_id.pr_ceo_approval_threshold
-            if threshold and self.amount_total <= threshold:
-                next_state = 'approved'  # skip CEO
-                self.message_post(
-                    body=_("CEO approval skipped as amount (%.2f) is below or equal to threshold (%.2f).") 
-                    % (self.amount_total, threshold)
-                )
-            else:
-                next_state = 'pr_manager_approved'  # go to CEO
-        else:
-            next_state = state_map.get(self.state)
-
-        if next_state:
-            self.write({'state': next_state})
-            self.message_post(body=_(self._description + " moved to %s by %s" % (next_state.replace('_', ' ').capitalize(), self.env.user.name)))
-            self._notify_next_approver(next_state)
+        if self.state in ['submitted', 'verified', 'pr_manager_approved']:
+            next_state = 'approved'
         else:
             raise UserError(_("No further processing step for the current state."))
+
+        self.write({'state': next_state})
+        self.message_post(body=_(self._description + " moved to %s by %s" % (next_state.replace('_', ' ').capitalize(), self.env.user.name)))
+        self._notify_next_approver(next_state)
         
     def action_submit(self):
         self.ensure_one()

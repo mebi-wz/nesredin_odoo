@@ -49,7 +49,7 @@ class ForeignPurchaseRequisition(models.Model):
     )
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('submitted', 'Waiting Manager Verification'),
+        ('submitted', 'Waiting Approval'),
         ('manager_verified', 'Waiting Finance Approval'),
         ('budget_approved', 'Waiting CEO Approval'),
         ('approved', 'Ready for Procurement'),
@@ -126,14 +126,10 @@ class ForeignPurchaseRequisition(models.Model):
                     'name': f"{template.name} ({self.env['res.company'].browse(company_id).name})"
                 })
 
-    def action_approve(self):
+    def action_submit(self):
         self.ensure_one()
-
-        # Validation: Check if there are any products before proceeding
         if not self.line_ids:
             raise ValidationError(_("You cannot proceed without adding at least one product."))
-
-        # Validation checks based on the current state before transitioning
         if self.state == 'draft':
             if not self.department_id:
                 raise ValidationError(_("Please specify the requesting Department before submitting."))
@@ -142,34 +138,26 @@ class ForeignPurchaseRequisition(models.Model):
             for line in self.line_ids:
                 if line.unit_price <= 0:
                     raise ValidationError(_("Product %s has zero or negative price. 0 price is not allowed.") % line.product_id.name)
-
-            # Validation: Block negative margins
-            for line in self.line_ids:
                 if line.margin < 0:
                     raise ValidationError(_("You cannot proceed with a negative margin for product: %s. Please adjust the Estimated Selling Price or Unit Price.") % line.product_id.display_name)
 
-            # Validation: At least one market analysis must exist before submission
-            
+            self.write({'state': 'submitted'})
+            self.message_post(body=_("Requisition submitted by %s") % self.env.user.name)
+            self._notify_next_approver('submitted')
 
-        elif self.state == 'submitted':
-            pass # Verification step, move to manager_verified
+    def action_approve(self):
+        self.ensure_one()
+        if not self.line_ids:
+            raise ValidationError(_("You cannot proceed without adding at least one product."))
 
-        elif self.state == 'manager_verified':
-            pass
-
-        state_map = {
-            'draft': 'submitted',
-            'submitted': 'manager_verified',
-            'manager_verified': 'budget_approved',
-            'budget_approved': 'approved',
-        }
-        next_state = state_map.get(self.state)
-        if next_state:
-            self.write({'state': next_state})
-            self.message_post(body=_(self._description + " moved to %s by %s" % (next_state.replace('_', ' ').capitalize(), self.env.user.name)))
-            self._notify_next_approver(next_state)
+        if self.state in ['submitted', 'manager_verified', 'budget_approved']:
+            next_state = 'approved'
         else:
             raise UserError(_("No further processing step for the current state."))
+
+        self.write({'state': next_state})
+        self.message_post(body=_(self._description + " moved to %s by %s" % (next_state.replace('_', ' ').capitalize(), self.env.user.name)))
+        self._notify_next_approver(next_state)
 
     def _notify_next_approver(self, next_state):
         # Clear old activities for this record first
@@ -424,20 +412,13 @@ class ForeignPurchaseRequisitionLine(models.Model):
         store=False,
         readonly=True
     )
-    @api.depends('product_id', 'requisition_id.company_id')
+    @api.depends('avg_monthly_consumption')
     def _compute_period_consumption(self):
         for rec in self:
-            if rec.product_id and rec.requisition_id.company_id:
-                product = rec.product_id.with_company(
-                    rec.requisition_id.company_id
-                )
-                monthly = rec.avg_monthly_consumption or 0.0
+            monthly = rec.avg_monthly_consumption or 0.0
+            rec.four_month_qty = monthly * 4
+            rec.six_month_qty = monthly * 6
 
-                rec.four_month_qty = monthly * 4
-                rec.six_month_qty = monthly * 6
-            else:
-                rec.four_month_qty = 0.0
-                rec.six_month_qty = 0.0
     @api.depends('requisition_id','quantity','product_id','current_balance')
     def _compute_ordered_and_stock_qty(self):
         for rec in self:
@@ -454,33 +435,19 @@ class ForeignPurchaseRequisitionLine(models.Model):
     avg_monthly_consumption = fields.Float(
         string="Average Monthly Consumption",
         compute="_compute_avg_monthly_consumption",
-        store=True
+        store=True,
+        readonly=False
     )
 
     @api.depends('product_id', 'requisition_id.company_id')
     def _compute_avg_monthly_consumption(self):
         for rec in self:
             if rec.product_id:
-                rec.avg_monthly_consumption = rec.product_id.with_company(
-                    rec.requisition_id.company_id
-                ).product_tmpl_id.avg_monthly_consumption or 0.0
+                company = rec.requisition_id.company_id or self.env.company
+                product_tmpl = rec.product_id.with_company(company).product_tmpl_id
+                rec.avg_monthly_consumption = getattr(product_tmpl, 'avg_monthly_consumption', 0.0) or 0.0
             else:
                 rec.avg_monthly_consumption = 0.0
-
-    @api.depends('product_id', 'requisition_id.company_id')
-    def _compute_period_consumption(self):
-        for rec in self:
-            if rec.product_id and rec.requisition_id.company_id:
-                product_template = rec.product_id.product_tmpl_id.with_company(
-                    rec.requisition_id.company_id
-                )
-                monthly = getattr(product_template, 'avg_monthly_consumption', 0.0)
-
-                rec.four_month_qty = monthly * 4
-                rec.six_month_qty = monthly * 6
-            else:
-                rec.four_month_qty = 0.0
-                rec.six_month_qty = 0.0
     current_balance = fields.Float(
         string="Current Balance",
         compute="_compute_current_balance",

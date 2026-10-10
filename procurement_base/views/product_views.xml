@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Product Template Form View (Stock / Inventory Tab) -->
+    <record id="view_product_template_form_amc" model="ir.ui.view">
+        <field name="name">product.template.form.amc</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="stock.view_template_property_form"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='inventory']" position="inside">
+                <group string="Monthly Consumption &amp; Stock Analysis" name="stock_consumption_analysis">
+                    <label for="avg_monthly_consumption"/>
+                    <div class="o_row">
+                        <field name="avg_monthly_consumption"/>
+                        <span> Units / Month</span>
+                        <button name="action_compute_amc" type="object" string="Compute AMC" class="btn btn-secondary btn-sm ms-2" icon="fa-refresh" title="Compute based on past 12 months consumption"/>
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Template List / Tree View -->
+    <record id="view_product_template_tree_amc" model="ir.ui.view">
+        <field name="name">product.template.list.amc</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='uom_id']" position="after">
+                <field name="avg_monthly_consumption" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Template Search View -->
+    <record id="view_product_template_search_amc" model="ir.ui.view">
+        <field name="name">product.template.search.amc</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="avg_monthly_consumption"/>
+            </xpath>
+            <xpath expr="//filter[@name='filter_to_purchase']" position="after">
+                <filter string="Has Monthly Consumption" name="has_consumption" domain="[('avg_monthly_consumption', '>', 0)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

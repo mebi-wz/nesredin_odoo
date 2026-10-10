@@ -14,6 +14,8 @@
 
     "data": [
         "data/purchase_order_sequences.xml",
+        "data/ir_cron.xml",
+        "views/product_views.xml",
         "views/procurement_po_views.xml",
         "views/procurement_po_menus.xml",
         "views/res_config_settings_views.xml",

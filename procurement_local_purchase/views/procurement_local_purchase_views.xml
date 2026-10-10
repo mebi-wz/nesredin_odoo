@@ -13,7 +13,7 @@
                 <field name="date_requisition"/>
                 <field name="state"
                        decoration-info="state == 'draft'"
-                       decoration-warning="state in ['submitted', 'verified', 'budget_approved']"
+                       decoration-warning="state in ['submitted', 'verified', 'pr_manager_approved']"
                        decoration-success="state == 'approved'"
                        decoration-danger="state == 'cancelled'"
                        widget="badge"/>
@@ -35,28 +35,12 @@
                         class="oe_highlight"
                         groups="procurement_store_requisition.group_store_requisition_user"/>
 
-                <!-- Dept Manager -->
+                <!-- Single Approve -->
                 <button name="action_approve" type="object"
-                        string="Dept Manager Approve"
-                        invisible="state != 'submitted'"
+                        string="Approve"
+                        invisible="state not in ['submitted', 'verified', 'pr_manager_approved']"
                         class="oe_highlight"
-                        groups="procurement_local_purchase.group_local_purchase_dept_manager"/>
-
-                <!-- Finance -->
-                <button name="action_approve" type="object"
-                        string="Finance Approve"
-                        invisible="state != 'verified'"
-                        class="oe_highlight"
-                        groups="procurement_store_requisition.group_store_requisition_budget_manager"/>
-
-                <!-- PR Manager Button Removed -->
-
-                <!-- CEO (only reached if above threshold) -->
-                <button name="action_approve" type="object"
-                        string="CEO Approve"
-                        invisible="state != 'pr_manager_approved'"
-                        class="oe_highlight"
-                        groups="procurement_local_purchase.group_local_purchase_ceo"/>
+                        groups="procurement_local_purchase.group_local_purchase_dept_manager,procurement_local_purchase.group_local_purchase_ceo"/>
 
                 <!-- Reject -->
                 <button name="action_cancel" type="object"
@@ -77,7 +61,7 @@
                         groups="procurement_store_requisition.group_store_requisition_user"/>
 
                 <field name="state" widget="statusbar"
-                    statusbar_visible="draft,submitted,verified,pr_manager_approved,approved"/>
+                    statusbar_visible="draft,submitted,approved"/>
             </header>
 
                 <sheet>
@@ -117,9 +101,9 @@
                                     <field name="product_uom_id" readonly="state != 'draft'"/>
                                     <field name="quantity" readonly="state != 'draft'"/>
                                     <field name="cost_center_id" readonly="state != 'draft'" optional="show"/>
-                                    <field name="budget_category_id" string="Budgetary Position" column_invisible="parent.state != 'verified'"/>
+                                    <field name="budget_category_id" string="Budgetary Position" optional="show"/>
                                     <field name="account_id" column_invisible="True"/>
-                                    <field name="remaining_budget" column_invisible="parent.state != 'verified'"/>
+                                    <field name="remaining_budget" optional="show"/>
                                     <field name="unit_price" readonly="state != 'draft'"/>
                                     <field name="total_price" readonly="state != 'draft'"/>
                                 </list>
