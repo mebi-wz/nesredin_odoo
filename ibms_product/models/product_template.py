@@ -18,6 +18,12 @@ class ProductTemplate(models.Model):
         default=0.0,
         help="Wholesale selling price for this product.",
     )
+    additional_image = fields.Image(
+        string='Additional Image',
+        max_width=1920,
+        max_height=1920,
+        help="Secondary or additional image for this product.",
+    )
 
     @api.constrains('default_code')
     def _check_default_code_unique(self):

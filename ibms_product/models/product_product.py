@@ -24,7 +24,7 @@ class ProductProduct(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get('default_code') and not self.env.context.get('install_mode'):
+            if not vals.get('product_tmpl_id') and not vals.get('default_code') and not self.env.context.get('install_mode'):
                 raise ValidationError(_("Product Code is required for product registration!"))
             if not vals.get('product_tmpl_id') and not vals.get('part_number') and not self.env.context.get('install_mode'):
                 raise ValidationError(_("Product Part Number is required for product registration!"))

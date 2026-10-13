@@ -7,6 +7,12 @@
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="priority">20</field>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='image_1920']" position="before">
+                <field name="additional_image"
+                       widget="image"
+                       class="oe_avatar ms-3"
+                       options="{'convert_to_webp': True, 'zoom': True}"/>
+            </xpath>
             <xpath expr="//field[@name='default_code']" position="attributes">
                 <attribute name="string">Product Code</attribute>
                 <attribute name="required">1</attribute>
@@ -37,6 +43,12 @@
         <field name="inherit_id" ref="product.product_normal_form_view"/>
         <field name="priority">20</field>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='image_1920']" position="before">
+                <field name="additional_image"
+                       widget="image"
+                       class="oe_avatar ms-3"
+                       options="{'convert_to_webp': True, 'zoom': True}"/>
+            </xpath>
             <xpath expr="//field[@name='default_code']" position="attributes">
                 <attribute name="string">Product Code</attribute>
                 <attribute name="required">1</attribute>
