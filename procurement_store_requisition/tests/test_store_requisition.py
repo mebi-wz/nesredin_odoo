@@ -105,16 +105,9 @@ class TestStoreRequisition(TransactionCase):
         requisition.action_approve()
         self.assertEqual(requisition.state, 'submitted', "State should be submitted after Submit")
         
-        # Submitted -> Verified (Action: Verify)
+        # Submitted -> Budget Approved (Action: Single Approve)
         requisition.action_approve()
-        self.assertEqual(requisition.state, 'verified', "State should be verified after Verify")
-
-        # Set GL Account before Budget Approval
-        requisition.line_ids[0].account_id = self.gl_account.id
-
-        # Verified -> Budget Approved (Action: Budget Approve)
-        requisition.action_approve()
-        self.assertEqual(requisition.state, 'budget_approved', "State should be budget_approved after Budget Approve")
+        self.assertEqual(requisition.state, 'budget_approved', "State should be budget_approved after Single Approve")
 
         # Set Issued Quantity before moving to Waiting/SIV phase
         requisition.line_ids[0].qty_transferred = 10.0

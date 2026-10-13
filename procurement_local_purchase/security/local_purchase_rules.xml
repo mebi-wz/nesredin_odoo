@@ -40,7 +40,6 @@
             <field name="groups" eval="[
                 (4, ref('group_local_purchase_dept_manager')),
                 (4, ref('procurement_store_requisition.group_store_requisition_verifier')),
-                (4, ref('procurement_store_requisition.group_store_requisition_budget_manager')),
                 (4, ref('group_local_purchase_pr_manager')),
                 (4, ref('group_local_purchase_ceo'))
             ]"/>

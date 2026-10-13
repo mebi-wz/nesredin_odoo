@@ -96,14 +96,15 @@
                         <page string="Products" name="products">
                             <field name="line_ids" >
                                 <list editable="bottom">
+                                    <field name="image_1920" string="Image" widget="image" options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}" width="45" optional="show"/>
                                     <field name="product_id" readonly="state != 'draft'"/>
+                                    <field name="part_number" optional="show"/>
+                                    <field name="categ_id" optional="show"/>
                                     <field name="description" readonly="state != 'draft'"/>
                                     <field name="product_uom_id" readonly="state != 'draft'"/>
                                     <field name="quantity" readonly="state != 'draft'"/>
                                     <field name="cost_center_id" readonly="state != 'draft'" optional="show"/>
-                                    <field name="budget_category_id" string="Budgetary Position" optional="show"/>
                                     <field name="account_id" column_invisible="True"/>
-                                    <field name="remaining_budget" optional="show"/>
                                     <field name="unit_price" readonly="state != 'draft'"/>
                                     <field name="total_price" readonly="state != 'draft'"/>
                                 </list>

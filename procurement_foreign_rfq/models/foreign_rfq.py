@@ -218,7 +218,7 @@ class ForeignRFQ(models.Model):
             raise UserError(_("Please provide the Proforma Invoice Number."))
         state_map = {
             'draft': 'submitted',
-            'submitted': 'verified',
+            'submitted': 'pending_currency',
             'verified': 'pending_currency',
         }
 
@@ -279,9 +279,9 @@ class ForeignRFQ(models.Model):
             )
 
         group_xmlid_map = {
-            'submitted': 'procurement_foreign_purchase.group_foreign_purchase_manager', # Verify button
-            'verified': 'procurement_foreign_purchase.group_foreign_purchase_ceo', # CEO Approve button
-            'pending_currency': 'procurement_foreign_purchase.group_foreign_purchase_manager', # Request Currency
+            'submitted': 'procurement_foreign_purchase.group_foreign_purchase_manager',
+            'pending_currency': 'procurement_foreign_purchase.group_foreign_purchase_operation_manager',
+            'approved': 'procurement_foreign_purchase.group_foreign_purchase_operation_manager',
         }
         
         group_xmlid = group_xmlid_map.get(next_state)
@@ -425,6 +425,10 @@ class ForeignRFQLine(models.Model):
     rfq_id = fields.Many2one('foreign.rfq', string='RFQ', ondelete='cascade')
     line_no = fields.Integer(string="Line No", compute="_compute_line_no", store=True)
     product_id = fields.Many2one('product.product', string='Product', required=True)
+    part_number = fields.Char(string='Part Number', related='product_id.part_number', readonly=True)
+    categ_id = fields.Many2one('product.category', string='Category', related='product_id.categ_id', readonly=True)
+    image_128 = fields.Image(string='Image', related='product_id.image_128', readonly=True)
+    image_1920 = fields.Image(string='Full Image', related='product_id.image_1920', readonly=True)
     hs_code = fields.Char(string="HS Code")
     hs_description = fields.Char(string="HS Description")
     description = fields.Char(string='Description')

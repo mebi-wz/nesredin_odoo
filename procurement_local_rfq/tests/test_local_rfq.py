@@ -36,6 +36,34 @@ class TestLocalRFQ(TransactionCase):
         products_in_rfq = comparison_lines.mapped('product_id')
         self.assertIn(self.product_1, products_in_rfq)
         self.assertEqual(len(comparison_lines), 1)
+
+    def test_02_submit_approve_create_po(self):
+        """Test single approval workflow: Submit -> Approve -> Create PO."""
+        pr = self.PR.create({
+            'line_ids': [(0, 0, {'product_id': self.product_1.id, 'quantity': 5, 'unit_price': 100.0})]
+        })
+        rfq = self.RFQ.create({
+            'requisition_id': pr.id,
+            'vendor_ids': [(4, self.vendor.id)],
+        })
+        rfq._onchange_vendor_ids()
+        self.assertTrue(rfq.quote_ids)
+        # Select winning quote
+        rfq.quote_ids[0].write({'selected': True, 'price_unit': 95.0})
+        
+        # 1. Submit
+        rfq.action_submit()
+        self.assertEqual(rfq.state, 'submitted', "RFQ should be in 'submitted' state after submit")
+
+        # 2. Approve (Single approval)
+        rfq.action_approve()
+        self.assertEqual(rfq.state, 'approved', "RFQ should be in 'approved' state after single approval")
+
+        # 3. Create PO
+        rfq.action_create_po()
+        self.assertEqual(rfq.state, 'po_created', "RFQ should be in 'po_created' state after PO creation")
+        self.assertEqual(rfq.po_count, 1, "One PO should have been created")
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()

@@ -216,9 +216,8 @@ class LocalPurchaseRequisition(models.Model):
             )
 
         group_xmlid_map = {
-            'submitted':          'procurement_local_purchase.group_local_purchase_dept_manager',  # Dept Manager
-            'verified':           'procurement_store_requisition.group_store_requisition_budget_manager',  # Finance
-            'pr_manager_approved': 'procurement_local_purchase.group_local_purchase_ceo',          # CEO
+            'submitted': 'procurement_local_purchase.group_local_purchase_dept_manager',
+            'approved': 'procurement_local_purchase.group_local_purchase_pr_manager',
         }
         
         group_xmlid = group_xmlid_map.get(next_state)
@@ -313,6 +312,27 @@ class LocalPurchaseRequisitionLine(models.Model):
         string='Product',
         domain="[('type', '=', parent.product_type), ('landed_cost_ok', '=', False), ('is_active_product', '=', True)]",
         required=True
+    )
+    part_number = fields.Char(
+        string='Part Number',
+        related='product_id.part_number',
+        readonly=True,
+    )
+    categ_id = fields.Many2one(
+        'product.category',
+        string='Category',
+        related='product_id.categ_id',
+        readonly=True,
+    )
+    image_128 = fields.Image(
+        string='Image',
+        related='product_id.image_128',
+        readonly=True,
+    )
+    image_1920 = fields.Image(
+        string='Full Image',
+        related='product_id.image_1920',
+        readonly=True,
     )
     description = fields.Char(string='Description', store=True, translate=True)
     account_id = fields.Many2one('account.account', string='GL Account', compute='_compute_account_id', store=True, readonly=False)

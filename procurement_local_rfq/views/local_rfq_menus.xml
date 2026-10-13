@@ -7,6 +7,7 @@
         name="Request for Quotation"
         parent="procurement_base.menu_local_procurement_root"
         action="action_local_rfq"
+        groups="procurement_local_purchase.group_local_purchase_pr_manager,procurement_local_purchase.group_local_purchase_dept_manager,procurement_local_purchase.group_local_purchase_ceo"
         sequence="30"/>
 
 </odoo>

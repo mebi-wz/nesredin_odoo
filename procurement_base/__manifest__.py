@@ -6,11 +6,20 @@
     "author": "Consulting",
     "depends": [
         "base",
+        "web",
         "purchase",
         "purchase_stock",
         "stock",
-        "hr"
+        "hr",
+        "ibms_product"
     ],
+    "assets": {
+        "web.assets_backend": [
+            "procurement_base/static/src/views/fields/image_field.js",
+            "procurement_base/static/src/views/fields/image_field.xml",
+            "procurement_base/static/src/views/fields/image_field.scss",
+        ],
+    },
 
     "data": [
         "data/purchase_order_sequences.xml",

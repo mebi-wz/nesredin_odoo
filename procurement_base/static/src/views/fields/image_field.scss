@@ -1,0 +1,9 @@
+.o_field_image img[data-tooltip-template] {
+    cursor: pointer;
+    transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+    &:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+}
