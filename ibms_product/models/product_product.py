@@ -6,8 +6,6 @@ from odoo.exceptions import ValidationError
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    default_code = fields.Char(string='Product Code')
-
     @api.constrains('default_code')
     def _check_default_code_unique(self):
         for record in self:
@@ -22,3 +20,24 @@ class ProductProduct(models.Model):
                         _("The Product Code '%(code)s' is already used by product variant '%(product)s'. Product Code must be unique!")
                         % {'code': code, 'product': duplicate.display_name}
                     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('default_code') and not self.env.context.get('install_mode'):
+                raise ValidationError(_("Product Code is required for product registration!"))
+            if not vals.get('product_tmpl_id') and not vals.get('part_number') and not self.env.context.get('install_mode'):
+                raise ValidationError(_("Product Part Number is required for product registration!"))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if 'default_code' in vals and not vals.get('default_code'):
+            raise ValidationError(_("Product Code cannot be empty!"))
+        if 'part_number' in vals and not vals.get('part_number'):
+            raise ValidationError(_("Product Part Number cannot be empty!"))
+        return super().write(vals)
+
+    def action_compute_amc(self):
+        if hasattr(self.product_tmpl_id, 'action_compute_amc'):
+            return self.product_tmpl_id.action_compute_amc()
+        return True

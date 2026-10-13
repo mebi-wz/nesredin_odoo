@@ -50,11 +50,41 @@ class SaleOrder(models.Model):
         copy=False,
         help="Add notes about the payment, e.g. Transaction ID, bank deposit reference, Telebirr/CBE Birr confirmation code, etc.",
     )
+    sale_type = fields.Selection([
+        ('cash', 'Cash Sale'),
+        ('credit', 'Credit Sale'),
+    ], string='Sale Type', default='cash', required=True, tracking=True,
+       help="Specifies whether this order is a Cash Sale (requiring payment proof/reference) or a Credit Sale (subject to customer credit checks).")
+    partner_credit_status = fields.Selection(
+        related='partner_id.credit_status',
+        string='Customer Credit Status',
+        readonly=True,
+    )
+
+    @api.onchange('payment_term_id')
+    def _onchange_payment_term_id_sale_type(self):
+        if self.payment_term_id:
+            has_credit = False
+            if hasattr(self.payment_term_id, 'line_ids'):
+                for line in self.payment_term_id.line_ids:
+                    if (getattr(line, 'nb_days', 0) or 0) > 0 or getattr(line, 'delay_type', '') != 'days_after':
+                        has_credit = True
+                        break
+            self.sale_type = 'credit' if has_credit else 'cash'
 
     def action_submit_approval(self):
         for order in self:
             if not order.order_line:
                 raise UserError(_("You cannot submit an empty quotation for approval. Please add products first."))
+            if order.sale_type == 'credit':
+                partner = order.partner_id
+                if partner and getattr(partner, 'credit_status', False) == 'blocked':
+                    due_amt = getattr(partner, 'due_amount', 0.0)
+                    limit = getattr(partner, 'blocking_stage', 0.0)
+                    raise UserError(_(
+                        "Customer '%s' has a BLOCKED credit status (Due: %.2f, Blocking limit: %.2f). "
+                        "Credit sales cannot be submitted for this customer."
+                    ) % (partner.name, due_amt, limit))
             order.write({
                 'state': 'to_approve',
                 'rejection_reason': False,
@@ -69,6 +99,17 @@ class SaleOrder(models.Model):
         for order in self:
             if not self.env.user.has_group('sales_team.group_sale_manager'):
                 raise UserError(_("Only Sales Managers can approve sales orders."))
+            if order.sale_type == 'credit':
+                partner = order.partner_id
+                if partner and getattr(partner, 'credit_status', False) == 'blocked':
+                    raise UserError(_(
+                        "Customer '%s' has a BLOCKED credit status. Credit sales cannot be approved."
+                    ) % partner.name)
+            elif order.sale_type == 'cash':
+                if not order.payment_proof and not order.payment_note:
+                    raise UserError(_(
+                        "For Cash Sales, please provide Payment Proof / Receipt or Payment Note / Reference before approving."
+                    ))
             order.write({
                 'approver_id': self.env.user.id,
                 'approval_date': fields.Datetime.now(),
@@ -111,6 +152,8 @@ class SaleOrder(models.Model):
         for order in self:
             if not self.env.user.has_group('sales_team.group_sale_manager'):
                 raise UserError(_("Sales Orders require approval from a Sales Manager before confirmation. Please click 'Submit for Approval'."))
+            if order.sale_type == 'credit' and order.partner_id and getattr(order.partner_id, 'credit_status', False) == 'blocked':
+                raise UserError(_("Customer '%s' has a BLOCKED credit status. Credit sales cannot be confirmed.") % order.partner_id.name)
         return super().action_confirm()
 
     def _prepare_invoice(self):
@@ -120,6 +163,8 @@ class SaleOrder(models.Model):
             invoice_vals['payment_proof_filename'] = self.payment_proof_filename
         if self.payment_note:
             invoice_vals['payment_note'] = self.payment_note
+        if hasattr(self, 'sale_type') and self.sale_type:
+            invoice_vals['sale_type'] = self.sale_type
         return invoice_vals
 
     @api.model

@@ -91,6 +91,9 @@ class ProductProduct(models.Model):
         readonly=False
     )
 
+    def action_compute_amc(self):
+        return self.product_tmpl_id.action_compute_amc()
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'

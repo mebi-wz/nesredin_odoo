@@ -24,6 +24,10 @@ class AccountMove(models.Model):
         copy=False,
         help="Notes about payment, e.g. Transaction ID, bank deposit reference, Telebirr/CBE Birr confirmation code, etc.",
     )
+    sale_type = fields.Selection([
+        ('cash', 'Cash Sale'),
+        ('credit', 'Credit Sale'),
+    ], string='Sale Type', readonly=True, copy=False)
 
     @api.onchange('warehouse_id')
     def _onchange_warehouse_id_analytics(self):

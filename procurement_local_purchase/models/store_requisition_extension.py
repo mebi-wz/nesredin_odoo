@@ -33,7 +33,7 @@ class StoreRequisition(models.Model):
             'cost_center_id': self.cost_center_id.id,
             'department_id': self.department_id.id,
             'store_requisition_id': self.id,
-            'state': self.state,
+            'state': 'draft',
             'line_ids': []
         }
         
@@ -183,7 +183,7 @@ class StoreRequisitionWizard(models.TransientModel):
                 'cost_center_id': requisition.cost_center_id.id,
                 'department_id': requisition.department_id.id,
                 'purpose': f"Shortage from Store Requisition {requisition.name}",
-                'state': requisition.state,
+                'state': 'draft',
                 'company_id': requisition.company_id.id,
                 'line_ids': pr_lines,
             })

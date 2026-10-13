@@ -6,7 +6,6 @@ from odoo.exceptions import ValidationError
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
-    default_code = fields.Char(string='Product Code')
     part_number = fields.Char(
         string='Product Part Number',
         index=True,
@@ -38,9 +37,15 @@ class ProductTemplate(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get('default_code'):
+            if self.env.context.get('create_product_product') is False:
+                # Being created via product.product delegation; default_code is validated on product.product
+                if not vals.get('part_number') and not self.env.context.get('install_mode'):
+                    raise ValidationError(_("Product Part Number is required for product registration!"))
+                continue
+
+            if not vals.get('default_code') and not self.env.context.get('install_mode'):
                 raise ValidationError(_("Product Code is required for product registration!"))
-            if not vals.get('part_number'):
+            if not vals.get('part_number') and not self.env.context.get('install_mode'):
                 raise ValidationError(_("Product Part Number is required for product registration!"))
         return super().create(vals_list)
 
