@@ -43,6 +43,11 @@ class ProductTemplate(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if vals.get('type') == 'service':
+                if not vals.get('default_code'):
+                    vals['default_code'] = 'DISC' if 'discount' in (vals.get('name') or '').lower() else 'SRV'
+                if not vals.get('part_number'):
+                    vals['part_number'] = vals['default_code']
             if self.env.context.get('create_product_product') is False:
                 # Being created via product.product delegation; default_code is validated on product.product
                 if not vals.get('part_number') and not self.env.context.get('install_mode'):

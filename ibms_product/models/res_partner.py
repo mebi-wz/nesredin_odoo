@@ -18,12 +18,14 @@ class ResPartner(models.Model):
     ], string='Credit Status', compute='_compute_credit_status')
 
     def compute_due_amount(self):
-        try:
-            super().compute_due_amount()
-        except Exception:
-            pass
         for rec in self:
             if not rec.id:
+                rec.due_amount = 0.0
+                continue
+            try:
+                rec_sudo = rec.sudo()
+                rec.due_amount = (rec_sudo.credit or 0.0) - (rec_sudo.debit or 0.0)
+            except Exception:
                 rec.due_amount = 0.0
 
     @api.depends('due_amount', 'credit', 'warning_stage', 'blocking_stage', 'active_limit')
@@ -32,12 +34,18 @@ class ResPartner(models.Model):
             if not partner.id or not getattr(partner, 'active_limit', False):
                 partner.credit_status = 'normal'
                 continue
-            due_amt = getattr(partner, 'due_amount', 0.0) or 0.0
-            credit_amt = getattr(partner, 'credit', 0.0) or 0.0
-            amount = max(due_amt, credit_amt)
-            if getattr(partner, 'blocking_stage', 0.0) > 0 and amount >= partner.blocking_stage:
-                partner.credit_status = 'blocked'
-            elif getattr(partner, 'warning_stage', 0.0) > 0 and amount >= partner.warning_stage:
-                partner.credit_status = 'warning'
-            else:
+            try:
+                partner_sudo = partner.sudo()
+                due_amt = getattr(partner_sudo, 'due_amount', 0.0) or 0.0
+                credit_amt = getattr(partner_sudo, 'credit', 0.0) or 0.0
+                amount = max(due_amt, credit_amt)
+                blocking = getattr(partner_sudo, 'blocking_stage', 0.0) or 0.0
+                warning = getattr(partner_sudo, 'warning_stage', 0.0) or 0.0
+                if blocking > 0 and amount >= blocking:
+                    partner.credit_status = 'blocked'
+                elif warning > 0 and amount >= warning:
+                    partner.credit_status = 'warning'
+                else:
+                    partner.credit_status = 'normal'
+            except Exception:
                 partner.credit_status = 'normal'

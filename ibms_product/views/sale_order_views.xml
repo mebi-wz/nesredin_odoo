@@ -11,21 +11,23 @@
                 <attribute name="statusbar_visible">draft,sent,to_approve,sale</attribute>
             </xpath>
 
-            <!-- Hide direct Confirm buttons -->
+            <!-- Make Confirm button visible when discount <= 5% OR user is a Sales Manager -->
             <xpath expr="//button[@id='action_confirm']" position="attributes">
-                <attribute name="invisible">1</attribute>
+                <attribute name="invisible">state not in ('draft', 'sent') or (has_excessive_discount and not is_sales_manager)</attribute>
             </xpath>
             <xpath expr="//button[@name='action_confirm' and not(@id)]" position="attributes">
-                <attribute name="invisible">1</attribute>
+                <attribute name="invisible">state not in ('draft', 'sent') or (has_excessive_discount and not is_sales_manager)</attribute>
             </xpath>
 
             <!-- Add Approval buttons in header -->
             <xpath expr="//header" position="inside">
+                <field name="has_excessive_discount" invisible="1"/>
+                <field name="is_sales_manager" invisible="1"/>
                 <button name="action_submit_approval"
                         string="Submit for Approval"
                         type="object"
                         class="btn-primary"
-                        invisible="state not in ('draft', 'sent')"/>
+                        invisible="state not in ('draft', 'sent') or not has_excessive_discount or is_sales_manager"/>
                 <button name="action_approve"
                         string="Approve"
                         type="object"
@@ -40,7 +42,7 @@
                         invisible="state != 'to_approve'"/>
             </xpath>
 
-            <!-- Rejection and Credit Alert Banners -->
+            <!-- Rejection, Credit, and Discount Alert Banners -->
             <xpath expr="//header" position="after">
                 <div class="alert alert-danger" role="alert" invisible="not rejection_reason or state not in ('draft', 'sent')">
                     <strong>Order Was Rejected by Management: </strong>
@@ -52,9 +54,12 @@
                 <div class="alert alert-danger" role="alert" invisible="sale_type != 'credit' or partner_credit_status != 'blocked'">
                     <strong>Credit Blocked: </strong> This customer has reached the credit blocking limit. Credit sales cannot be submitted or approved.
                 </div>
+                <div class="alert alert-warning" role="alert" invisible="not has_excessive_discount or state in ('sale', 'done', 'cancel')">
+                    <strong>Discount Limit Exceeded: </strong> This quotation has a discount of <field name="max_discount" class="d-inline fw-bold"/>%. Discounts above 5.0% require Manager Approval.
+                </div>
             </xpath>
 
-            <!-- Place Sale Type, Location (Analytic Account), and Warehouse right after Customer -->
+            <!-- Place Sale Type, Location, Warehouse, and Order Discount right after Customer -->
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="sale_type" widget="radio" options="{'horizontal': true}" readonly="state == 'sale'"/>
                 <field name="partner_credit_status" invisible="1"/>
@@ -64,6 +69,28 @@
                        options="{'no_create': True}"
                        force_save="1"
                        readonly="state == 'sale'"/>
+                <field name="apply_order_discount"
+                       string="Order Discount"
+                       readonly="state in ('sale', 'done', 'cancel')"/>
+                <label for="order_discount_percent" string="Discount (%)" invisible="not apply_order_discount"/>
+                <div class="d-flex align-items-center" invisible="not apply_order_discount">
+                    <field name="order_discount_percent"
+                           class="oe_inline text-end pe-1"
+                           style="max-width: 90px;"
+                           readonly="state in ('sale', 'done', 'cancel')"/>
+                    <span class="fw-bold ms-1">%</span>
+                </div>
+            </xpath>
+
+            <!-- Order Discount display in Totals summary box (Option B) -->
+            <xpath expr="//field[@name='tax_totals']" position="before">
+                <field name="gross_amount_untaxed" string="Gross Subtotal" invisible="not apply_order_discount or order_discount_percent == 0" readonly="1"/>
+                <field name="order_discount_amount" string="Order Discount" class="text-danger fw-bold" invisible="not apply_order_discount or order_discount_percent == 0" readonly="1"/>
+            </xpath>
+
+            <!-- Part Number Column in Order Lines List View -->
+            <xpath expr="//field[@name='order_line']/list//field[@name='product_template_id']" position="after">
+                <field name="part_number" string="Part Number" optional="show" readonly="1" force_save="1"/>
             </xpath>
 
             <!-- Place Payment Proof and Payment Note right after Payment Terms -->
@@ -126,6 +153,7 @@
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='my_sale_orders_filter']" position="after">
                 <filter string="Waiting Approval" name="filter_to_approve" domain="[('state', '=', 'to_approve')]"/>
+                <filter string="Discounts > 5%" name="filter_excessive_discount" domain="[('has_excessive_discount', '=', True)]"/>
                 <separator/>
                 <filter string="Cash Sales" name="filter_cash_sales" domain="[('sale_type', '=', 'cash')]"/>
                 <filter string="Credit Sales" name="filter_credit_sales" domain="[('sale_type', '=', 'credit')]"/>
