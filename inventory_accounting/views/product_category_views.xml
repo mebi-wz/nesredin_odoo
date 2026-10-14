@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_category_property_form_inherit_stock_journal" model="ir.ui.view">
+        <field name="name">product.category.stock.property.form.inherit.stock.journal</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="account.view_category_property_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='property_account_expense_categ_id']" position="after">
+                <field name="property_stock_journal"
+                       string="Stock Journal"
+                       options="{'no_create': True}"/>
+                <field name="property_bill_journal_id"
+                       string="Billing Journal"
+                       options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

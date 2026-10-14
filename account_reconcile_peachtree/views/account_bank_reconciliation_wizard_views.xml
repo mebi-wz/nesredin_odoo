@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_bank_reconciliation_wizard_form" model="ir.ui.view">
+        <field name="name">account.bank.reconciliation.wizard.form</field>
+        <field name="model">account.bank.reconciliation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bank Reconciliation" create="0" delete="0">
+                <sheet>
+                    <!-- Save button — only shown when there's enough data to save -->
+                    <div class="oe_button_box" name="button_box"
+                         invisible="not journal_id or not statement_date">
+                        <button name="action_save_period"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-save"
+                                string="Save Period"/>
+                    </div>
+
+                    <!-- ── Filter bar ─────────────────────────────────── -->
+                    <group string="Filter">
+                        <group>
+                            <field name="journal_id"/>
+                            <field name="statement_date"
+                                   placeholder="Leave empty to see all items"/>
+                            <field name="statement_balance"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <!-- ── Summary (always visible once journal selected) ── -->
+                        <group string="Summary" invisible="not journal_id">
+                            <field name="book_balance"         readonly="1"/>
+                            <field name="outstanding_deposits" readonly="1"/>
+                            <field name="outstanding_checks"   readonly="1"/>
+                            <field name="difference" readonly="1"
+                                   decoration-danger="difference != 0"
+                                   decoration-success="difference == 0"/>
+                        </group>
+                    </group>
+
+                    <!-- ── Transaction tabs ───────────────────────────── -->
+                    <notebook invisible="not journal_id">
+                        <page string="Outstanding Deposits" name="outstanding_deposits">
+                            <field name="outstanding_deposit_ids" readonly="1">
+                                <list string="Outstanding Deposits"
+                                      create="0" edit="0" delete="0">
+                                    <header>
+                                        <button name="action_reconcile_bulk_manually" string="Bulk Reconcile" type="object" class="btn-primary"/>
+                                    </header>
+                                    <field name="date"/>
+                                    <field name="move_id"   string="Journal Entry"/>
+                                    <field name="name"      string="Description"/>
+                                    <field name="partner_id"/>
+                                    <field name="amount_residual" string="Amount"
+                                           sum="Total Outstanding"/>
+                                    <button name="action_reconcile_row_manually"
+                                            string="Reconcile"
+                                            type="object"
+                                            class="btn-primary btn-sm"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Outstanding Checks/Payments" name="outstanding_checks">
+                            <field name="outstanding_check_ids" readonly="1">
+                                <list string="Outstanding Checks/Payments"
+                                      create="0" edit="0" delete="0">
+                                    <header>
+                                        <button name="action_reconcile_bulk_manually" string="Bulk Reconcile" type="object" class="btn-primary"/>
+                                    </header>
+                                    <field name="date"/>
+                                    <field name="move_id"   string="Journal Entry"/>
+                                    <field name="name"      string="Description"/>
+                                    <field name="partner_id"/>
+                                    <field name="amount_residual" string="Amount"
+                                           sum="Total Outstanding"/>
+                                    <button name="action_reconcile_row_manually"
+                                            string="Reconcile"
+                                            type="object"
+                                            class="btn-primary btn-sm"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Reconciled Items" name="reconciled_items">
+                            <field name="reconciled_line_ids" readonly="1">
+                                <list string="Reconciled Items"
+                                      create="0" edit="0" delete="0">
+                                    <header>
+                                        <button name="action_unreconcile_bulk_manually" string="Bulk Unreconcile" type="object" class="btn-secondary"/>
+                                    </header>
+                                    <field name="date"/>
+                                    <field name="move_id"   string="Journal Entry"/>
+                                    <field name="name"      string="Description"/>
+                                    <field name="partner_id"/>
+                                    <field name="debit"  sum="Total Debits"/>
+                                    <field name="credit" sum="Total Credits"/>
+                                    <field name="matching_number" string="Matching #"/>
+                                    <button name="action_unreconcile_row_manually"
+                                            string="Unreconcile"
+                                            type="object"
+                                            class="btn-secondary btn-sm"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

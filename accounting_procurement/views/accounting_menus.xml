@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ======================================================== -->
+    <!-- PO MARGINS                                               -->
+    <!-- ======================================================== -->
+    <record id="view_purchase_import_margin_list_accounting" model="ir.ui.view">
+        <field name="name">purchase.import.margin.list.accounting</field>
+        <field name="model">purchase.import.margin</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" string="Margins">
+                <field name="import_id" required="1"/>
+                <field name="margin_order"/>
+                <field name="margin_percent" sum="Total %"/>
+                <field name="calculation"/>
+                <field name="usd_amount" string="USD" sum="Total USD"/>
+                <field name="exchange_rate"/>
+                <field name="etb_amount" string="ETB" sum="Total ETB"/>
+                <field name="account_id"/>
+                <field name="lc_reference" options="{'no_create': True, 'no_open': True}"/>
+                <field name="move_reference" string="Move"/>
+                <button name="action_create_bill" type="object" string="CREATE BILL" class="oe_highlight btn-sm" invisible="move_reference"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_purchase_import_margin_form_accounting" model="ir.ui.view">
+        <field name="name">purchase.import.margin.form.accounting</field>
+        <field name="model">purchase.import.margin</field>
+        <field name="arch" type="xml">
+            <form string="Margin">
+                <header>
+                    <button name="action_create_bill" type="object" string="CREATE BILL" class="oe_highlight" invisible="move_reference"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="import_id" required="1"/>
+                            <field name="margin_order"/>
+                            <field name="calculation"/>
+                            <field name="margin_percent"/>
+                        </group>
+                        <group>
+                            <field name="usd_amount" string="USD"/>
+                            <field name="exchange_rate"/>
+                            <field name="etb_amount" string="ETB"/>
+                            <field name="account_id"/>
+                            <field name="lc_reference"/>
+                            <field name="move_reference"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_purchase_import_margin_accounting" model="ir.actions.act_window">
+        <field name="name">PO Margins</field>
+        <field name="res_model">purchase.import.margin</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Purchase Import Margin
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_account_vendor_purchase_order"
+              name="Purchase Orders"
+              parent="account.menu_finance_payables"
+              sequence="210"/>
+
+    <menuitem id="menu_purchase_import_margin_accounting"
+              name="PO Margins"
+              action="action_purchase_import_margin_accounting"
+              parent="menu_account_vendor_purchase_order"
+              sequence="30"/>
+
+    <!-- ======================================================== -->
+    <!-- PURCHASE ORDERS (LOCAL & FOREIGN)                        -->
+    <!-- ======================================================== -->
+    <record id="action_account_local_po" model="ir.actions.act_window">
+        <field name="name">Local Purchase Orders</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,kanban,form,pivot,graph,calendar,activity</field>
+        <field name="domain">[('request_type', '=', 'local')]</field>
+        <field name="context">{'default_request_type': 'local'}</field>
+    </record>
+
+    <record id="action_account_foreign_po" model="ir.actions.act_window">
+        <field name="name">Foreign Purchase Orders</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,kanban,form,pivot,graph,calendar,activity</field>
+        <field name="domain">[('request_type', '=', 'foreign')]</field>
+        <field name="context">{'default_request_type': 'foreign'}</field>
+    </record>
+
+
+    <menuitem id="menu_account_vendor_local_po"
+              name="Local"
+              parent="menu_account_vendor_purchase_order"
+              action="action_account_local_po"
+              sequence="10"/>
+
+    <menuitem id="menu_account_vendor_foreign_po"
+              name="Foreign"
+              parent="menu_account_vendor_purchase_order"
+              action="action_account_foreign_po"
+              sequence="20"/>
+
+    <!-- ======================================================== -->
+    <!-- APPROVALS MENU                                           -->
+    <!-- ======================================================== -->
+    <menuitem id="menu_accounting_approvals"
+              name="Approvals"
+              parent="account.menu_finance"
+              sequence="7"/>
+
+    <menuitem id="menu_accounting_payment_request_parent"
+              name="Payment Request"
+              parent="menu_accounting_approvals"
+              sequence="10"/>
+
+    <menuitem id="menu_accounting_payment_request"
+              name="Payment Request - Foreign"
+              parent="menu_accounting_payment_request_parent"
+              action="procurement_foreign_operations.action_foreign_payment_request"
+              sequence="10"/>
+
+    <menuitem id="menu_accounting_payment_request_local"
+              name="Payment Request - Local"
+              parent="menu_accounting_payment_request_parent"
+              action="procurement_local_purchase.action_local_payment_request"
+              sequence="15"/>
+
+    <menuitem id="menu_accounting_purchase_request_local"
+              name="Purchase Request - Local"
+              parent="menu_accounting_payment_request_parent"
+              action="procurement_local_purchase.action_local_purchase_requisitions"
+              sequence="20"/>
+
+    <menuitem id="menu_accounting_purchase_request_foreign"
+              name="Purchase Request - Foregin"
+              parent="menu_accounting_payment_request_parent"
+              action="procurement_foreign_purchase.action_foreign_purchase_requisition"
+              sequence="30"/>
+
+    <menuitem id="menu_accounting_foreign_currency_request"
+              name="Foreign Currency Request"
+              parent="menu_accounting_payment_request_parent"
+              action="procurement_foreign_rfq.action_procurement_currency_request"
+              sequence="40"/>
+
+    <record id="action_accounting_credit_sales_approval" model="ir.actions.act_window">
+        <field name="name">Credit Sales Approval</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'finance_approval')]</field>
+        <field name="context">{}</field>
+    </record>
+
+    <menuitem id="menu_accounting_credit_sales_approval"
+              name="Credit Sales"
+              parent="menu_accounting_approvals"
+              action="action_accounting_credit_sales_approval"
+              sequence="50"/>
+
+    <menuitem id="menu_accounting_inventory_adjustments_approval"
+              name="Physical Inventory"
+              parent="menu_accounting_approvals"
+              action="stock.action_view_inventory_tree"
+              sequence="60"/>
+
+   
+</odoo>

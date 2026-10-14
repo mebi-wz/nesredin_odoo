@@ -479,10 +479,12 @@ class PurchaseOrder(models.Model):
     currency_id_etb = fields.Many2one(
         'res.currency',
         string="ETB Currency",
-        compute="_compute_currency_id_etb"
+        compute="_compute_currency_id_etb",
+        store=True,
     )
     exchange_rate = fields.Float(string='Exchange Rate', compute='_compute_exchange_rate', store=True, readonly=False)
 
+    @api.depends('company_id')
     def _compute_currency_id_etb(self):
         etb_currency = self.env['res.currency'].with_context(active_test=False).search([('name', '=', 'ETB')], limit=1)
         for order in self:
@@ -519,20 +521,14 @@ class PurchaseOrder(models.Model):
         store=True
     )
 
-    @api.depends('order_line.price_subtotal_usd', 'order_line.price_subtotal_etb', 'exchange_rate', 'currency_id', 'request_type')
+    @api.depends('amount_total', 'exchange_rate', 'currency_id', 'currency_id_etb', 'request_type')
     def _compute_totals_foreign(self):
         for order in self:
-            if order.request_type == 'foreign' and order.exchange_rate and order.exchange_rate > 1:
+            if order.request_type == 'foreign' and order.exchange_rate and order.exchange_rate > 0:
                 rate = order.exchange_rate
-
-                # Derive USD and ETB totals directly from lines — the source of truth
-                usd_val = sum(order.order_line.mapped('price_subtotal_usd'))
-                etb_val = sum(order.order_line.mapped('price_subtotal_etb'))
-
-                # Fallback: if lines have no USD subtotals yet, divide amount_total by rate
-                if not usd_val and order.amount_total:
-                    usd_val = order.amount_total / rate
-                    etb_val = order.amount_total
+                usd_val = order.amount_total
+                etb_currency = order.currency_id_etb or order.company_id.currency_id
+                etb_val = etb_currency.round(order.amount_total * rate) if etb_currency else round(order.amount_total * rate, 2)
 
                 order.amount_total_usd = usd_val
                 order.amount_total_etb = etb_val

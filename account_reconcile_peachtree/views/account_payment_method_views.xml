@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- account.payment.method list view -->
+    <record id="view_account_payment_method_tree" model="ir.ui.view">
+        <field name="name">account.payment.method.list</field>
+        <field name="model">account.payment.method</field>
+        <field name="arch" type="xml">
+            <list string="Payment Methods" create="1" edit="1" delete="1">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="payment_type"/>
+                <field name="is_manual"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- account.payment.method form view -->
+    <record id="view_account_payment_method_form" model="ir.ui.view">
+        <field name="name">account.payment.method.form</field>
+        <field name="model">account.payment.method</field>
+        <field name="arch" type="xml">
+            <form string="Payment Method">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                        </group>
+                        <group>
+                            <field name="payment_type"/>
+                            <field name="is_manual"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_account_payment_method" model="ir.actions.act_window">
+        <field name="name">Payment Methods</field>
+        <field name="res_model">account.payment.method</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Payment Method
+            </p>
+            <p>
+                Define your payment methods (e.g. Cash, Transfer) and mark them as "Is Manual Equivalent" so they behave like manual payments.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menuitem -->
+    <menuitem id="menu_account_payment_method"
+              name="Payment Methods"
+              parent="account.account_account_menu"
+              action="action_account_payment_method"
+              sequence="25"/>
+</odoo>

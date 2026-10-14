@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Override the core restrictive rule to allow all companies -->
+    <record id="hr.ir_rule_hr_contract_multi_company" model="ir.rule">
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit the Account Journal Dashboard Kanban View to customize bank buttons -->
+    <record id="account_journal_dashboard_kanban_view_inherit" model="ir.ui.view">
+        <field name="name">account.journal.dashboard.kanban.inherit</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view"/>
+        <field name="arch" type="xml">
+            <!-- Replace standard buttons (Bank Setup and Transactions) with our custom reconciliation views -->
+            <xpath expr="//div[@name='bank_cash_buttons']" position="replace">
+                <div name="bank_cash_buttons" class="d-flex flex-column gap-1 w-100">
+                    <div class="d-flex gap-1">
+                        <button type="object" 
+                                name="action_open_unreconciled_amounts" 
+                                class="btn btn-secondary w-50" 
+                                t-if="journal_type == 'bank'">Unreconciled</button>
+                        <button type="object" 
+                                name="action_open_reconciled_amounts" 
+                                class="btn btn-secondary w-50" 
+                                t-if="journal_type == 'bank'">Reconciled</button>
+                    </div>
+                    <button type="object" 
+                            name="action_open_period_reconciliation" 
+                            class="btn btn-primary w-100" 
+                            t-if="journal_type == 'bank'">Period Reconciliation</button>
+                </div>
+            </xpath>
+
+            <!-- Hide base_accounting_kit import wizard link -->
+            <xpath expr="//a[@name='action_import_wizard']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Custom List View for Unreconciled Move Lines -->
+    <record id="view_move_line_unreconciled_list" model="ir.ui.view">
+        <field name="name">account.move.line.unreconciled.list</field>
+        <field name="model">account.move.line</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list string="Unreconciled Amounts" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_reconcile_bulk_manually" string="Bulk Reconcile" type="object" class="btn-primary"/>
+                </header>
+                <field name="date"/>
+                <field name="move_id" string="Journal Entry"/>
+                <field name="ref"/>
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <field name="debit" sum="Total Debits"/>
+                <field name="credit" sum="Total Credits"/>
+                <field name="amount_residual" sum="Total Unreconciled"/>
+                <button name="action_reconcile_row_manually" string="Reconcile" type="object" class="btn-primary"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Custom List View for Reconciled Move Lines -->
+    <record id="view_move_line_reconciled_list" model="ir.ui.view">
+        <field name="name">account.move.line.reconciled.list</field>
+        <field name="model">account.move.line</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list string="Reconciled Amounts" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_unreconcile_bulk_manually" string="Bulk Unreconcile" type="object" class="btn-secondary"/>
+                </header>
+                <field name="date"/>
+                <field name="move_id" string="Journal Entry"/>
+                <field name="ref"/>
+                <field name="partner_id"/>
+                <field name="account_id"/>
+                <field name="debit" sum="Total Debits"/>
+                <field name="credit" sum="Total Credits"/>
+                <field name="matching_number" string="Matching"/>
+                <button name="action_unreconcile_row_manually" string="Unreconcile" type="object" class="btn-secondary"/>
+            </list>
+        </field>
+    </record>
+</odoo>
