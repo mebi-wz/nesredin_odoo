@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'IBMS Customizations',
+    'name': 'IBMS Product & Inventory Customizations',
     'version': '19.0.1.0.0',
     'category': 'Inventory/Inventory',
-    'summary': 'Product Code, Part Number, Warehouse Analytics, Location Transfers, and Warehouse User Access',
+    'summary': 'Product Code, Part Number, Wholesale Price, Warehouse Analytics, Location Transfers, and Warehouse User Access',
     'description': """
-IBMS Customizations:
+IBMS Product & Inventory Customizations:
 - Relabels Internal Reference to "Product Code"
 - Enforces uniqueness on Product Code
-- Adds "Product Part Number" field to products
+- Adds "Product Part Number" and "Wholesale Price" to products
+- Primary and secondary product image support
 - Adds "Analytics" tab to Warehouse configuration
 - Links Warehouse/Shop to customer invoices for automated branch analytics
 - Dedicated stock.location.transfer model and views with Draft -> Submitted -> Approved lifecycle
@@ -16,20 +17,17 @@ IBMS Customizations:
     """,
     'author': 'IBMS',
     'license': 'LGPL-3',
-    'depends': ['product', 'stock', 'account', 'analytic', 'sale', 'sale_stock', 'base_accounting_kit'],
+    'depends': ['product', 'stock', 'account', 'analytic'],
     'data': [
         'security/ir.model.access.csv',
         'security/warehouse_security.xml',
         'data/ir_sequence_data.xml',
         'views/product_views.xml',
         'views/res_partner_views.xml',
-        'views/credit_management_views.xml',
         'views/stock_warehouse_views.xml',
         'views/account_move_views.xml',
         'views/res_users_views.xml',
         'views/stock_location_transfer_views.xml',
-        'wizard/sale_order_reject_wizard_views.xml',
-        'views/sale_order_views.xml',
     ],
     'installable': True,
     'application': False,
