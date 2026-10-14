@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ResPartner(models.Model):
@@ -8,5 +8,7 @@ class ResPartner(models.Model):
     customer_type = fields.Selection([
         ('retailer', 'Retailer'),
         ('wholesaler', 'Wholesaler'),
-    ], string='Customer Type', default='retailer', required=True, tracking=True,
+    ], string='Customer Type',
+       default=lambda self: False if self.env.context.get('default_vendor_type') or self.env.context.get('default_supplier_rank') else 'retailer',
+       tracking=True,
        help="Categorizes customer as Retailer or Wholesaler to automatically determine product selling price.")

@@ -1,29 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Inherit partner form view to add vendor_type -->
+        <!-- Inherit partner form view to add vendor_type and hide customer_type on vendors -->
         <record id="view_partner_form_vendor_type" model="ir.ui.view">
             <field name="name">res.partner.form.vendor.type</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority">30</field>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='category_id']" position="after">
                     <field name="vendor_type"/>
                 </xpath>
+                <xpath expr="//field[@name='customer_type']" position="attributes">
+                    <attribute name="invisible">vendor_type or supplier_rank > 0</attribute>
+                </xpath>
             </field>
         </record>
 
-        <!-- Inherit partner tree view to add vendor_type -->
+        <!-- Inherit partner tree view to add vendor_type and hide customer_type column for vendor lists -->
         <record id="view_partner_tree_vendor_type" model="ir.ui.view">
             <field name="name">res.partner.tree.vendor.type</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="priority">30</field>
             <field name="arch" type="xml">
                 <xpath expr="//list" position="attributes">
                     <attribute name="multi_edit">1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='email']" position="after">
                     <field name="vendor_type" optional="show"/>
+                </xpath>
+                <xpath expr="//field[@name='customer_type']" position="attributes">
+                    <attribute name="column_invisible">context.get('default_vendor_type') or context.get('default_supplier_rank')</attribute>
                 </xpath>
             </field>
         </record>

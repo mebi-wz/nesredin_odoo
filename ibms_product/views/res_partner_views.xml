@@ -7,7 +7,11 @@
         <field name="priority">25</field>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">
-                <field name="customer_type" widget="radio" options="{'horizontal': true}"/>
+                <field name="supplier_rank" invisible="1"/>
+                <field name="customer_type"
+                       widget="radio"
+                       options="{'horizontal': true}"
+                       invisible="supplier_rank > 0"/>
             </xpath>
         </field>
     </record>
@@ -19,7 +23,9 @@
         <field name="priority">25</field>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='email']" position="after">
-                <field name="customer_type" optional="show"/>
+                <field name="customer_type"
+                       optional="show"
+                       column_invisible="context.get('default_supplier_rank')"/>
             </xpath>
         </field>
     </record>
