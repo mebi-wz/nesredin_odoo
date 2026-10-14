@@ -1,0 +1,44 @@
+<odoo>
+    <!--
+        Confirmed via Settings > Technical > Views: on this instance the Fiscal
+        Year form is provided by the `om_fiscal_year` module, external ID
+        `om_fiscal_year.view_account_fiscal_year_form`.
+    -->
+    <record id="view_account_fiscal_year_form_inherit_period" model="ir.ui.view">
+        <field name="name">account.fiscal.year.form.inherit.period</field>
+        <field name="model">account.fiscal.year</field>
+        <field name="inherit_id" ref="om_fiscal_year.view_account_fiscal_year_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Periods">
+                        <div class="oe_button_box" name="period_button_box">
+                            <button name="%(action_generate_fiscal_periods_wizard)d"
+                                    type="action" string="Generate Periods"
+                                    class="btn-secondary" icon="fa-magic"/>
+                        </div>
+                        <field name="period_ids">
+                            <list editable="bottom" decoration-muted="state == 'closed'">
+                                <field name="name"/>
+                                <field name="code"/>
+                                <field name="description"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                                <field name="state" widget="badge"
+                                       decoration-success="state == 'open'"
+                                       decoration-danger="state == 'closed'"
+                                       decoration-info="state == 'draft'"/>
+                                <button name="action_open" type="object" string="Open"
+                                        invisible="state != 'draft'" icon="fa-unlock-alt"/>
+                                <button name="action_close" type="object" string="Close"
+                                        invisible="state == 'closed'" icon="fa-lock"/>
+                                <button name="action_reopen" type="object" string="Reopen"
+                                        invisible="state != 'closed'" icon="fa-undo"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

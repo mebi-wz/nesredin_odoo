@@ -1,0 +1,7 @@
+<odoo>
+    <!--
+        No custom res.groups needed: we reuse Odoo's built-in
+        account.group_account_user (view) and account.group_account_manager
+        (open/close, enforced in Python via _require_period_manager()).
+    -->
+</odoo>

@@ -1,0 +1,21 @@
+<odoo>
+    <!--
+        Confirmed via Settings > Technical > Views: the Fiscal Year list view
+        is `om_fiscal_year.view_account_fiscal_year_tree`.
+    -->
+    <record id="view_account_fiscal_year_tree_inherit_period" model="ir.ui.view">
+        <field name="name">account.fiscal.year.tree.inherit.period</field>
+        <field name="model">account.fiscal.year</field>
+        <field name="inherit_id" ref="om_fiscal_year.view_account_fiscal_year_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="period_count" string="Periods"/>
+                <field name="period_status" widget="badge"
+                       decoration-success="period_status == 'open'"
+                       decoration-danger="period_status == 'closed'"
+                       decoration-warning="period_status == 'mixed'"
+                       decoration-info="period_status in ('draft', 'none')"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

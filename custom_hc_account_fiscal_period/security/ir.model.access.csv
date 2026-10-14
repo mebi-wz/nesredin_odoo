@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_fiscal_period_all,account.fiscal.period_manager,model_account_fiscal_period,base.group_user,1,1,1,1
+access_account_fiscal_period_user,account.fiscal.period.user,model_account_fiscal_period,account.group_account_invoice,1,0,0,0
+access_account_fiscal_period_manager,account.fiscal.period.manager,model_account_fiscal_period,account.group_account_manager,1,1,1,1
+access_account_fiscal_period_generate_wizard,account.fiscal.period.generate.wizard,model_account_fiscal_period_generate_wizard,account.group_account_manager,1,1,1,0
