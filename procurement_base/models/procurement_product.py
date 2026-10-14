@@ -23,20 +23,12 @@ class ProductTemplate(models.Model):
     @api.depends('name', 'default_code')
     def _compute_display_name(self):
         super()._compute_display_name()
-        has_part = 'part_number' in self._fields
         for template in self:
             code = (template.default_code or '').strip()
-            part = (getattr(template, 'part_number', '') or '').strip() if has_part else ''
-            if not code and not part:
+            if not code:
                 continue
             name = template.name or ''
-            parts = []
-            if code:
-                parts.append(code)
-            if part and part != code:
-                parts.append(f"PN: {part}")
-            if parts:
-                template.display_name = f"[{' | '.join(parts)}] {name}"
+            template.display_name = f"[{code}] {name}"
 
     def _search_display_name(self, operator, value):
         is_positive = operator not in Domain.NEGATIVE_OPERATORS
@@ -222,26 +214,16 @@ class ProductProduct(models.Model):
     @api.depends_context('display_default_code', 'seller_id', 'company_id', 'partner_id', 'formatted_display_name', 'lang')
     def _compute_display_name(self):
         super()._compute_display_name()
-        has_part = 'part_number' in self._fields
         for product in self:
             if not self.env.context.get('display_default_code', True):
                 continue
             code = (product.default_code or '').strip()
-            part = (getattr(product, 'part_number', '') or '').strip() if has_part else ''
-            if not code and not part:
+            if not code:
                 continue
             name = product.name or ''
             variant = product.product_template_attribute_value_ids._get_combination_name()
             full_name = f"{name} ({variant})" if variant else name
-
-            parts = []
-            if code:
-                parts.append(code)
-            if part and part != code:
-                parts.append(f"PN: {part}")
-
-            if parts:
-                product.display_name = f"[{' | '.join(parts)}] {full_name}"
+            product.display_name = f"[{code}] {full_name}"
 
     def _search_display_name(self, operator, value):
         is_positive = operator not in Domain.NEGATIVE_OPERATORS

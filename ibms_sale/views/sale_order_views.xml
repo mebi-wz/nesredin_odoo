@@ -57,6 +57,9 @@
                 <div class="alert alert-warning" role="alert" invisible="not has_excessive_discount or state in ('sale', 'done', 'cancel')">
                     <strong>Discount Limit Exceeded: </strong> This quotation has a discount of <field name="max_discount" class="d-inline fw-bold"/>%. Discounts above 5.0% require Manager Approval.
                 </div>
+                <div class="alert alert-info" role="alert" invisible="not apply_withholding_tax or state in ('sale', 'done', 'cancel')">
+                    <strong>Withholding Tax (3%) Applied: </strong> Order subtotal is ≥ <field name="withholding_tax_threshold" class="d-inline fw-bold"/> ETB. Withholding tax is automatically deducted.
+                </div>
             </xpath>
 
             <!-- Place Sale Type, Location, Warehouse, and Order Discount right after Customer -->
@@ -80,6 +83,10 @@
                            readonly="state in ('sale', 'done', 'cancel')"/>
                     <span class="fw-bold ms-1">%</span>
                 </div>
+                <field name="apply_withholding_tax"
+                       string="Withholding Tax"
+                       widget="boolean_toggle"
+                       readonly="state in ('sale', 'done', 'cancel')"/>
             </xpath>
 
             <!-- Order Discount display in Totals summary box (Option B) -->
@@ -88,7 +95,10 @@
                 <field name="order_discount_amount" string="Order Discount" class="text-danger fw-bold" invisible="not apply_order_discount or order_discount_percent == 0" readonly="1"/>
             </xpath>
 
-            <!-- Part Number Column in Order Lines List View -->
+            <!-- Product Image and Part Number Columns in Order Lines List View -->
+            <xpath expr="//field[@name='order_line']/list//field[@name='product_template_id']" position="before">
+                <field name="image_1920" string="Image" widget="image" options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}" width="45" optional="show" readonly="1"/>
+            </xpath>
             <xpath expr="//field[@name='order_line']/list//field[@name='product_template_id']" position="after">
                 <field name="part_number" string="Part Number" optional="show" readonly="1" force_save="1"/>
             </xpath>

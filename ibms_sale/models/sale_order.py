@@ -131,16 +131,112 @@ class SaleOrder(models.Model):
             else:
                 order.order_discount_amount = 0.0
 
+    apply_withholding_tax = fields.Boolean(
+        string='Withholding Tax',
+        compute='_compute_apply_withholding_tax',
+        store=True,
+        readonly=False,
+        tracking=True,
+        help="Automatically applied when the quotation/order subtotal meets or exceeds the threshold configured in Settings (default 20,000 ETB).",
+    )
+    withholding_tax_threshold = fields.Float(
+        related='company_id.sale_withholding_tax_threshold',
+        string='Withholding Tax Threshold',
+        readonly=True,
+    )
+    withholding_tax_amount = fields.Monetary(
+        string='Withholding Tax Amount',
+        compute='_compute_withholding_tax_amount',
+        currency_field='currency_id',
+    )
+
+    @api.depends('order_line.price_subtotal', 'order_line.product_uom_qty', 'order_line.price_unit', 'order_line.discount', 'company_id.enable_sale_withholding_tax', 'company_id.sale_withholding_tax_threshold')
+    def _compute_apply_withholding_tax(self):
+        for order in self:
+            if not order.company_id.enable_sale_withholding_tax:
+                order.apply_withholding_tax = False
+                continue
+            threshold = order.company_id.sale_withholding_tax_threshold or 20000.0
+            regular_lines = order.order_line.filtered(lambda l: not l.display_type and not l.is_downpayment)
+            gross = sum((l.product_uom_qty * l.price_unit * (1.0 - (l.discount or 0.0) / 100.0)) for l in regular_lines)
+            order.apply_withholding_tax = gross >= threshold
+
+    @api.depends('order_line.tax_ids', 'order_line.price_subtotal', 'apply_withholding_tax')
+    def _compute_withholding_tax_amount(self):
+        for order in self:
+            wh_tax = order._get_or_create_withholding_tax()
+            total_wh = 0.0
+            if order.apply_withholding_tax and wh_tax:
+                for line in order.order_line:
+                    if wh_tax in line.tax_ids:
+                        total_wh += round(line.price_subtotal * (wh_tax.amount / 100.0), 2)
+            order.withholding_tax_amount = total_wh
+
+    def _get_or_create_withholding_tax(self):
+        self.ensure_one()
+        wh_tax = self.company_id.sale_withholding_tax_id
+        if not wh_tax:
+            wh_tax = self.env['account.tax'].search([
+                ('name', '=', '3% WH'),
+                ('type_tax_use', '=', 'sale'),
+            ], limit=1)
+        return wh_tax
+
+    def _update_withholding_taxes_on_lines(self):
+        for order in self:
+            wh_tax = order._get_or_create_withholding_tax()
+            if not wh_tax:
+                continue
+            wh_tax_id = wh_tax.id
+            for line in order.order_line:
+                if line.display_type or line.is_downpayment:
+                    continue
+                has_wh = any((t._origin.id or t.id) == wh_tax_id for t in line.tax_ids)
+                if order.apply_withholding_tax:
+                    if not has_wh:
+                        line.tax_ids = line.tax_ids | wh_tax
+                else:
+                    if has_wh:
+                        line.tax_ids = line.tax_ids.filtered(lambda t: (t._origin.id or t.id) != wh_tax_id)
+
+    @api.onchange('apply_withholding_tax')
+    def _onchange_apply_withholding_tax(self):
+        self._update_withholding_taxes_on_lines()
+
+    @api.onchange('order_line')
+    def _onchange_order_line_withholding_tax(self):
+        if self.company_id.enable_sale_withholding_tax:
+            threshold = self.company_id.sale_withholding_tax_threshold or 20000.0
+            regular_lines = self.order_line.filtered(lambda l: not l.display_type and not l.is_downpayment)
+            gross = sum((l.product_uom_qty * l.price_unit * (1.0 - (l.discount or 0.0) / 100.0)) for l in regular_lines)
+            should_apply = gross >= threshold
+            if self.apply_withholding_tax != should_apply:
+                self.apply_withholding_tax = should_apply
+        else:
+            self.apply_withholding_tax = False
+        self._update_withholding_taxes_on_lines()
+
     @api.onchange('apply_order_discount')
     def _onchange_apply_order_discount(self):
         if not self.apply_order_discount:
             self.order_discount_percent = 0.0
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        orders = super().create(vals_list)
+        for order in orders:
+            if order.apply_withholding_tax:
+                order._update_withholding_taxes_on_lines()
+        return orders
 
     def write(self, vals):
         res = super().write(vals)
         if 'apply_order_discount' in vals or 'order_discount_percent' in vals:
             for order in self:
                 order._apply_global_discount()
+        if 'apply_withholding_tax' in vals or 'order_line' in vals:
+            for order in self:
+                order._update_withholding_taxes_on_lines()
         return res
 
     def _get_or_create_discount_product(self):
@@ -455,6 +551,24 @@ class SaleOrderLine(models.Model):
         readonly=True,
         copy=False,
     )
+    image_128 = fields.Image(
+        string='Image',
+        compute='_compute_product_images',
+        store=False,
+        readonly=True,
+    )
+    image_1920 = fields.Image(
+        string='Full Image',
+        compute='_compute_product_images',
+        store=False,
+        readonly=True,
+    )
+
+    @api.depends('product_id.image_1920', 'product_template_id.image_1920')
+    def _compute_product_images(self):
+        for line in self:
+            line.image_1920 = (line.product_id and line.product_id.image_1920) or (line.product_template_id and line.product_template_id.image_1920) or False
+            line.image_128 = (line.product_id and line.product_id.image_128) or (line.product_template_id and line.product_template_id.image_128) or False
 
     @api.depends('product_id', 'product_template_id')
     def _compute_part_number(self):
@@ -472,11 +586,20 @@ class SaleOrderLine(models.Model):
             or (self.product_template_id and self.product_template_id.part_number)
             or False
         )
+        self.image_1920 = (self.product_id and self.product_id.image_1920) or (self.product_template_id and self.product_template_id.image_1920) or False
+        self.image_128 = (self.product_id and self.product_id.image_128) or (self.product_template_id and self.product_template_id.image_128) or False
+
+    @api.onchange('product_uom_qty', 'price_unit', 'discount')
+    def _onchange_withholding_tax_recompute(self):
+        if self.order_id and self.order_id.company_id.enable_sale_withholding_tax:
+            self.order_id._onchange_order_line_withholding_tax()
 
     @api.onchange('product_id')
     def _onchange_product_id_set_analytic(self):
         if self.order_id.analytic_account_id and not self.analytic_distribution:
             self.analytic_distribution = {str(self.order_id.analytic_account_id.id): 100.0}
+        if self.order_id.company_id.enable_sale_withholding_tax:
+            self.order_id._onchange_order_line_withholding_tax()
 
     def _get_display_price_ignore_combo(self):
         self.ensure_one()

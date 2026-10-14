@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit_ibms_sale" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.ibms.sale</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="20"/>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='pricing_setting_container']" position="inside">
+                <setting id="sale_withholding_tax_setting" string="Withholding Tax (WHT)" help="Automatically apply withholding tax on sales quotations and orders exceeding threshold.">
+                    <field name="enable_sale_withholding_tax"/>
+                    <div class="content-group" invisible="not enable_sale_withholding_tax">
+                        <div class="row mt16">
+                            <label for="sale_withholding_tax_threshold" class="col-lg-5 o_light_label" string="Threshold Amount (ETB)"/>
+                            <field name="sale_withholding_tax_threshold" class="oe_inline text-end" style="max-width: 130px;"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="sale_withholding_tax_id" class="col-lg-5 o_light_label" string="Withholding Tax"/>
+                            <field name="sale_withholding_tax_id" class="oe_inline" options="{'no_create': True}" style="max-width: 200px;"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
