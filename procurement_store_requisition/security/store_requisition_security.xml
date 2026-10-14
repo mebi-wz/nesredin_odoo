@@ -15,21 +15,15 @@
         </record>
 
         <record id="privilege_store_requisition_verifier" model="res.groups.privilege">
-            <field name="name">Store Requisition: Verifier</field>
+            <field name="name">Store Requisition: Approver</field>
             <field name="category_id" ref="category_store_requisition"/>
             <field name="sequence">20</field>
-        </record>
-
-        <record id="privilege_store_requisition_budget_manager" model="res.groups.privilege">
-            <field name="name">Store Requisition: Budget Manager</field>
-            <field name="category_id" ref="category_store_requisition"/>
-            <field name="sequence">30</field>
         </record>
 
         <record id="privilege_store_requisition_manager" model="res.groups.privilege">
             <field name="name">Store Requisition: Store Manager</field>
             <field name="category_id" ref="category_store_requisition"/>
-            <field name="sequence">40</field>
+            <field name="sequence">30</field>
         </record>
 
         <record id="group_store_requisition_user" model="res.groups">
@@ -46,9 +40,9 @@
             <field name="sequence">1</field>
         </record>
 
+        <!-- Retained for backward-compatibility without UI privilege -->
         <record id="group_store_requisition_budget_manager" model="res.groups">
-            <field name="name">Allowed</field>
-            <field name="privilege_id" ref="privilege_store_requisition_budget_manager"/>
+            <field name="name">Legacy Budget Manager</field>
             <field name="implied_ids" eval="[(4, ref('group_store_requisition_user'))]"/>
             <field name="sequence">1</field>
         </record>

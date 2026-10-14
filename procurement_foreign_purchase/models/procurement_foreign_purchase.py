@@ -175,8 +175,7 @@ class ForeignPurchaseRequisition(models.Model):
 
         group_xmlid_map = {
             'submitted': 'procurement_foreign_purchase.group_foreign_purchase_manager',
-            'manager_verified': 'procurement_foreign_purchase.group_foreign_purchase_budget',
-            'budget_approved': 'procurement_foreign_purchase.group_foreign_purchase_ceo',
+            'approved': 'procurement_foreign_purchase.group_foreign_purchase_operation_manager',
         }
         
         group_xmlid = group_xmlid_map.get(next_state)
@@ -348,6 +347,27 @@ class ForeignPurchaseRequisitionLine(models.Model):
         string='Requested Products',
         domain="[('type', '=', parent.product_type), ('landed_cost_ok', '=', False), ('is_active_product', '=', True)]",
         required=True
+    )
+    part_number = fields.Char(
+        string='Part Number',
+        related='product_id.part_number',
+        readonly=True,
+    )
+    categ_id = fields.Many2one(
+        'product.category',
+        string='Category',
+        related='product_id.categ_id',
+        readonly=True,
+    )
+    image_128 = fields.Image(
+        string='Image',
+        related='product_id.image_128',
+        readonly=True,
+    )
+    image_1920 = fields.Image(
+        string='Full Image',
+        related='product_id.image_1920',
+        readonly=True,
     )
     analytic_line_ids = fields.One2many(
         'account.analytic.line',

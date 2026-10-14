@@ -75,9 +75,10 @@ class LocalRFQ(models.Model):
 
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('winner-picked', 'Waiting Committee Check'),
-        ('checked', 'Waiting Committee Approval'),
-        ('committee-approved', 'Waiting GM/CEO Approval'),
+        ('submitted', 'Waiting Approval'),
+        ('winner-picked', 'Waiting Approval'),
+        ('checked', 'Waiting Approval'),
+        ('committee-approved', 'Waiting Approval'),
         ('on-progress', 'On Progress'),
         ('approved', 'Approved / Ready for PO'),
         ('po_created', 'PO Created'),
@@ -119,8 +120,8 @@ class LocalRFQ(models.Model):
         selected_quotes = self.quote_ids.filtered(lambda q: q.selected)
         if not selected_quotes:
             raise UserError(_("Please select winning vendors in the Comparison Sheet."))
-        self.write({'state': 'winner-picked'})
-        self._notify_next_approver('winner-picked')
+        self.write({'state': 'submitted'})
+        self._notify_next_approver('submitted')
 
     @api.depends('approval_ids', 'committee_ids', 'state')
     def _compute_committee_status_html(self):
@@ -213,31 +214,14 @@ class LocalRFQ(models.Model):
 
     def action_approve(self):
         self.ensure_one()
-        next_state = False
-        if self.state == 'committee-approved':
-            threshold = self.company_id.pr_ceo_approval_threshold
-            if self.amount_total <= threshold:
-                next_state = 'approved'
-                self.message_post(body=_("CEO approval skipped as amount (%.2f) is below or equal to threshold (%.2f)." % (self.amount_total, threshold)))
-            else:
-                next_state = 'approved' # Fallback or CEO step if we had one.
-                # Actually, the user suggested GM/CEO as a single step or GM then CEO if threshold.
-                # In PR we had 'budget_approved' as the CEO step.
-                # Here 'ceo-approved' was used. Let's keep it if we want a separate CEO step.
-                # But looking at 'state' selection above, I removed 'ceo-approved' to simplify.
-                # If they want a separate CEO step for RFQ:
-                # next_state = 'budget_approved' (Wait, I didn't add it to selection).
-                
-                # Let's re-read the request: "Procurement Committee → GM/CEO → Purchase Officer"
-                # This implies GM/CEO is the final approval step.
-                next_state = 'approved'
-
-        if next_state:
-            self.write({'state': next_state})
-            self.message_post(body=_(self._description + " moved to %s by %s" % (next_state.replace('-', ' ').replace('_', ' ').capitalize(), self.env.user.name)))
-            self._notify_next_approver(next_state)
+        if self.state in ['submitted', 'winner-picked', 'checked', 'committee-approved']:
+            next_state = 'approved'
         else:
-            raise UserError(_("No further processing step for the current state or requirement not met (e.g., 3 committee checks)."))
+            raise UserError(_("No further processing step for the current state."))
+
+        self.write({'state': next_state})
+        self.message_post(body=_(self._description + " moved to %s by %s" % (next_state.replace('-', ' ').replace('_', ' ').capitalize(), self.env.user.name)))
+        self._notify_next_approver(next_state)
 
     def action_reject(self):
         self.write({'state': 'cancel'})
@@ -258,9 +242,11 @@ class LocalRFQ(models.Model):
             )
 
         group_xmlid_map = {
-            'winner-picked': 'procurement_local_rfq.group_local_rfq_committee',
-            'checked': 'procurement_local_rfq.group_local_rfq_committee',
-            'committee-approved': 'procurement_local_purchase.group_local_purchase_pr_manager', # GM/CEO
+            'submitted': 'procurement_local_purchase.group_local_purchase_dept_manager',
+            'approved': 'procurement_local_purchase.group_local_purchase_pr_manager',
+            'winner-picked': 'procurement_local_purchase.group_local_purchase_dept_manager',
+            'checked': 'procurement_local_purchase.group_local_purchase_dept_manager',
+            'committee-approved': 'procurement_local_purchase.group_local_purchase_dept_manager',
         }
         
         group_xmlid = group_xmlid_map.get(next_state)
@@ -433,6 +419,10 @@ class LocalRFQQuote(models.Model):
         ondelete='restrict'
     )
     product_id = fields.Many2one('product.product', string='Product', related='pr_line_id.product_id')
+    part_number = fields.Char(string='Part Number', related='product_id.part_number', readonly=True)
+    categ_id = fields.Many2one('product.category', string='Category', related='product_id.categ_id', readonly=True)
+    image_128 = fields.Image(string='Image', related='product_id.image_128', readonly=True)
+    image_1920 = fields.Image(string='Full Image', related='product_id.image_1920', readonly=True)
     partner_id = fields.Many2one('res.partner', string='Vendor', required=True, domain="[('vendor_type', '=', 'local')]")
     cost_center_id = fields.Many2one('account.analytic.account', string='Cost Center', related='pr_line_id.cost_center_id')
     

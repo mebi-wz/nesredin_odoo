@@ -33,11 +33,8 @@
                             string="Submit" invisible="state != 'draft'" class="oe_highlight"
                             groups="procurement_store_requisition.group_store_requisition_user"/>
                     <button name="action_approve" type="object"
-                            string="Dept Manager Approve" invisible="state != 'submitted'" class="oe_highlight"
-                            groups="procurement_store_requisition.group_store_requisition_verifier"/>
-                    <button name="action_approve" type="object"
-                            string="Finance Approve" invisible="state != 'verified'" class="oe_highlight"
-                            groups="procurement_store_requisition.group_store_requisition_budget_manager"/>
+                            string="Approve" invisible="state not in ['submitted', 'verified']" class="oe_highlight"
+                            groups="procurement_store_requisition.group_store_requisition_verifier,procurement_store_requisition.group_store_requisition_manager"/>
                     <!-- Process → only when stock exists -->
                     <button name="action_store_process"
                             type="object"
@@ -58,7 +55,7 @@
                             string="Cancel" invisible="state not in ['draft', 'submitted', 'verified', 'budget_approved']"
                             groups="procurement_store_requisition.group_store_requisition_manager"/>
                     <field name="is_requester" invisible="1"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,verified,budget_approved,received"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,budget_approved,received"/>
                 </header>
 
                 <sheet>
@@ -89,7 +86,10 @@
                         <page string="Products" name="products">
                             <field name="line_ids">
                                 <list editable="bottom">
+                                    <field name="image_1920" string="Image" widget="image" options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}" width="45" optional="show"/>
                                     <field name="product_id" readonly="state != 'draft'"/>
+                                    <field name="part_number" optional="show"/>
+                                    <field name="categ_id" optional="show"/>
                                     <field name="uom_id" readonly="state != 'draft'"/>
                                     <field name="qty_on_hand" readonly="1" force_save="1" column_invisible="parent.state != 'budget_approved'"/>
                                     <field name="stock_status" 
@@ -104,9 +104,7 @@
                                     <field name="unit_price" readonly="state != 'draft'"/>
                                     <field name="cost_center_id" optional="show"/>
                                     <field name="total_price" readonly="state != 'draft'"/>
-                                    <field name="budget_category_id" string="Budgetary Position" column_invisible="parent.state != 'verified'"/>
-                                    <field name="remaining_budget" readonly="1" column_invisible="parent.state != 'verified'"/>
-                                    <field name="account_id" column_invisible="parent.state != 'verified'" />
+                                    <field name="account_id" column_invisible="True" />
                                     <field name="qty_transferred" readonly="1" invisible="parent.state == 'draft'"/>
                                     <field name="issued_qty" invisible="parent.state not in ['budget_approved', 'waiting', 'partial']" readonly="parent.state not in ['budget_approved', 'waiting', 'partial']"/>
                                     <field name="state" column_invisible="True"/>

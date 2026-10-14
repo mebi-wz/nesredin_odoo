@@ -171,7 +171,7 @@ class StoreRequisition(models.Model):
 
         state_map = {
             'draft': 'submitted',
-            'submitted': 'verified',
+            'submitted': 'budget_approved',
             'verified': 'budget_approved',
             'processed': 'received',
         }
@@ -520,6 +520,27 @@ class StoreRequisitionLine(models.Model):
         string='Product',
         domain="[('type', '=', 'consu'), ('is_active_product', '=', True)]",
         required=True
+    )
+    part_number = fields.Char(
+        string='Part Number',
+        related='product_id.part_number',
+        readonly=True,
+    )
+    categ_id = fields.Many2one(
+        'product.category',
+        string='Category',
+        related='product_id.categ_id',
+        readonly=True,
+    )
+    image_128 = fields.Image(
+        string='Image',
+        related='product_id.image_128',
+        readonly=True,
+    )
+    image_1920 = fields.Image(
+        string='Full Image',
+        related='product_id.image_1920',
+        readonly=True,
     )
     uom_id = fields.Many2one(
         'uom.uom',

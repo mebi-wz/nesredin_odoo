@@ -28,7 +28,7 @@
                     <button name="action_submit" type="object" string="Submit" invisible="state != 'draft'" class="oe_highlight" groups="procurement_foreign_purchase.group_foreign_purchase_user"/>
                     <button name="action_approve" type="object" string="Approve" invisible="state not in ['submitted', 'manager_verified', 'budget_approved']" class="oe_highlight" groups="procurement_foreign_purchase.group_foreign_purchase_manager,procurement_foreign_purchase.group_foreign_purchase_ceo"/>
                     <button name="action_reject" type="object" string="Reject" invisible="state not in ['submitted', 'manager_verified', 'budget_approved']" groups="procurement_foreign_purchase.group_foreign_purchase_manager,procurement_foreign_purchase.group_foreign_purchase_ceo"/>
-                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ['approved', 'cancelled', 'rejected', 'rfq_created']" groups="procurement_foreign_purchase.group_foreign_purchase_manager"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ['approved', 'cancelled', 'rejected', 'rfq_created']" groups="procurement_foreign_purchase.group_foreign_purchase_manager,procurement_foreign_purchase.group_foreign_purchase_operation_manager,procurement_foreign_purchase.group_foreign_purchase_ceo"/>
                     <button name="action_draft" type="object" string="Reset to Draft" invisible="state != 'cancelled'" groups="procurement_foreign_purchase.group_foreign_purchase_user"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
                 </header>
@@ -56,16 +56,17 @@
                             <field name="line_ids" >
                                 <list editable="bottom">
                                     <field name="line_no" readonly="1"/>
+                                    <field name="image_1920" string="Image" widget="image" options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}" width="45" optional="show"/>
                                     <field name="product_id" readonly="state != 'draft'"/>
+                                    <field name="part_number" optional="show"/>
+                                    <field name="categ_id" optional="show"/>
                                     <field name="description" readonly="state != 'draft'"/>
                                     <field name="product_uom_id" readonly="state != 'draft'"/>
                                     <field name="quantity" readonly="state != 'draft'"/>
                                     <field name="cost_center_id" readonly="state != 'draft'" column_invisible="1"/>
                                     <field name="unit_price" readonly="state != 'draft'"/>
                                     <field name="total_price" readonly="state != 'draft'"/>
-                                    <field name="budget_category_id" string="Budgetary Position" optional="show"/>
                                     <field name="account_id" column_invisible="True"/>
-                                    <field name="remaining_budget" readonly="1" optional="show"/>
                                     <field name="remark"/>
                                 </list>
                             </field>

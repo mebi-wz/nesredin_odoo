@@ -3,14 +3,14 @@
     <data noupdate="0">
 
         <record id="privilege_local_purchase_dept_manager" model="res.groups.privilege">
-            <field name="name">Local Purchase: Dept Manager</field>
+            <field name="name">Local Purchase: Approver</field>
             <field name="category_id" ref="procurement_store_requisition.category_store_requisition"/>
             <field name="sequence">45</field>
         </record>
 
         <!-- Privileges for checkboxes - Reference the shared category from store_requisition -->
         <record id="privilege_local_purchase_pr_manager" model="res.groups.privilege">
-            <field name="name">Local Purchase: PR Manager</field>
+            <field name="name">Local Purchase: Procurement Officer</field>
             <field name="category_id" ref="procurement_store_requisition.category_store_requisition"/>
             <field name="sequence">50</field>
         </record>

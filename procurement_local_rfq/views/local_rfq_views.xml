@@ -14,8 +14,8 @@
                 <field name="amount_total" optional="show" sum="Total"/>
                 <field name="state"
                        decoration-info="state == 'draft'"
-                       decoration-warning="state in ['winner-picked', 'checked', 'committee-approved']"
-                       decoration-success="state == 'approved'"
+                       decoration-warning="state in ['submitted', 'winner-picked', 'checked', 'committee-approved']"
+                       decoration-success="state in ['approved', 'po_created']"
                        decoration-danger="state == 'cancel'"
                        widget="badge"/>
             </list>
@@ -55,29 +55,17 @@
                     <button name="action_select_winners" type="object"
                             string="Pick Winners" invisible="state not in ['draft']"/>
 
-                    <button name="action_check" type="object"
-                            string="Check" invisible="state != 'winner-picked'" class="oe_highlight" 
-                            groups="procurement_local_rfq.group_local_rfq_committee"/>
-
-                    <button name="action_committee_approve" type="object"
-                            string="Committee Approve" invisible="state != 'checked'" class="oe_highlight" 
-                            groups="procurement_local_rfq.group_local_rfq_committee"/>
-                    
-                    <button name="action_committee_reject" type="object"
-                            string="Reject" invisible="state != 'checked'" class="btn-danger" 
-                            groups="procurement_local_rfq.group_local_rfq_committee"/>
-
                     <button name="action_approve" type="object"
-                            string="GM/CEO Approve" invisible="state != 'committee-approved'" class="oe_highlight" 
-                            groups="procurement_local_purchase.group_local_purchase_pr_manager"/>
+                            string="Approve" invisible="state not in ['submitted', 'winner-picked', 'checked', 'committee-approved']" class="oe_highlight" 
+                            groups="procurement_local_purchase.group_local_purchase_pr_manager,procurement_local_purchase.group_local_purchase_ceo,procurement_local_purchase.group_local_purchase_dept_manager"/>
 
                     <button name="action_create_po" type="object"
                             string="Create PO" invisible="state != 'approved' or po_count > 0" class="oe_highlight"
-                            groups="procurement_local_purchase.group_local_purchase_pr_manager"/>
+                            groups="procurement_local_purchase.group_local_purchase_pr_manager,procurement_local_purchase.group_local_purchase_ceo"/>
 
                     <button name="action_cancel" type="object"
-                            string="Cancel" invisible="state in ['approved', 'cancel','po-created']"
-                            groups="procurement_local_purchase.group_local_purchase_pr_manager"/>
+                            string="Cancel" invisible="state in ['approved', 'cancel','po_created']"
+                            groups="procurement_local_purchase.group_local_purchase_pr_manager,procurement_local_purchase.group_local_purchase_ceo"/>
 
                     <button name="action_draft" type="object"
                             string="Reset to Draft" invisible="state not in ['cancel']"/>
@@ -85,7 +73,7 @@
                     <button name="action_view_comparison_matrix" type="object"
                             string="Comparison Matrix" class="btn-secondary" icon="fa-table"/>
 
-                    <field name="state" widget="statusbar" statusbar_visible="draft,winner-picked,checked,committee-approved,approved"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
                 </header>
 
                 <sheet>
@@ -104,7 +92,7 @@
                             <field name="requisition_id" readonly="1"/>
                             <field name="requested_by" invisible="1"/>
                             <field name="date_rfq" readonly="state != 'draft'"/>
-                            <field name="committee_ids" readonly="state != 'draft'" widget="many2many_tags"/>
+                            <field name="committee_ids" invisible="1"/>
                         </group>
                         <group>
                             <field name="winner_selection_method" readonly="state != 'draft'"/>
@@ -118,7 +106,10 @@
                             <field name="quote_ids" readonly="state != 'draft'">
                                 <list editable="bottom" create="0" delete="0">
                                     <field name="pr_line_id" readonly="1" force_save="1" column_invisible="True"/>
+                                    <field name="image_1920" string="Image" widget="image" options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}" width="45" optional="show"/>
                                     <field name="product_id" readonly="1" force_save="1"/>
+                                    <field name="part_number" optional="show"/>
+                                    <field name="categ_id" optional="show"/>
                                     <field name="partner_id" readonly="1" force_save="1"/>
                                     <field name="cost_center_id" readonly="1" force_save="1" optional="show"/>
                                     <field name="price_unit"/>
@@ -127,16 +118,6 @@
                                     <field name="technical_percent" optional="hide"/>
                                     <field name="total_percent"/>
                                     <field name="selected" widget="boolean_toggle" readonly="1"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Committee Sign-offs" name="approvals" invisible="state == 'draft'">
-                            <field name="approval_ids">
-                                <list create="0" edit="0" delete="0">
-                                    <field name="user_id"/>
-                                    <field name="action_type"/>
-                                    <field name="approval_date"/>
-                                    <field name="comment"/>
                                 </list>
                             </field>
                         </page>

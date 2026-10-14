@@ -24,14 +24,18 @@ class ProductProduct(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get('type') == 'service':
-                if not vals.get('default_code'):
-                    vals['default_code'] = 'DISC' if 'discount' in (vals.get('name') or '').lower() else 'SRV'
-                if not vals.get('part_number'):
-                    vals['part_number'] = vals['default_code']
-            if not vals.get('product_tmpl_id') and not vals.get('default_code') and not self.env.context.get('install_mode'):
+            tmpl = self.env['product.template'].browse(vals['product_tmpl_id']) if vals.get('product_tmpl_id') else False
+            prod_type = vals.get('type') or (tmpl and tmpl.type)
+            if prod_type == 'service':
+                if not vals.get('default_code') and not (tmpl and tmpl.default_code):
+                    vals['default_code'] = 'DISC' if 'discount' in (vals.get('name') or (tmpl and tmpl.name) or '').lower() else 'SRV'
+                if not vals.get('part_number') and not (tmpl and tmpl.part_number):
+                    vals['part_number'] = vals.get('default_code') or 'SRV'
+            code = vals.get('default_code') or (tmpl and tmpl.default_code)
+            part = vals.get('part_number') or (tmpl and tmpl.part_number)
+            if not code and not self.env.context.get('install_mode'):
                 raise ValidationError(_("Product Code is required for product registration!"))
-            if not vals.get('product_tmpl_id') and not vals.get('part_number') and not self.env.context.get('install_mode'):
+            if not part and not self.env.context.get('install_mode'):
                 raise ValidationError(_("Product Part Number is required for product registration!"))
         return super().create(vals_list)
 
