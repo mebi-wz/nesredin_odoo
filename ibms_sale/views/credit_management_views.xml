@@ -123,6 +123,7 @@
               name="Credit Management"
               parent="account.menu_finance_receivables"
               action="action_credit_management"
+              groups="sales_team.group_sale_manager,procurement_local_purchase.group_local_purchase_ceo,account.group_account_user"
               sequence="12"/>
 
     <!-- Menu Item in Sales: Orders -> Credit Management -->
@@ -130,5 +131,6 @@
               name="Credit Management"
               parent="sale.sale_order_menu"
               action="action_credit_management"
+              groups="sales_team.group_sale_manager,procurement_local_purchase.group_local_purchase_ceo"
               sequence="25"/>
 </odoo>
