@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ======================================================== -->
+    <!-- 1. Inventory > Reporting > Stock (product.product)        -->
+    <!-- ======================================================== -->
+    <record id="product_product_stock_tree_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.product.stock.list.inherit.ibms</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="stock.product_product_stock_tree"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='display_name']" position="before">
+                <field name="image_1920"
+                       string="Image"
+                       widget="image"
+                       options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}"
+                       width="45"
+                       optional="show"
+                       readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='display_name']" position="after">
+                <field name="part_number" string="Part Number" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Search View for Stock Report -->
+    <record id="product_search_form_view_stock_report_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.product.search.stock.form.stock.report.inherit.ibms</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="stock.product_search_form_view_stock_report"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="part_number" string="Part Number" filter_domain="[('part_number', 'ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ======================================================== -->
+    <!-- 2. Inventory > Reporting > Locations (stock.quant)       -->
+    <!-- ======================================================== -->
+    <!-- Locations Readonly/Simple List View -->
+    <record id="view_stock_quant_tree_simple_inherit_ibms" model="ir.ui.view">
+        <field name="name">stock.quant.list.simple.inherit.ibms</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_simple"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="before">
+                <field name="image_1920"
+                       string="Image"
+                       widget="image"
+                       options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}"
+                       width="45"
+                       optional="show"
+                       readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number" string="Part Number" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Locations Editable List View -->
+    <record id="view_stock_quant_tree_editable_inherit_ibms" model="ir.ui.view">
+        <field name="name">stock.quant.list.editable.inherit.ibms</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="before">
+                <field name="image_1920"
+                       string="Image"
+                       widget="image"
+                       options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}"
+                       width="45"
+                       optional="show"
+                       readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number" string="Part Number" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Locations Inventory Editable List View -->
+    <record id="view_stock_quant_tree_inventory_editable_inherit_ibms" model="ir.ui.view">
+        <field name="name">stock.quant.inventory.list.editable.inherit.ibms</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="before">
+                <field name="image_1920"
+                       string="Image"
+                       widget="image"
+                       options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}"
+                       width="45"
+                       optional="show"
+                       readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number" string="Part Number" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Search View for Stock Quant (Locations) -->
+    <record id="quant_search_view_inherit_ibms" model="ir.ui.view">
+        <field name="name">stock.quant.search.inherit.ibms</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number" string="Part Number" filter_domain="[('part_number', 'ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ======================================================== -->
+    <!-- 3. Inventory > Reporting > Move History (stock.move.line) -->
+    <!-- ======================================================== -->
+    <record id="view_move_line_tree_inherit_ibms" model="ir.ui.view">
+        <field name="name">stock.move.line.list.inherit.ibms</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_move_line_tree"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="before">
+                <field name="image_1920"
+                       string="Image"
+                       widget="image"
+                       options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}"
+                       width="45"
+                       optional="show"
+                       readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number" string="Part Number" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_move_line_tree_detailed_inherit_ibms" model="ir.ui.view">
+        <field name="name">stock.move.line.list.detailed.inherit.ibms</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_move_line_tree_detailed"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="before">
+                <field name="image_1920"
+                       string="Image"
+                       widget="image"
+                       options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}"
+                       width="45"
+                       optional="show"
+                       readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number" string="Part Number" optional="show" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Search View for Move History -->
+    <record id="stock_move_line_view_search_inherit_ibms" model="ir.ui.view">
+        <field name="name">stock.move.line.search.inherit.ibms</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.stock_move_line_view_search"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="part_number" string="Part Number" filter_domain="[('part_number', 'ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+from markupsafe import Markup
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -7,8 +7,43 @@ class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     state = fields.Selection(
-        selection_add=[('to_approve', 'Waiting Approval')],
-        ondelete={'to_approve': 'set default'},
+        selection_add=[
+            ('to_approve', 'Waiting Quotation Approval'),
+            ('to_approve_discount', 'Waiting Discount Approval'),
+            ('sale',),
+        ],
+        ondelete={
+            'to_approve': 'set default',
+            'to_approve_discount': 'set default',
+        },
+    )
+    quotation_approver_id = fields.Many2one(
+        'res.users',
+        string='Quotation Approved By',
+        copy=False,
+        readonly=True,
+        tracking=True,
+        help="Manager or GM who approved the quotation.",
+    )
+    quotation_approval_date = fields.Datetime(
+        string='Quotation Approval Date',
+        copy=False,
+        readonly=True,
+        tracking=True,
+    )
+    discount_approver_id = fields.Many2one(
+        'res.users',
+        string='Discount Approved By',
+        copy=False,
+        readonly=True,
+        tracking=True,
+        help="Manager or GM who approved the discount.",
+    )
+    discount_approval_date = fields.Datetime(
+        string='Discount Approval Date',
+        copy=False,
+        readonly=True,
+        tracking=True,
     )
     approver_id = fields.Many2one(
         'res.users',
@@ -96,15 +131,29 @@ class SaleOrder(models.Model):
         store=True,
         help="True if the global discount or any product line discount exceeds 5%.",
     )
+    is_sales_approver = fields.Boolean(
+        compute='_compute_is_sales_approver',
+        string='Can Approve Sales',
+    )
     is_sales_manager = fields.Boolean(
-        compute='_compute_is_sales_manager',
+        compute='_compute_is_sales_approver',
         string='Is Sales Manager',
     )
 
-    def _compute_is_sales_manager(self):
-        is_mgr = self.env.user.has_group('sales_team.group_sale_manager')
+    def _compute_is_sales_approver(self):
+        user = self.env.user
+        has_mgr = user.has_group('sales_team.group_sale_manager') or user.has_group('base.group_system')
+        has_ceo = False
+        try:
+            ceo_group = self.env.ref('procurement_local_purchase.group_local_purchase_ceo', raise_if_not_found=False)
+            if ceo_group and user.has_group('procurement_local_purchase.group_local_purchase_ceo'):
+                has_ceo = True
+        except Exception:
+            pass
+        can_approve = has_mgr or has_ceo
         for order in self:
-            order.is_sales_manager = is_mgr
+            order.is_sales_approver = can_approve
+            order.is_sales_manager = can_approve
 
     @api.depends('apply_order_discount', 'order_discount_percent', 'order_line.discount', 'order_line.price_subtotal', 'order_line.product_id')
     def _compute_discount_approval(self):
@@ -133,11 +182,9 @@ class SaleOrder(models.Model):
 
     apply_withholding_tax = fields.Boolean(
         string='Withholding Tax',
-        compute='_compute_apply_withholding_tax',
-        store=True,
-        readonly=False,
+        default=False,
         tracking=True,
-        help="Automatically applied when the quotation/order subtotal meets or exceeds the threshold configured in Settings (default 20,000 ETB).",
+        help="Turn on when withholding tax is required on this quotation/order.",
     )
     withholding_tax_threshold = fields.Float(
         related='company_id.sale_withholding_tax_threshold',
@@ -150,23 +197,12 @@ class SaleOrder(models.Model):
         currency_field='currency_id',
     )
 
-    @api.depends('order_line.price_subtotal', 'order_line.product_uom_qty', 'order_line.price_unit', 'order_line.discount', 'company_id.enable_sale_withholding_tax', 'company_id.sale_withholding_tax_threshold')
-    def _compute_apply_withholding_tax(self):
-        for order in self:
-            if not order.company_id.enable_sale_withholding_tax:
-                order.apply_withholding_tax = False
-                continue
-            threshold = order.company_id.sale_withholding_tax_threshold or 20000.0
-            regular_lines = order.order_line.filtered(lambda l: not l.display_type and not l.is_downpayment)
-            gross = sum((l.product_uom_qty * l.price_unit * (1.0 - (l.discount or 0.0) / 100.0)) for l in regular_lines)
-            order.apply_withholding_tax = gross >= threshold
-
     @api.depends('order_line.tax_ids', 'order_line.price_subtotal', 'apply_withholding_tax')
     def _compute_withholding_tax_amount(self):
         for order in self:
             wh_tax = order._get_or_create_withholding_tax()
             total_wh = 0.0
-            if order.apply_withholding_tax and wh_tax:
+            if wh_tax:
                 for line in order.order_line:
                     if wh_tax in line.tax_ids:
                         total_wh += round(line.price_subtotal * (wh_tax.amount / 100.0), 2)
@@ -205,16 +241,21 @@ class SaleOrder(models.Model):
 
     @api.onchange('order_line')
     def _onchange_order_line_withholding_tax(self):
-        if self.company_id.enable_sale_withholding_tax:
-            threshold = self.company_id.sale_withholding_tax_threshold or 20000.0
-            regular_lines = self.order_line.filtered(lambda l: not l.display_type and not l.is_downpayment)
-            gross = sum((l.product_uom_qty * l.price_unit * (1.0 - (l.discount or 0.0) / 100.0)) for l in regular_lines)
-            should_apply = gross >= threshold
-            if self.apply_withholding_tax != should_apply:
-                self.apply_withholding_tax = should_apply
-        else:
+        wh_tax = self._get_or_create_withholding_tax()
+        if not wh_tax:
+            return
+        wh_tax_id = wh_tax.id
+        regular_lines = self.order_line.filtered(lambda l: not l.display_type and not l.is_downpayment)
+        has_any_wh = any(
+            any((t._origin.id or t.id) == wh_tax_id for t in line.tax_ids)
+            for line in regular_lines
+        )
+        # If withholding tax was cancelled using 'x' in the Taxes column on all lines, turn OFF the button
+        if not has_any_wh and self.apply_withholding_tax:
             self.apply_withholding_tax = False
-        self._update_withholding_taxes_on_lines()
+        # If user manually selected withholding tax on a line, turn ON the button
+        elif has_any_wh and not self.apply_withholding_tax:
+            self.apply_withholding_tax = True
 
     @api.onchange('apply_order_discount')
     def _onchange_apply_order_discount(self):
@@ -225,8 +266,14 @@ class SaleOrder(models.Model):
     def create(self, vals_list):
         orders = super().create(vals_list)
         for order in orders:
-            if order.apply_withholding_tax:
-                order._update_withholding_taxes_on_lines()
+            wh_tax = order._get_or_create_withholding_tax()
+            if wh_tax:
+                regular_lines = order.order_line.filtered(lambda l: not l.display_type and not l.is_downpayment)
+                has_any_wh = any(wh_tax in line.tax_ids for line in regular_lines)
+                if order.apply_withholding_tax and not has_any_wh and order.order_line:
+                    order._update_withholding_taxes_on_lines()
+                elif not order.apply_withholding_tax and has_any_wh:
+                    order.apply_withholding_tax = True
         return orders
 
     def write(self, vals):
@@ -234,9 +281,19 @@ class SaleOrder(models.Model):
         if 'apply_order_discount' in vals or 'order_discount_percent' in vals:
             for order in self:
                 order._apply_global_discount()
-        if 'apply_withholding_tax' in vals or 'order_line' in vals:
+        # If user explicitly changed the withholding tax toggle in the header
+        if 'apply_withholding_tax' in vals and 'order_line' not in vals:
             for order in self:
                 order._update_withholding_taxes_on_lines()
+        # If lines changed without explicit toggle change, sync toggle to match lines
+        elif 'order_line' in vals and 'apply_withholding_tax' not in vals:
+            for order in self:
+                wh_tax = order._get_or_create_withholding_tax()
+                if wh_tax:
+                    regular_lines = order.order_line.filtered(lambda l: not l.display_type and not l.is_downpayment)
+                    has_any_wh = any(wh_tax in line.tax_ids for line in regular_lines)
+                    if order.apply_withholding_tax != has_any_wh:
+                        order.apply_withholding_tax = has_any_wh
         return res
 
     def _get_or_create_discount_product(self):
@@ -375,15 +432,15 @@ class SaleOrder(models.Model):
                 'rejection_reason': False,
             })
             order.message_post(
-                body=_("Quotation submitted for manager approval by %s.") % self.env.user.name,
+                body=_("Quotation submitted for approval by %s.") % self.env.user.name,
                 message_type='comment',
                 subtype_xmlid='mail.mt_comment',
             )
 
-    def action_approve(self):
+    def action_approve_quotation(self):
         for order in self:
-            if not self.env.user.has_group('sales_team.group_sale_manager'):
-                raise UserError(_("Only Sales Managers can approve sales orders."))
+            if not order.is_sales_approver:
+                raise UserError(_("Only Sales Managers or General Managers can approve quotations."))
             if order.order_discount_percent > 0:
                 order._apply_global_discount()
             if order.sale_type == 'credit':
@@ -397,13 +454,59 @@ class SaleOrder(models.Model):
                     raise UserError(_(
                         "For Cash Sales, please provide Payment Proof / Receipt or Payment Note / Reference before approving."
                     ))
-            order.write({
+
+            now = fields.Datetime.now()
+            vals = {
+                'quotation_approver_id': self.env.user.id,
+                'quotation_approval_date': now,
                 'approver_id': self.env.user.id,
-                'approval_date': fields.Datetime.now(),
+                'approval_date': now,
+                'rejection_reason': False,
+            }
+
+            if order.has_excessive_discount:
+                vals['state'] = 'to_approve_discount'
+                order.write(vals)
+                order.message_post(
+                    body=Markup(
+                        "<b>Quotation Approved</b> by %s.<br/>"
+                        "⚠️ <b>Discount Approval Required:</b> Order has a discount of %.2f%% (&gt; 5.0%%). Awaiting Discount Approval."
+                    ) % (self.env.user.name, order.max_discount),
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_comment',
+                )
+            else:
+                order.write(vals)
+                order.message_post(
+                    body=Markup("<b>Quotation Approved</b> by %s.") % self.env.user.name,
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_comment',
+                )
+                order.action_confirm()
+
+    def action_approve(self):
+        # Backward compatibility alias
+        return self.action_approve_quotation()
+
+    def action_approve_discount(self):
+        for order in self:
+            if not order.is_sales_approver:
+                raise UserError(_("Only Sales Managers or General Managers can approve discounts."))
+            if order.order_discount_percent > 0:
+                order._apply_global_discount()
+            now = fields.Datetime.now()
+            order.write({
+                'discount_approver_id': self.env.user.id,
+                'discount_approval_date': now,
+                'approver_id': self.env.user.id,
+                'approval_date': now,
                 'rejection_reason': False,
             })
             order.message_post(
-                body=_("<b>Order Approved</b> by %s.") % self.env.user.name,
+                body=Markup(
+                    "<b>Discount Approved (%.2f%%)</b> by %s.<br/>"
+                    "Order is now confirmed."
+                ) % (order.max_discount, self.env.user.name),
                 message_type='comment',
                 subtype_xmlid='mail.mt_comment',
             )
@@ -411,8 +514,8 @@ class SaleOrder(models.Model):
 
     def action_reject_wizard(self):
         self.ensure_one()
-        if not self.env.user.has_group('sales_team.group_sale_manager'):
-            raise UserError(_("Only Sales Managers can reject sales orders."))
+        if not self.is_sales_approver:
+            raise UserError(_("Only Sales Managers or General Managers can reject sales orders."))
         return {
             'name': _('Reject Sales Order'),
             'type': 'ir.actions.act_window',
@@ -424,7 +527,7 @@ class SaleOrder(models.Model):
 
     def _confirmation_error_message(self):
         self.ensure_one()
-        if self.state == 'to_approve':
+        if self.state in ('to_approve', 'to_approve_discount'):
             if any(
                 not line.display_type
                 and not line.is_downpayment
@@ -443,11 +546,16 @@ class SaleOrder(models.Model):
                 raise UserError(_("Customer '%s' has a BLOCKED credit status. Credit sales cannot be confirmed.") % order.partner_id.name)
             if order.sale_type == 'cash' and not order.payment_proof and not order.payment_note:
                 raise UserError(_("For Cash Sales, please provide Payment Proof / Receipt or Payment Note / Reference before confirming."))
-            if order.has_excessive_discount and not self.env.user.has_group('sales_team.group_sale_manager'):
+
+            # If salesperson tries to confirm directly in draft or sent
+            if not order.is_sales_approver and order.state in ('draft', 'sent'):
                 raise UserError(_(
-                    "This order has a discount of %(disc).2f%% which exceeds the 5.0%% limit allowed for salespeople. "
-                    "Please click 'Submit for Approval' to request Manager Approval."
-                ) % {'disc': order.max_discount})
+                    "Salespeople cannot confirm quotations directly. Please click 'Submit for Approval' to request Manager/GM approval."
+                ))
+            if order.state == 'to_approve' and not order.is_sales_approver:
+                raise UserError(_("This order is awaiting Quotation Approval by a Manager or General Manager."))
+            if order.state == 'to_approve_discount' and not order.is_sales_approver:
+                raise UserError(_("This order is awaiting Discount Approval by a Manager or General Manager."))
         return super().action_confirm()
 
     def _prepare_invoice(self):
@@ -589,17 +697,19 @@ class SaleOrderLine(models.Model):
         self.image_1920 = (self.product_id and self.product_id.image_1920) or (self.product_template_id and self.product_template_id.image_1920) or False
         self.image_128 = (self.product_id and self.product_id.image_128) or (self.product_template_id and self.product_template_id.image_128) or False
 
-    @api.onchange('product_uom_qty', 'price_unit', 'discount')
-    def _onchange_withholding_tax_recompute(self):
-        if self.order_id and self.order_id.company_id.enable_sale_withholding_tax:
+    @api.onchange('tax_ids')
+    def _onchange_tax_ids_sync_withholding(self):
+        if self.order_id:
             self.order_id._onchange_order_line_withholding_tax()
 
     @api.onchange('product_id')
     def _onchange_product_id_set_analytic(self):
         if self.order_id.analytic_account_id and not self.analytic_distribution:
             self.analytic_distribution = {str(self.order_id.analytic_account_id.id): 100.0}
-        if self.order_id.company_id.enable_sale_withholding_tax:
-            self.order_id._onchange_order_line_withholding_tax()
+        if self.order_id.apply_withholding_tax:
+            wh_tax = self.order_id._get_or_create_withholding_tax()
+            if wh_tax and wh_tax not in self.tax_ids:
+                self.tax_ids = self.tax_ids | wh_tax
 
     def _get_display_price_ignore_combo(self):
         self.ensure_one()

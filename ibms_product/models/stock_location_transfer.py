@@ -215,7 +215,7 @@ class StockLocationTransfer(models.Model):
         Creates the stock.picking (internal transfer) but does NOT validate it yet.
         The picking stays in 'Ready' state waiting for the source to physically dispatch.
         """
-        Picking = self.env['stock.picking']
+        Picking = self.env['stock.picking'].sudo()
         for transfer in self:
             if not transfer.line_ids:
                 raise ValidationError(_("No products specified to transfer!"))
@@ -223,12 +223,12 @@ class StockLocationTransfer(models.Model):
             # Determine picking type (internal transfer of source warehouse)
             picking_type = transfer.source_warehouse_id.int_type_id
             if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
+                picking_type = self.env['stock.picking.type'].sudo().search([
                     ('code', '=', 'internal'),
                     ('warehouse_id', '=', transfer.source_warehouse_id.id)
                 ], limit=1)
             if not picking_type:
-                picking_type = self.env['stock.picking.type'].search([
+                picking_type = self.env['stock.picking.type'].sudo().search([
                     ('code', '=', 'internal'),
                     ('company_id', '=', transfer.company_id.id)
                 ], limit=1)
@@ -306,10 +306,11 @@ class StockLocationTransfer(models.Model):
                 raise ValidationError(_("No stock picking found for this transfer. Please contact your manager."))
 
             # Set quantity done on all moves and validate
-            for move in transfer.picking_id.move_ids:
+            picking_sudo = transfer.picking_id.sudo()
+            for move in picking_sudo.move_ids:
                 move.quantity = move.product_uom_qty
                 move.picked = True
-            transfer.picking_id.button_validate()
+            picking_sudo.button_validate()
 
             transfer.write({
                 'state': 'received',
@@ -328,7 +329,7 @@ class StockLocationTransfer(models.Model):
             if transfer.state == 'received':
                 raise ValidationError(_("A completed (Received) transfer cannot be cancelled."))
             if transfer.picking_id and transfer.picking_id.state not in ('done', 'cancel'):
-                transfer.picking_id.action_cancel()
+                transfer.picking_id.sudo().action_cancel()
             transfer.state = 'cancel'
 
     def action_view_picking(self):

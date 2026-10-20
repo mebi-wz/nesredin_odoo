@@ -6,3 +6,5 @@ from . import account_move
 from . import res_users
 from . import stock_location_transfer
 from . import res_partner
+from . import stock_quant
+from . import stock_move_line

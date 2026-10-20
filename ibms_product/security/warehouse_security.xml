@@ -6,11 +6,7 @@
             <field name="name">Warehouse User Location Transfer Restriction</field>
             <field name="model_id" search="[('model', '=', 'stock.location.transfer')]" model="ir.model"/>
             <field name="domain_force">
-                [
-                    '|',
-                    ('source_warehouse_id', 'in', user.allowed_warehouse_ids.ids if user.allowed_warehouse_ids else user.env['stock.warehouse'].search([]).ids),
-                    ('dest_warehouse_id', 'in', user.allowed_warehouse_ids.ids if user.allowed_warehouse_ids else user.env['stock.warehouse'].search([]).ids)
-                ]
+                ['|', ('source_warehouse_id', 'in', user.allowed_warehouse_ids.ids), ('dest_warehouse_id', 'in', user.allowed_warehouse_ids.ids)] if user.allowed_warehouse_ids else []
             </field>
             <field name="groups" eval="[Command.link(ref('stock.group_stock_user'))]"/>
         </record>
@@ -20,11 +16,7 @@
             <field name="name">Warehouse User Picking Restriction</field>
             <field name="model_id" search="[('model', '=', 'stock.picking')]" model="ir.model"/>
             <field name="domain_force">
-                [
-                    '|',
-                    ('picking_type_id.warehouse_id', '=', False),
-                    ('picking_type_id.warehouse_id', 'in', user.allowed_warehouse_ids.ids if user.allowed_warehouse_ids else user.env['stock.warehouse'].search([]).ids)
-                ]
+                ['|', ('picking_type_id.warehouse_id', '=', False), ('picking_type_id.warehouse_id', 'in', user.allowed_warehouse_ids.ids)] if user.allowed_warehouse_ids else []
             </field>
             <field name="groups" eval="[Command.link(ref('stock.group_stock_user'))]"/>
         </record>
@@ -34,11 +26,7 @@
             <field name="name">Warehouse User Stock Quant Restriction</field>
             <field name="model_id" search="[('model', '=', 'stock.quant')]" model="ir.model"/>
             <field name="domain_force">
-                [
-                    '|',
-                    ('location_id.warehouse_id', '=', False),
-                    ('location_id.warehouse_id', 'in', user.allowed_warehouse_ids.ids if user.allowed_warehouse_ids else user.env['stock.warehouse'].search([]).ids)
-                ]
+                ['|', ('location_id.warehouse_id', '=', False), ('location_id.warehouse_id', 'in', user.allowed_warehouse_ids.ids)] if user.allowed_warehouse_ids else []
             </field>
             <field name="groups" eval="[Command.link(ref('stock.group_stock_user'))]"/>
         </record>
