@@ -33,6 +33,17 @@
                     </span>
                 </div>
             </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Secondary Part Numbers" name="secondary_part_numbers">
+                    <field name="secondary_part_number_ids" domain="[('part_type', '=', 'secondary')]" context="{'default_part_type': 'secondary'}">
+                        <list editable="bottom">
+                            <field name="name" string="Secondary Part Number" required="1"/>
+                            <field name="source_product_id" string="Reference Product" options="{'no_create': True}" optional="show"/>
+                            <field name="note" string="Source / Note" placeholder="e.g. OEM, Superseded, Supplier code..."/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
         </field>
     </record>
 
@@ -55,6 +66,17 @@
             </xpath>
             <xpath expr="//field[@name='default_code']" position="after">
                 <field name="part_number" required="1"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Secondary Part Numbers" name="secondary_part_numbers">
+                    <field name="secondary_part_number_ids" domain="[('part_type', '=', 'secondary')]" context="{'default_part_type': 'secondary'}">
+                        <list editable="bottom">
+                            <field name="name" string="Secondary Part Number" required="1"/>
+                            <field name="source_product_id" string="Reference Product" options="{'no_create': True}" optional="show"/>
+                            <field name="note" string="Source / Note" placeholder="e.g. OEM, Superseded, Supplier code..."/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>
@@ -86,7 +108,20 @@
         <field name="priority">20</field>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
-                <field name="part_number" string="Part Number" filter_domain="[('part_number', 'ilike', self)]"/>
+                <field name="part_number" string="Part Number (Primary &amp; Secondary)" filter_domain="['|', ('part_number', 'ilike', self), ('secondary_part_number_ids.name', 'ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Product Variant Search View -->
+    <record id="product_search_form_view_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.product.search.inherit.ibms</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_search_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="part_number" string="Part Number (Primary &amp; Secondary)" filter_domain="['|', ('part_number', 'ilike', self), ('product_tmpl_id.secondary_part_number_ids.name', 'ilike', self)]"/>
             </xpath>
         </field>
     </record>

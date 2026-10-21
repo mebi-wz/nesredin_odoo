@@ -3,3 +3,6 @@ access_stock_location_transfer_user,stock.location.transfer.user,model_stock_loc
 access_stock_location_transfer_manager,stock.location.transfer.manager,model_stock_location_transfer,stock.group_stock_manager,1,1,1,1
 access_stock_location_transfer_line_user,stock.location.transfer.line.user,model_stock_location_transfer_line,stock.group_stock_user,1,1,1,1
 access_stock_location_transfer_line_manager,stock.location.transfer.line.manager,model_stock_location_transfer_line,stock.group_stock_manager,1,1,1,1
+access_product_secondary_part_number_user,product.secondary.part.number.user,model_product_secondary_part_number,base.group_user,1,0,0,0
+access_product_secondary_part_number_stock,product.secondary.part.number.stock,model_product_secondary_part_number,stock.group_stock_user,1,1,1,1
+access_product_secondary_part_number_manager,product.secondary.part.number.manager,model_product_secondary_part_number,product.group_product_manager,1,1,1,1

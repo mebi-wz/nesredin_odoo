@@ -41,6 +41,67 @@ class ProductProduct(models.Model):
                         % {'code': code, 'product': duplicate.display_name}
                     )
 
+    @api.constrains('part_number')
+    def _check_part_number_unique(self):
+        for record in self:
+            part = (record.part_number or '').strip()
+            if part:
+                duplicate = self.search([
+                    ('id', '!=', record.id),
+                    ('part_number', '=ilike', part),
+                ], limit=1)
+                if duplicate:
+                    raise ValidationError(
+                        _("The Primary Part Number '%(part)s' is already used by product variant '%(product)s'. Primary Part Number must be unique!")
+                        % {'part': part, 'product': duplicate.display_name}
+                    )
+
+    @api.model
+    def name_search(self, name='', domain=None, operator='ilike', limit=100):
+        if not name:
+            return super().name_search(name=name, domain=domain, operator=operator, limit=limit)
+
+        results = []
+        domain_list = list(domain or [])
+
+        # 1. Exact match on primary part number or secondary part numbers first
+        exact_domain = [
+            '|',
+            ('part_number', '=', name),
+            ('product_tmpl_id.secondary_part_number_ids.name', '=', name),
+        ]
+        if domain_list:
+            exact_domain = ['&'] + domain_list + exact_domain
+        exact_matches = self.search(exact_domain, limit=limit)
+        results.extend([(p.id, p.display_name) for p in exact_matches])
+
+        # 2. Super results (matches default_code, name, barcode)
+        if limit is None or len(results) < limit:
+            sub_limit = (limit - len(results)) if limit else None
+            super_domain = domain_list
+            if results:
+                super_domain = [('id', 'not in', [r[0] for r in results])] + super_domain
+            super_results = super().name_search(name=name, domain=super_domain, operator=operator, limit=sub_limit)
+            results.extend(super_results)
+
+        # 3. Partial match on primary or secondary part numbers
+        if limit is None or len(results) < limit:
+            existing_ids = [r[0] for r in results]
+            partial_domain = [
+                '|',
+                ('part_number', operator, name),
+                ('product_tmpl_id.secondary_part_number_ids.name', operator, name),
+            ]
+            if existing_ids:
+                partial_domain = [('id', 'not in', existing_ids)] + partial_domain
+            if domain_list:
+                partial_domain = ['&'] + domain_list + partial_domain
+            sub_limit = (limit - len(results)) if limit else None
+            partial_matches = self.search(partial_domain, limit=sub_limit)
+            results.extend([(p.id, p.display_name) for p in partial_matches])
+
+        return results
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
