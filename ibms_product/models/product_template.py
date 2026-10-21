@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from odoo.tools import format_amount
 
 
 class ProductTemplate(models.Model):
@@ -24,6 +25,40 @@ class ProductTemplate(models.Model):
         max_height=1920,
         help="Secondary or additional image for this product.",
     )
+
+    def _get_single_tax_amount_and_type(self, price):
+        currency = self.currency_id
+        taxes = self.taxes_id._filter_taxes_by_company(self.env.company)
+        if not taxes:
+            return None, ""
+        res = taxes.compute_all(price, product=self, partner=self.env['res.partner'])
+        included = res['total_included']
+        excluded = res['total_excluded']
+        if currency.compare_amounts(included, price) > 0:
+            return format_amount(self.env, included, currency), "Incl. Taxes"
+        elif currency.compare_amounts(excluded, price) < 0:
+            return format_amount(self.env, excluded, currency), "Excl. Taxes"
+        return None, ""
+
+    @api.depends('taxes_id', 'list_price', 'wholesale_price')
+    @api.depends_context('company')
+    def _compute_tax_string(self):
+        for record in self:
+            if not record.taxes_id:
+                record.tax_string = " "
+                continue
+            if record.wholesale_price > 0:
+                r_amt, r_type = record._get_single_tax_amount_and_type(record.list_price)
+                w_amt, w_type = record._get_single_tax_amount_and_type(record.wholesale_price)
+                if r_amt and w_amt:
+                    tax_type = r_type or w_type
+                    record.tax_string = f"(= Retail: {r_amt} | Wholesale: {w_amt} {tax_type})"
+                elif r_amt:
+                    record.tax_string = f"(= Retail: {r_amt} {r_type})"
+                else:
+                    record.tax_string = record._construct_tax_string(record.list_price)
+            else:
+                record.tax_string = record._construct_tax_string(record.list_price)
 
     @api.constrains('default_code')
     def _check_default_code_unique(self):

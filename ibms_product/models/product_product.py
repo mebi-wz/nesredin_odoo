@@ -6,6 +6,26 @@ from odoo.exceptions import ValidationError
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
+    @api.depends('taxes_id', 'lst_price', 'wholesale_price')
+    @api.depends_context('company')
+    def _compute_tax_string(self):
+        for record in self:
+            if not record.taxes_id:
+                record.tax_string = " "
+                continue
+            if record.wholesale_price > 0:
+                r_amt, r_type = record.product_tmpl_id._get_single_tax_amount_and_type(record.lst_price)
+                w_amt, w_type = record.product_tmpl_id._get_single_tax_amount_and_type(record.wholesale_price)
+                if r_amt and w_amt:
+                    tax_type = r_type or w_type
+                    record.tax_string = f"(= Retail: {r_amt} | Wholesale: {w_amt} {tax_type})"
+                elif r_amt:
+                    record.tax_string = f"(= Retail: {r_amt} {r_type})"
+                else:
+                    record.tax_string = record.product_tmpl_id._construct_tax_string(record.lst_price)
+            else:
+                record.tax_string = record.product_tmpl_id._construct_tax_string(record.lst_price)
+
     @api.constrains('default_code')
     def _check_default_code_unique(self):
         for record in self:
