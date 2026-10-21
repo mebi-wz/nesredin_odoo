@@ -43,6 +43,8 @@ class ProductTemplate(models.Model):
         extra_domains = [categ_clause]
         if 'part_number' in self._fields:
             extra_domains.append([('part_number', operator, val)])
+        if 'secondary_part_number_ids' in self._fields:
+            extra_domains.append([('secondary_part_number_ids.name', operator, val)])
 
         words = val.split()
         if len(words) > 1:
@@ -57,6 +59,8 @@ class ProductTemplate(models.Model):
                 ]
                 if 'part_number' in self._fields:
                     word_or_list.append([('part_number', 'ilike', w)])
+                if 'secondary_part_number_ids' in self._fields:
+                    word_or_list.append([('secondary_part_number_ids.name', 'ilike', w)])
                 multi_domain = multi_domain & Domain.OR(word_or_list)
             extra_domains.append(multi_domain)
 
@@ -75,6 +79,7 @@ class ProductTemplate(models.Model):
         domain = Domain(domain or Domain.TRUE)
         ordered_templates = self.browse()
         has_part = 'part_number' in self._fields
+        has_sec = 'secondary_part_number_ids' in self._fields
 
         def _add_matches(search_domain, current_limit):
             nonlocal ordered_templates
@@ -93,15 +98,22 @@ class ProductTemplate(models.Model):
         exact_clauses = [('default_code', '=', name_str), ('barcode', '=', name_str)]
         if has_part:
             exact_clauses.append(('part_number', '=', name_str))
+        if has_sec:
+            exact_clauses.append(('secondary_part_number_ids.name', '=', name_str))
         exact_domain_list = ['|'] * (len(exact_clauses) - 1) + exact_clauses
         _add_matches(domain & Domain(exact_domain_list), max_limit - len(ordered_templates))
 
         # Code or Part Number ilike
         if len(ordered_templates) < max_limit:
+            code_part_clauses = [('default_code', operator, name_str)]
             if has_part:
-                _add_matches(domain & Domain(['|', ('default_code', operator, name_str), ('part_number', operator, name_str)]), max_limit - len(ordered_templates))
+                code_part_clauses.append(('part_number', operator, name_str))
+            if has_sec:
+                code_part_clauses.append(('secondary_part_number_ids.name', operator, name_str))
+            if len(code_part_clauses) > 1:
+                _add_matches(domain & Domain(['|'] * (len(code_part_clauses) - 1) + code_part_clauses), max_limit - len(ordered_templates))
             else:
-                _add_matches(domain & Domain('default_code', operator, name_str), max_limit - len(ordered_templates))
+                _add_matches(domain & Domain(code_part_clauses), max_limit - len(ordered_templates))
 
         # Name ilike
         if len(ordered_templates) < max_limit:
@@ -126,13 +138,12 @@ class ProductTemplate(models.Model):
                 ]
                 if has_part:
                     word_or_list.append([('part_number', 'ilike', word)])
+                if has_sec:
+                    word_or_list.append([('secondary_part_number_ids.name', 'ilike', word)])
                 if categ_clause:
                     word_or_list.append(categ_clause)
                 multi_domain = multi_domain & Domain.OR(word_or_list)
             _add_matches(domain & multi_domain, max_limit - len(ordered_templates))
-
-        if not ordered_templates:
-            return super().name_search(name=name, domain=domain, operator=operator, limit=limit)
 
         return [(t.id, t.display_name) for t in ordered_templates.sudo()]
 
@@ -238,6 +249,8 @@ class ProductProduct(models.Model):
         extra_domains = [categ_clause]
         if 'part_number' in self._fields:
             extra_domains.append([('part_number', operator, val)])
+        if 'secondary_part_number_ids' in self.product_tmpl_id._fields or 'secondary_part_number_ids' in self._fields:
+            extra_domains.append([('product_tmpl_id.secondary_part_number_ids.name', operator, val)])
 
         words = val.split()
         if len(words) > 1:
@@ -252,6 +265,8 @@ class ProductProduct(models.Model):
                 ]
                 if 'part_number' in self._fields:
                     word_or_list.append([('part_number', 'ilike', w)])
+                if 'secondary_part_number_ids' in self.product_tmpl_id._fields or 'secondary_part_number_ids' in self._fields:
+                    word_or_list.append([('product_tmpl_id.secondary_part_number_ids.name', 'ilike', w)])
                 multi_domain = multi_domain & Domain.OR(word_or_list)
             extra_domains.append(multi_domain)
 
@@ -270,6 +285,7 @@ class ProductProduct(models.Model):
         domain = Domain(domain or Domain.TRUE)
         ordered_products = self.browse()
         has_part = 'part_number' in self._fields
+        has_sec = 'secondary_part_number_ids' in self.product_tmpl_id._fields or 'secondary_part_number_ids' in self._fields
 
         def _add_matches(search_domain, current_limit):
             nonlocal ordered_products
@@ -291,27 +307,33 @@ class ProductProduct(models.Model):
             if bracket_val:
                 bracket_clauses = [('default_code', '=', bracket_val)]
                 if has_part:
-                    bracket_clauses = ['|', ('default_code', '=', bracket_val), ('part_number', '=', bracket_val)]
-                _add_matches(domain & Domain(bracket_clauses), max_limit - len(ordered_products))
+                    bracket_clauses.append(('part_number', '=', bracket_val))
+                if has_sec:
+                    bracket_clauses.append(('product_tmpl_id.secondary_part_number_ids.name', '=', bracket_val))
+                bracket_domain_list = ['|'] * (len(bracket_clauses) - 1) + bracket_clauses if len(bracket_clauses) > 1 else bracket_clauses
+                _add_matches(domain & Domain(bracket_domain_list), max_limit - len(ordered_products))
 
-        # 1. Exact match on Product Code, Part Number, or Barcode
+        # 1. Exact match on Product Code, Part Number, Barcode, or Secondary Part Number
         if len(ordered_products) < max_limit:
             exact_clauses = [('default_code', '=', name_str), ('barcode', '=', name_str)]
             if has_part:
                 exact_clauses.append(('part_number', '=', name_str))
+            if has_sec:
+                exact_clauses.append(('product_tmpl_id.secondary_part_number_ids.name', '=', name_str))
             exact_domain_list = ['|'] * (len(exact_clauses) - 1) + exact_clauses
             _add_matches(domain & Domain(exact_domain_list), max_limit - len(ordered_products))
 
-        # 2. Match Product Code or Part Number with operator (ilike)
+        # 2. Match Product Code, Part Number, or Secondary Part Number with operator (ilike)
         if len(ordered_products) < max_limit:
+            code_part_clauses = [('default_code', operator, name_str)]
             if has_part:
-                _add_matches(domain & Domain([
-                    '|',
-                    ('default_code', operator, name_str),
-                    ('part_number', operator, name_str),
-                ]), max_limit - len(ordered_products))
+                code_part_clauses.append(('part_number', operator, name_str))
+            if has_sec:
+                code_part_clauses.append(('product_tmpl_id.secondary_part_number_ids.name', operator, name_str))
+            if len(code_part_clauses) > 1:
+                _add_matches(domain & Domain(['|'] * (len(code_part_clauses) - 1) + code_part_clauses), max_limit - len(ordered_products))
             else:
-                _add_matches(domain & Domain('default_code', operator, name_str), max_limit - len(ordered_products))
+                _add_matches(domain & Domain(code_part_clauses), max_limit - len(ordered_products))
 
         # 3. Match Product Name (ilike)
         if len(ordered_products) < max_limit:
@@ -336,14 +358,12 @@ class ProductProduct(models.Model):
                 ]
                 if has_part:
                     word_or_list.append([('part_number', 'ilike', word)])
+                if has_sec:
+                    word_or_list.append([('product_tmpl_id.secondary_part_number_ids.name', 'ilike', word)])
                 if categ_clause:
                     word_or_list.append(categ_clause)
                 multi_domain = multi_domain & Domain.OR(word_or_list)
             _add_matches(domain & multi_domain, max_limit - len(ordered_products))
-
-        # 6. Fallback if still no products found (e.g. supplier info or super)
-        if not ordered_products:
-            return super().name_search(name=name, domain=domain, operator=operator, limit=limit)
 
         return [(p.id, p.display_name) for p in ordered_products.sudo()]
 

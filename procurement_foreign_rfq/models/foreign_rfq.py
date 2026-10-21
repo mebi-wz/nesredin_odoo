@@ -429,8 +429,8 @@ class ForeignRFQLine(models.Model):
     categ_id = fields.Many2one('product.category', string='Category', related='product_id.categ_id', readonly=True)
     image_128 = fields.Image(string='Image', related='product_id.image_128', readonly=True)
     image_1920 = fields.Image(string='Full Image', related='product_id.image_1920', readonly=True)
-    hs_code = fields.Char(string="HS Code")
-    hs_description = fields.Char(string="HS Description")
+    hs_code = fields.Char(string="HS Code", compute="_compute_hs_info", store=True, readonly=False)
+    hs_description = fields.Char(string="HS Description", compute="_compute_hs_info", store=True, readonly=False)
     description = fields.Char(string='Description')
     cost_center_id = fields.Many2one('account.analytic.account', string='Cost Center')
 
@@ -444,12 +444,29 @@ class ForeignRFQLine(models.Model):
     price_unit_etb = fields.Float(string='Unit Price (ETB)', compute='_compute_etb_values', store=True)
     price_subtotal_etb = fields.Float(string='Subtotal (ETB)', compute='_compute_etb_values', store=True)
 
+    @api.depends('product_id')
+    def _compute_hs_info(self):
+        for line in self:
+            if line.product_id:
+                if hasattr(line.product_id, 'hs_code') and line.product_id.hs_code:
+                    line.hs_code = line.product_id.hs_code
+                elif not line.hs_code:
+                    line.hs_code = False
+                if hasattr(line.product_id, 'hs_description') and line.product_id.hs_description:
+                    line.hs_description = line.product_id.hs_description
+                elif not line.hs_description:
+                    line.hs_description = False
+            else:
+                if not line.hs_code:
+                    line.hs_code = False
+                if not line.hs_description:
+                    line.hs_description = False
+
     @api.depends('rfq_id', 'rfq_id.line_ids')
     def _compute_line_no(self):
         for rfq in self.mapped('rfq_id'):
             for index, line in enumerate(rfq.line_ids.sorted('id'), start=1):
                 line.line_no = index
-
 
     @api.depends('quantity', 'price_unit')
     def _compute_price_subtotal(self):
@@ -469,6 +486,10 @@ class ForeignRFQLine(models.Model):
             self.description = self.product_id.display_name
             self.price_unit = self.product_id.standard_price
             self.uom_id = self.product_id.uom_id.id
+            if hasattr(self.product_id, 'hs_code') and self.product_id.hs_code:
+                self.hs_code = self.product_id.hs_code
+            if hasattr(self.product_id, 'hs_description') and self.product_id.hs_description:
+                self.hs_description = self.product_id.hs_description
 
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'

@@ -45,6 +45,8 @@ class ForeignRFQMergeWizard(models.TransientModel):
                     'uom_id': line.product_uom_id.id,
                     'estimated_cost': line.unit_price,
                     'price_unit': line.unit_price,
+                    'hs_code': getattr(line, 'hs_code', False) or getattr(line.product_id, 'hs_code', False),
+                    'hs_description': getattr(line.product_id, 'hs_description', False),
                 }))
 
         rfq_vals = {

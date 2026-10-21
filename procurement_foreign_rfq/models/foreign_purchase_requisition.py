@@ -28,6 +28,8 @@ class ForeignPurchaseRequisition(models.Model):
                     'uom_id': line.product_uom_id.id,
                     'price_unit': line.unit_price,
                     'cost_center_id': line.cost_center_id.id,
+                    'hs_code': getattr(line, 'hs_code', False) or getattr(line.product_id, 'hs_code', False),
+                    'hs_description': getattr(line.product_id, 'hs_description', False),
                 }) for line in self.line_ids
             ]
         })

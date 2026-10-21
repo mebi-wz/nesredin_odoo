@@ -348,11 +348,47 @@ class ForeignPurchaseRequisitionLine(models.Model):
         domain="[('type', '=', parent.product_type), ('landed_cost_ok', '=', False), ('is_active_product', '=', True)]",
         required=True
     )
-    part_number = fields.Char(
-        string='Part Number',
-        related='product_id.part_number',
+    product_tmpl_id = fields.Many2one(
+        'product.template',
+        related='product_id.product_tmpl_id',
+        string='Product Template',
         readonly=True,
     )
+    part_number_id = fields.Many2one(
+        'product.secondary.part.number',
+        string='Part Number',
+        domain="[('product_tmpl_id', '=', product_tmpl_id)]",
+    )
+    part_number = fields.Char(
+        string='Part Number',
+        compute='_compute_part_number',
+        store=True,
+        readonly=False,
+    )
+    hs_code = fields.Char(
+        string='HS Code',
+        compute='_compute_hs_code',
+        store=True,
+        readonly=False,
+    )
+
+    @api.depends('product_id')
+    def _compute_hs_code(self):
+        for line in self:
+            if line.product_id and hasattr(line.product_id, 'hs_code'):
+                line.hs_code = line.product_id.hs_code or False
+            elif not line.product_id:
+                line.hs_code = False
+
+    @api.depends('part_number_id', 'product_id')
+    def _compute_part_number(self):
+        for line in self:
+            if line.part_number_id:
+                line.part_number = line.part_number_id.name
+            elif line.product_id:
+                line.part_number = line.product_id.part_number
+            else:
+                line.part_number = False
     categ_id = fields.Many2one(
         'product.category',
         string='Category',
@@ -417,6 +453,17 @@ class ForeignPurchaseRequisitionLine(models.Model):
             self.product_uom_id = self.product_id.uom_id
             # Auto fill unit price from product standard price (cost)
             self.unit_price = self.product_id.standard_price
+            all_parts = self.product_id.all_part_number_ids
+            primary = all_parts.filtered(lambda p: p.part_type == 'primary')[:1] if all_parts else False
+            self.part_number_id = primary or (all_parts[:1] if all_parts else False)
+            self.part_number = self.part_number_id.name if self.part_number_id else self.product_id.part_number
+            if hasattr(self.product_id, 'hs_code') and self.product_id.hs_code:
+                self.hs_code = self.product_id.hs_code
+
+    @api.onchange('part_number_id')
+    def _onchange_part_number_id(self):
+        if self.part_number_id:
+            self.part_number = self.part_number_id.name
 
     order_qty_and_current_stock= fields.Float(string="Order Qty and Current Stock",compute='_compute_ordered_and_stock_qty')
     four_month_qty = fields.Float(

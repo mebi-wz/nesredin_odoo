@@ -13,6 +13,15 @@ class ProductTemplate(models.Model):
         copy=False,
         help="Manufacturer or internal part number for this product.",
     )
+    hs_code = fields.Char(
+        string='HS Code',
+        index=True,
+        help="Harmonized System Code used for international trade, customs classification, and foreign procurement.",
+    )
+    hs_description = fields.Char(
+        string='HS Description',
+        help="Customs or tariff commodity description.",
+    )
     wholesale_price = fields.Float(
         string='Wholesale Price',
         digits='Product Price',
