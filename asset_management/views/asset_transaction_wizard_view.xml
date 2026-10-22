@@ -1,0 +1,73 @@
+<odoo>
+    <!-- ============================= -->
+    <!-- Wizard Form View -->
+    <!-- ============================= -->
+    <record id="view_asset_transaction_wizard_form" model="ir.ui.view">
+        <field name="name">am.asset.transaction.wizard.form</field>
+        <field name="model">am.asset.transaction.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Asset Transaction" create="false" edit="false">
+                <group>
+                    <field name="transaction_type"/>
+                    <field name="asset_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="from_warehouse_id" invisible="transaction_type != 'transfer_warehouse'"/>
+                    <field name="to_warehouse_id" invisible="transaction_type not in ('assign_warehouse', 'transfer_warehouse', 'assign_temp', 'assign_perm', 'return')"/>
+                    <field name="employee_id" invisible="transaction_type not in ('assign_employee', 'transfer_employee', 'assign_temp', 'assign_perm')"/>
+                    <field name="reference"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+
+    <!-- ============================= -->
+    <!-- Buttons on List Views -->
+    <!-- ============================= -->
+    <!-- Buttons on List Views -->
+    <!-- Employee Asset List -->
+    <record id="view_employee_asset_list" model="ir.ui.view">
+        <field name="name">am.employee.asset.list</field>
+        <field name="model">am.employee.asset</field>
+        <field name="arch" type="xml">
+            <list string="Employee Assets">
+                <header>
+                    <button name="asset_management.server_action_asset_transaction_wizard_employee"
+                            string="Batch Asset Transaction"
+                            type="action"
+                            class="oe_highlight"/>
+                </header>
+                <field name="tag_number" string="Tag Number" decoration-bf="1"/>
+                <field name="employee_id"/>
+                <field name="asset_id"/>
+                <field name="status"/>
+                <field name="assigned_date"/>
+                <field name="company_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Warehouse Stock List -->
+    <record id="view_asset_warehouse_stock_list" model="ir.ui.view">
+        <field name="name">am.asset.warehouse.stock.list</field>
+        <field name="model">am.asset.warehouse.stock</field>
+        <field name="arch" type="xml">
+            <list string="Warehouse Stock">
+                <header>
+                    <button name="asset_management.server_action_asset_transaction_wizard_warehouse"
+                            string="Batch Asset Transaction"
+                            type="action"
+                            class="oe_highlight"/>
+                </header>
+                <field name="tag_number" string="Tag Number" decoration-bf="1"/>
+                <field name="warehouse_id"/>
+                <field name="asset_id"/>
+                <field name="branch_id"/>
+                <field name="company_id"/>
+            </list>
+        </field>
+    </record>
+</odoo>

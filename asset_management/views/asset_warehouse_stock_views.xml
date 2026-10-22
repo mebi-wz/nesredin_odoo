@@ -1,0 +1,144 @@
+<odoo>
+    <!-- =====================================================
+         SEARCH VIEW
+    ===================================================== -->
+    <record id="view_am_asset_warehouse_stock_search" model="ir.ui.view">
+        <field name="name">am.asset.warehouse.stock.search</field>
+        <field name="model">am.asset.warehouse.stock</field>
+        <field name="arch" type="xml">
+            <search string="Search Assets in Warehouse">
+                <field name="warehouse_id" string="Warehouse"/>
+                <field name="location_id" string="Location"/>
+                <field name="asset_id" string="Asset"/>
+                <field name="tag_number" string="Tag Number"/>
+                <field name="serial_number" string="Serial Number"/>
+                <field name="branch_id" string="Branch"/>
+                <group>
+                    <filter string="Warehouse" name="group_by_warehouse" context="{'group_by': 'warehouse_id'}"/>
+                    <filter string="Location" name="group_by_location" context="{'group_by': 'location_id'}"/>
+                    <filter string="Branch" name="group_by_branch" context="{'group_by': 'branch_id'}"/>
+                    <filter string="Category" name="group_by_category" context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         TREE / LIST VIEW
+    ===================================================== -->
+    <record id="view_am_asset_warehouse_stock_tree" model="ir.ui.view">
+        <field name="name">am.asset.warehouse.stock.tree</field>
+        <field name="model">am.asset.warehouse.stock</field>
+        <field name="arch" type="xml">
+            <list string="Assets in Warehouse" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_print_tag" string="🖨 Print Tag(s)" type="object" class="btn-secondary"/>
+                </header>
+                <field name="warehouse_id" decoration-bf="1"/>
+                <field name="location_id"/>
+                <field name="asset_id" decoration-bf="1"/>
+                <field name="category_id" optional="show"/>
+                <field name="serial_number" optional="show"/>
+                <field name="tag_number" string="Tag Number" decoration-bf="1"/>
+                <field name="branch_id"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         FORM VIEW
+    ===================================================== -->
+    <record id="view_am_asset_warehouse_stock_form" model="ir.ui.view">
+        <field name="name">am.asset.warehouse.stock.form</field>
+        <field name="model">am.asset.warehouse.stock</field>
+        <field name="arch" type="xml">
+            <form string="Warehouse Asset Detail" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_print_tag" string="🖨 Print Tag" type="object" class="btn-secondary" icon="fa-print"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="asset_id" class="oe_edit_only" string="Stored Asset"/>
+                        <h1>
+                            <field name="asset_id" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="tag_number" class="text-muted" readonly="1"/>
+                        </h3>
+                    </div>
+                    <group>
+                        <group name="asset_info" string="Asset Details">
+                            <field name="category_id"/>
+                            <field name="serial_number"/>
+                            <field name="tag_number"/>
+                        </group>
+                        <group name="location_info" string="Warehouse &amp; Storage Details">
+                            <field name="warehouse_id" readonly="1"/>
+                            <field name="location_id" readonly="1"/>
+                            <field name="branch_id" readonly="1"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         KANBAN VIEW
+    ===================================================== -->
+    <record id="view_am_asset_warehouse_stock_kanban" model="ir.ui.view">
+        <field name="name">am.asset.warehouse.stock.kanban</field>
+        <field name="model">am.asset.warehouse.stock</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column" default_group_by="warehouse_id" create="0" group_create="false" group_edit="false" group_delete="false" quick_create="false" records_draggable="false">
+                <field name="id"/>
+                <field name="asset_id"/>
+                <field name="warehouse_id"/>
+                <field name="location_id"/>
+                <field name="branch_id"/>
+                <field name="tag_number"/>
+                <field name="serial_number"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex flex-column">
+                            <strong class="o_kanban_record_title"><field name="asset_id"/></strong>
+                            <div class="text-muted mt-1">
+                                <i class="fa fa-tag me-1" title="Tag Number"/> <field name="tag_number"/>
+                            </div>
+                            <div class="text-muted" t-if="record.serial_number.raw_value">
+                                <span>S/N: </span><field name="serial_number"/>
+                            </div>
+                            <div class="text-muted mt-1" t-if="record.location_id.raw_value">
+                                <i class="fa fa-map-marker me-1" title="Location"/> <field name="location_id"/>
+                            </div>
+                            <div class="mt-2 text-muted" style="font-size: 0.85em;">
+                                Branch: <field name="branch_id"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         ACTION
+    ===================================================== -->
+    <record id="action_am_asset_warehouse_stock" model="ir.actions.act_window">
+        <field name="name">Assets in Warehouse</field>
+        <field name="res_model">am.asset.warehouse.stock</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_am_asset_warehouse_stock_search"/>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No assets in warehouse storage!
+            </p>
+            <p>
+                Warehouse stock updates automatically when transfers, returns, or registrations occur.
+            </p>
+        </field>
+    </record>
+</odoo>

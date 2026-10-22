@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="asset_management.AssetDashboard">
+        <div class="o_asset_dashboard px-4 py-4 h-100 overflow-auto">
+            
+            <!-- Header Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold text-dark mb-1">Asset Operations &amp; Analytics</h2>
+                    <p class="text-muted small mb-0">Real-time tracking and valuations</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-custom rounded-pill px-3 py-2 shadow-sm" t-on-click="viewAllAssets">
+                        <i class="fa fa-list-ul me-1"/> All Assets
+                    </button>
+                    <button t-if="!state.isReadOnly" class="btn btn-primary-gradient rounded-pill px-4 py-2 shadow-sm fw-bold" t-on-click="createAsset">
+                        <i class="fa fa-plus-circle me-1"/> Register Asset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="row row-cols-1 row-cols-md-5 g-4 mb-4">
+                <!-- Total Assets Card -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 bg-white h-100 p-3 hover-lift card-header-gradient-purple" t-on-click="viewAllAssets">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-wrapper rounded-4 bg-purple-light me-3">
+                                <i class="fa fa-cubes text-purple-custom fa-2x"/>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1 fw-bold text-uppercase-tracking">Total Assets</p>
+                                <h3 class="text-value-lg mb-0" t-esc="state.stats.total_count"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Component Items Card -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 bg-white h-100 p-3 hover-lift card-header-gradient-rose" t-on-click="viewComponentAssets">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-wrapper rounded-4 bg-danger-light me-3">
+                                <i class="fa fa-puzzle-piece text-danger-custom fa-2x"/>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1 fw-bold text-uppercase-tracking">Component Items</p>
+                                <h3 class="text-value-lg mb-0" t-esc="state.stats.component_count"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Net Book Value Card -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 bg-white h-100 p-3 card-header-gradient-green">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-wrapper rounded-4 bg-success-light me-3">
+                                <i class="fa fa-money text-success-custom fa-2x"/>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1 fw-bold text-uppercase-tracking">Net Book Value</p>
+                                <h3 class="text-value-lg mb-0" t-esc="state.stats.total_value_fmt"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Warehouse Card -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 bg-white h-100 p-3 hover-lift card-header-gradient-blue" t-on-click="viewWarehouseAssets">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-wrapper rounded-4 bg-info-light me-3">
+                                <i class="fa fa-building text-info-custom fa-2x"/>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1 fw-bold text-uppercase-tracking">In Warehouse</p>
+                                <h3 class="text-value-lg mb-0" t-esc="state.stats.warehouse_count"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Employees Card -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 bg-white h-100 p-3 hover-lift card-header-gradient-amber" t-on-click="viewEmployeeAssets">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon-wrapper rounded-4 bg-warning-light me-3">
+                                <i class="fa fa-users text-warning-custom fa-2x"/>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1 fw-bold text-uppercase-tracking">With Employees</p>
+                                <h3 class="text-value-lg mb-0" t-esc="state.stats.employee_count"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Section: Asset Status -->
+            <div class="row g-4 mb-4">
+                <!-- Operational Asset Status Breakdown -->
+                <div class="col-lg-12">
+                    <div class="card border-0 rounded-4 bg-white p-4 h-100 card-header-gradient-blue">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-1">Asset Operational Status</h5>
+                                <p class="text-muted small mb-0">Track assets by lifecycle stages (click cards to filter)</p>
+                            </div>
+                            <span class="badge bg-primary-light text-primary-custom px-3 py-2 rounded-pill font-weight-bold">Lifecycle</span>
+                        </div>
+                        <div class="row g-3">
+                            <!-- Draft Card -->
+                            <div class="col-md-4">
+                                <div class="mini-stat-card cursor-pointer" t-on-click="viewDraftAssets">
+                                    <div class="d-flex justify-content-center align-items-center mb-2">
+                                        <div class="rounded-circle bg-info-light p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="fa fa-pencil text-info-custom"/>
+                                        </div>
+                                        <span class="text-muted small fw-bold text-uppercase-tracking">Draft</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0 text-info-custom" t-esc="state.stats.draft_count"/>
+                                </div>
+                            </div>
+                            <!-- Running Card -->
+                            <div class="col-md-4">
+                                <div class="mini-stat-card cursor-pointer" t-on-click="viewRunningAssets">
+                                    <div class="d-flex justify-content-center align-items-center mb-2">
+                                        <div class="rounded-circle bg-success-light p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="fa fa-play-circle-o text-success-custom"/>
+                                        </div>
+                                        <span class="text-muted small fw-bold text-uppercase-tracking">Running</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0 text-success-custom" t-esc="state.stats.running_count"/>
+                                </div>
+                            </div>
+                            <!-- Closed Card -->
+                            <div class="col-md-4">
+                                <div class="mini-stat-card cursor-pointer" t-on-click="viewClosedAssets">
+                                    <div class="d-flex justify-content-center align-items-center mb-2">
+                                        <div class="rounded-circle bg-danger-light p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="fa fa-times-circle-o text-danger-custom"/>
+                                        </div>
+                                        <span class="text-muted small fw-bold text-uppercase-tracking">Closed</span>
+                                    </div>
+                                    <h3 class="fw-bold mb-0 text-danger-custom" t-esc="state.stats.closed_count"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Lists Section -->
+            <div class="row g-4">
+                <!-- Assets by Category Card -->
+                <div class="col-lg-6">
+                    <div class="card border-0 rounded-4 bg-white p-4 h-100 card-header-gradient-purple">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-1">Assets by Category</h5>
+                                <p class="text-muted small mb-0">Total volume and value by category</p>
+                            </div>
+                            <i class="fa fa-pie-chart text-purple-custom fa-lg"/>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle mb-0">
+                                <thead>
+                                    <tr class="text-muted small" style="border-bottom: 2px solid #f4f6fa;">
+                                        <th class="pb-3 fw-bold text-uppercase-tracking">CATEGORY</th>
+                                        <th class="pb-3 text-end fw-bold text-uppercase-tracking">COUNT</th>
+                                        <th class="pb-3 text-end fw-bold text-uppercase-tracking">NET VALUE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.stats.category_data" t-as="cat" t-key="cat.id">
+                                        <tr class="table-custom-row">
+                                            <td class="py-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="p-1 rounded-circle bg-primary-custom me-2" style="width: 8px; height: 8px;"/>
+                                                    <span class="fw-bold text-dark" t-esc="cat.name"/>
+                                                </div>
+                                            </td>
+                                            <td class="text-end py-3">
+                                                <span class="badge bg-purple-light text-purple-custom rounded-pill px-3 py-1 font-weight-bold" t-esc="cat.count"/>
+                                            </td>
+                                            <td class="text-end py-3 fw-bold text-dark" t-esc="cat.value_fmt"/>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch Distribution Card -->
+                <div class="col-lg-6">
+                    <div class="card border-0 rounded-4 bg-white p-4 h-100 card-header-gradient-blue">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-1">Branch Distribution</h5>
+                                <p class="text-muted small mb-0">Top branches by asset count percentage</p>
+                            </div>
+                            <i class="fa fa-map-marker text-info-custom fa-lg"/>
+                        </div>
+                        <div class="p-2" style="max-height: 380px; overflow-y: auto;">
+                            <t t-foreach="state.stats.branch_data" t-as="branch" t-key="branch.id">
+                                <div class="mb-4 progress-container">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="fw-bold text-dark" t-esc="branch.name"/>
+                                        <span class="small text-muted fw-bold">
+                                            <t t-esc="branch.count"/> Assets (<t t-esc="branch.perc"/>%)
+                                        </span>
+                                    </div>
+                                    <div class="progress rounded-pill bg-light" style="height: 10px;">
+                                        <div class="progress-bar progress-bar-premium rounded-pill" t-attf-style="width: {{branch.perc}}%;"/>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </t>
+</templates>

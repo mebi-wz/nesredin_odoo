@@ -1,0 +1,202 @@
+<odoo>
+    <!-- =====================================================
+         VEHICLE TYPE VIEWS
+    ===================================================== -->
+    <record id="view_vehicle_type_tree" model="ir.ui.view">
+        <field name="name">am.asset.vehicle_type.tree</field>
+        <field name="model">am.asset.vehicle_type</field>
+        <field name="arch" type="xml">
+            <list string="Vehicle Types">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vehicle_type_form" model="ir.ui.view">
+        <field name="name">am.asset.vehicle_type.form</field>
+        <field name="model">am.asset.vehicle_type</field>
+        <field name="arch" type="xml">
+            <form string="Vehicle Type">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         VEHICLE MODEL VIEWS
+    ===================================================== -->
+    <record id="view_asset_model_tree" model="ir.ui.view">
+        <field name="name">am.asset.model.tree</field>
+        <field name="model">am.asset.model</field>
+        <field name="arch" type="xml">
+            <list string="Vehicle Models">
+                <field name="name"/>
+                <field name="brand_name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_model_form" model="ir.ui.view">
+        <field name="name">am.asset.model.form</field>
+        <field name="model">am.asset.model</field>
+        <field name="arch" type="xml">
+            <form string="Vehicle Model">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="brand_name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vehicle Model Kanban -->
+    <record id="view_asset_model_kanban" model="ir.ui.view">
+        <field name="name">am.asset.model.kanban</field>
+        <field name="model">am.asset.model</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_example" create="true">
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex flex-column">
+                            <field name="name"/>
+                            <div><strong>Brand:</strong> <field name="brand_name"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         VEHICLE VIEWS
+    ===================================================== -->
+    <record id="view_asset_vehicle_tree" model="ir.ui.view">
+        <field name="name">am.asset.vehicle.tree</field>
+        <field name="model">am.asset.vehicle</field>
+        <field name="arch" type="xml">
+            <list string="Asset Vehicles" create="0">
+                <header>
+                    <button name="action_print_tag" string="🖨 Print Tag(s)" type="object" class="btn-secondary"/>
+                </header>
+                <field name="tag_number" string="Tag Number" decoration-bf="1"/>
+                <field name="asset_id" readonly="1"/>
+                <field name="plate_number" decoration-bf="1"/>
+                <field name="brand"/>
+                <field name="model_id"/>
+                <field name="color" optional="show"/>
+                <field name="fuel_type" optional="show"/>
+                <field name="seats_number" optional="hide"/>
+                <field name="tank_capacity" optional="hide"/>
+                <field name="fuel_consumption" optional="hide"/>
+                <field name="vehicle_type_id" optional="hide"/>
+                <field name="chassis_number" optional="hide"/>
+                <field name="engine_number" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_vehicle_form" model="ir.ui.view">
+        <field name="name">am.asset.vehicle.form</field>
+        <field name="model">am.asset.vehicle</field>
+        <field name="arch" type="xml">
+            <form string="Asset Vehicle" create="0">
+                <header>
+                    <button name="action_print_tag" string="🖨 Print Tag" type="object" class="btn-secondary" icon="fa-print"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="asset_id" readonly="1"/>
+                            <field name="tag_number" readonly="1"/>
+                            <field name="plate_number"/>
+                            <field name="chassis_number"/>
+                            <field name="engine_number"/>
+                            <field name="vehicle_type_id"/>
+                            <field name="model_id"/>
+                        </group>
+                        <group>
+                            <field name="brand"/>
+                            <field name="color"/>
+                            <field name="fuel_type"/>
+                            <field name="tank_capacity"/>
+                            <field name="fuel_consumption"/>
+                            <field name="seats_number"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vehicle Kanban View -->
+    <record id="view_asset_vehicle_kanban" model="ir.ui.view">
+        <field name="name">am.asset.vehicle.kanban</field>
+        <field name="model">am.asset.vehicle</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_example" create="false">
+                <field name="tag_number"/>
+                <field name="asset_id"/>
+                <field name="plate_number"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <strong class="fs-6"><field name="plate_number"/></strong>
+                                <span class="badge text-bg-light border text-primary fw-bold" t-if="record.tag_number.raw_value">
+                                    <i class="fa fa-tag me-1" title="Tag Number"/> <field name="tag_number"/>
+                                </span>
+                            </div>
+                            <div class="text-muted"><strong>Asset:</strong> <field name="asset_id"/></div>
+                            <div><span>Brand:</span> <field name="brand"/></div>
+                            <div><span>Model:</span> <field name="model_id"/></div>
+                            <div><span>Color:</span> <field name="color"/></div>
+                            <div><span>Type:</span> <field name="vehicle_type_id"/></div>
+                            <div><span>Chassis:</span> <field name="chassis_number"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vehicle Graph View -->
+    <record id="view_asset_vehicle_graph" model="ir.ui.view">
+        <field name="name">am.asset.vehicle.graph</field>
+        <field name="model">am.asset.vehicle</field>
+        <field name="arch" type="xml">
+            <graph string="Vehicles by Type" type="bar">
+                <field name="vehicle_type_id" type="row"/>
+                <field name="id" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         ACTIONS
+    ===================================================== -->
+    <record id="action_asset_vehicle_type" model="ir.actions.act_window">
+        <field name="name">Vehicle Types</field>
+        <field name="res_model">am.asset.vehicle_type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_asset_models" model="ir.actions.act_window">
+        <field name="name">Vehicle Models</field>
+        <field name="res_model">am.asset.model</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <record id="action_asset_vehicles" model="ir.actions.act_window">
+        <field name="name">Asset Vehicles</field>
+        <field name="res_model">am.asset.vehicle</field>
+        <field name="view_mode">kanban,list,form,graph</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Initialize Returned from Sales Operation Type for all warehouses -->
+        <function model="stock.warehouse" name="create_missing_sale_return_picking_types"/>
+    </data>
+</odoo>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Minor Category Actions (Defined early to be used in views) -->
+    <record id="action_asset_minor_category_form" model="ir.actions.act_window">
+        <field name="name">Minor Category Configuration</field>
+        <field name="res_model">am.asset.minor_category</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="action_asset_minor_category" model="ir.actions.act_window">
+        <field name="name">Minor Categories</field>
+        <field name="res_model">am.asset.minor_category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Major Category Action -->
+    <record id="action_asset_category" model="ir.actions.act_window">
+        <field name="name">Asset Categories</field>
+        <field name="res_model">am.asset.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Major Category Tree View -->
+    <record id="view_asset_category_tree" model="ir.ui.view">
+        <field name="name">am.asset.category.tree</field>
+        <field name="model">am.asset.category</field>
+        <field name="arch" type="xml">
+            <list string="Asset Categories">
+                <field name="name"/>
+                <field name="code" readonly="1"/>
+                <field name="depreciation_rate"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Major Category Form View -->
+    <record id="view_asset_category_form" model="ir.ui.view">
+        <field name="name">am.asset.category.form</field>
+        <field name="model">am.asset.category</field>
+        <field name="arch" type="xml">
+            <form string="Asset Category">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code" readonly="1"/>
+                        <field name="depreciation_rate"/>
+                    </group>
+                    <notebook>
+                        <page string="Minor Categories">
+                            <field name="minor_ids" context="{'default_major_category_id': id}">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="code" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Accounting">
+                            <group>
+                                <group string="Financial Asset Link">
+                                    <field name="accounting_category_id"
+                                           options="{'no_create': True}"
+                                           help="Select the Accounting Asset Category from the Accounting module. Assets of this category will automatically create a linked financial asset when confirmed."/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Accounts">
+                                    <field name="account_asset_id" required="1"/>
+                                    <field name="account_depreciation_id" required="1"/>
+                                    <field name="account_depreciation_expense_id" required="1"/>
+                                </group>
+                                <group string="Journal">
+                                    <field name="journal_id" required="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+</odoo>

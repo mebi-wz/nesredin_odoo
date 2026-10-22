@@ -1,0 +1,352 @@
+<odoo>
+    <!-- ========================= -->
+    <!-- 1️⃣ Asset List View -->
+    <!-- ========================= -->
+    <record id="view_asset_list" model="ir.ui.view">
+        <field name="name">am.asset.list</field>
+        <field name="model">am.asset</field>
+        <field name="arch" type="xml">
+            <list string="Assets" default_order="employee_name asc">
+                <header>
+                    <button name="asset_management.server_action_asset_transaction_wizard_asset"
+                            string="Batch Asset Transaction"
+                            type="action"
+                            class="oe_highlight"/>
+                    <button name="action_print_tag"
+                            string="🖨 Print Tag(s)"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button name="action_regenerate_all_qr_codes"
+                            string="Regenerate Tag Numbers"
+                            type="object"
+                            confirm="Are you sure you want to sequentially regenerate tag numbers for all assets? This is irreversible."
+                            groups="asset_management.group_asset_ffa_expert"
+                            class="btn-secondary"/>
+                </header>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="tag_number" string="Tag Number" decoration-bf="1"/>
+                <field name="name" string="Asset Name" decoration-bf="1"/>
+                <field name="major_category_id" optional="show"/>
+                <field name="minor_category_id" optional="show"/>
+                <field name="serial_number" optional="hide"/>
+                <field name="employee_name" string="Employee (String)" optional="hide"/>
+                <field name="employee_id" string="Employee" widget="many2one_avatar" optional="show"/>
+                <field name="branch_id" optional="show"/>
+                <field name="acquisition_date" optional="hide"/>
+                <field name="original_cost" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="location" widget="badge" decoration-info="location == 'warehouse'" decoration-success="location == 'employee'" optional="show"/>
+                <field name="status_id" widget="badge" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'open'" decoration-danger="state == 'close'"/>
+                <field name="net_book_value" sum="Total Value" widget="monetary" options="{'currency_field': 'currency_id'}" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- 2️⃣ Kanban View -->
+    <!-- ========================= -->
+    <record id="view_asset_kanban" model="ir.ui.view">
+        <field name="name">am.asset.kanban</field>
+        <field name="model">am.asset</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column" default_group_by="location" sample="1">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="location"/>
+                <field name="status_id"/>
+                <field name="tag_number"/>
+                <field name="employee_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="badge text-bg-light border text-primary fw-bold" t-if="record.tag_number.raw_value">
+                                    <i class="fa fa-tag me-1" title="Tag Number"/> <field name="tag_number"/>
+                                </span>
+                                <field name="status_id" widget="badge"/>
+                            </div>
+                            <strong class="o_kanban_record_title"><field name="name"/></strong>
+                            <div class="text-muted mt-1" t-if="record.employee_id.raw_value">
+                                <i class="fa fa-user me-1" title="Employee"/> <field name="employee_id"/>
+                            </div>
+                            <div class="mt-2 text-primary font-weight-bold">
+                                <field name="net_book_value" widget="monetary"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- 3️⃣ Form View -->
+    <!-- ========================= -->
+    <record id="view_asset_form" model="ir.ui.view">
+        <field name="name">am.asset.form</field>
+        <field name="model">am.asset</field>
+        <field name="arch" type="xml">
+            <form string="Asset Registration">
+                <header>
+                    <button name="action_validate" string="Confirm" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_print_tag" string="🖨 Print Tag" type="object" class="btn-secondary" icon="fa-print"/>
+                    <button name="action_set_to_draft" string="Set to Draft" type="object" invisible="state == 'draft'"/>
+                    <button name="action_close" string="Close Asset" type="object" invisible="state != 'open'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,open,close"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+
+                        <button name="open_entries" type="object" class="oe_stat_button" icon="fa-list" invisible="not depreciation_line_ids">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Journal</span>
+                                <span class="o_stat_text">Entries</span>
+                            </div>
+                        </button>
+                        <button name="action_view_financial_asset" type="object" class="oe_stat_button"
+                                icon="fa-calculator" invisible="not financial_asset_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Accounting</span>
+                                <span class="o_stat_text">Asset</span>
+                            </div>
+                        </button>
+                        <button name="action_print_tag" type="object" class="oe_stat_button" icon="fa-barcode">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Print</span>
+                                <span class="o_stat_text">Tag</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Dell Latitude 5420"/>
+                        </h1>
+                        <h3>
+                            <field name="tag_number" class="text-muted" placeholder="Tag Number"/>
+                        </h3>
+                    </div>
+
+                    <group>
+                        <group name="primary_info" string="General Information">
+                            <field name="major_category_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="minor_category_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="serial_number"/>
+                            <field name="tag_number"/>
+                            <field name="status_id" options="{'no_create': True}"/>
+                            <field name="is_vehicle" widget="boolean_toggle"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group name="assignment_info" string="Assignment &amp; Location">
+                            <field name="employee_id" readonly="1" invisible="1"/>
+                            <field name="employee_name" readonly="1" invisible="1"/>
+                            <field name="branch_id" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" readonly="state != 'draft'"/>
+                            <field name="grn_file" widget="binary" filename="name"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Financials" name="financial_info">
+                            <group>
+                                <group>
+                                    <field name="acquisition_date"/>
+                                    <field name="years_of_manufacture"/>
+                                </group>
+                                <group>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="original_cost" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="salvage_value" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="accumulated_depreciation" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_inline">
+                                        <label for="net_book_value" class="oe_inline font-weight-bold" style="font-size: 1.2em;"/>
+                                        <field name="net_book_value" widget="monetary" class="oe_inline font-weight-bold" style="font-size: 1.2em; color: #714B67;" options="{'currency_field': 'currency_id'}"/>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Depreciation History" name="depreciation_history">
+                            <field name="depreciation_line_ids" nolabel="1">
+                                <list editable="bottom">
+                                    <field name="date"/>
+                                    <field name="amount" sum="Total Depreciation"/>
+                                    <field name="remaining_value"/>
+                                    <field name="move_id" optional="show"/>
+                                    <field name="is_posted" column_invisible="1"/>
+                                    <field name="notes"/>
+                                    <button name="action_post_move" string="Post" type="object" icon="fa-check-circle" class="btn-primary"
+                                            invisible="is_posted or parent.state != 'open' or parent.financial_asset_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Technical Details" name="technical_info">
+                            <group>
+                                <field name="description" placeholder="Internal notes..."/>
+                                <field name="is_scannable"/>
+                            </group>
+                            <group string="Specifications">
+                                <field name="specification_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="value"/>
+                                        <field name="uom"/>
+                                        <field name="is_accessory"/>
+                                        <field name="is_required"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Vehicle Details" name="vehicle_info" invisible="not is_vehicle">
+                            <field name="vehicle_id" nolabel="1"
+                                   readonly="state != 'draft'"
+                                   context="{'default_branch_id': branch_id, 'default_company_id': company_id}">
+                                <form>
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="vehicle_type_id" required="1"/>
+                                                <field name="model_id" required="1"/>
+                                                <field name="branch_id" invisible="1"/>
+                                                <field name="company_id" invisible="1"/>
+                                            </group>
+                                            <group>
+                                                <field name="plate_number" required="1"/>
+                                                <field name="chassis_number"/>
+                                                <field name="engine_number"/>
+                                            </group>
+                                        </group>
+                                    </sheet>
+                                </form>
+                                <list>
+                                    <field name="vehicle_type_id"/>
+                                    <field name="model_id"/>
+                                    <field name="plate_number"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Hierarchy" name="hierarchy_info">
+                            <group>
+                                <field name="is_component" widget="boolean_toggle"/>
+                                <field name="parent_asset_id" invisible="not is_component" options="{'no_create': True}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- 5️⃣ Pivot View -->
+    <!-- ========================= -->
+    <record id="view_asset_pivot" model="ir.ui.view">
+        <field name="name">am.asset.pivot</field>
+        <field name="model">am.asset</field>
+        <field name="arch" type="xml">
+            <pivot string="Assets Analysis" sample="1">
+                <field name="branch_id" type="row"/>
+                <field name="location" type="col"/>
+                <field name="net_book_value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- 5️⃣ Search View -->
+    <!-- ========================= -->
+    <record id="view_asset_search" model="ir.ui.view">
+        <field name="name">am.asset.search</field>
+        <field name="model">am.asset</field>
+        <field name="arch" type="xml">
+            <search string="Search Assets">
+                <field name="name" string="Asset" filter_domain="['|', '|', ('name', 'ilike', self), ('tag_number', 'ilike', self), ('serial_number', 'ilike', self)]"/>
+                <field name="tag_number" string="Tag Number"/>
+                <field name="branch_id"/>
+                <field name="major_category_id"/>
+                <field name="minor_category_id"/>
+                <separator/>
+                <filter string="In Warehouse" name="in_warehouse" domain="[('location', '=', 'warehouse')]"/>
+                <filter string="Assigned to Employee" name="assigned" domain="[('location', '=', 'employee')]"/>
+                <filter string="Unassigned" name="unassigned" domain="[('location', 'in', ('neither', False))]"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Running" name="running" domain="[('state', '=', 'open')]"/>
+                <filter string="Closed" name="closed" domain="[('state', '=', 'close')]"/>
+                <separator/>
+                <filter string="Vehicles" name="vehicles" domain="[('is_vehicle', '=', True)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Branch" name="group_by_branch" context="{'group_by': 'branch_id'}"/>
+                    <filter string="Major Category" name="group_by_major" context="{'group_by': 'major_category_id'}"/>
+                    <filter string="Location" name="group_by_location" context="{'group_by': 'location'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- 7️⃣ Dashboard Client Action -->
+    <!-- ========================= -->
+    <record id="action_asset_dashboard_main" model="ir.actions.client">
+        <field name="name">Asset Dashboard</field>
+        <field name="tag">asset_dashboard_main</field>
+    </record>
+
+    <!-- ========================= -->
+    <!-- 8️⃣ Window Actions -->
+    <!-- ========================= -->
+    <record id="action_asset_dashboard" model="ir.actions.act_window">
+        <field name="name">Asset Dashboard</field>
+        <field name="res_model">am.asset</field>
+        <field name="view_mode">kanban,graph,pivot,list,form</field>
+        <field name="context">{'search_default_group_by_location': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to your Asset Dashboard!
+            </p>
+            <p>
+                Get a quick overview of your asset distribution, status, and value.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_assets_overview" model="ir.actions.act_window">
+        <field name="name">All Assets</field>
+        <field name="res_model">am.asset</field>
+        <field name="view_mode">list,kanban,form,graph,pivot</field>
+        <field name="view_id" ref="view_asset_list"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register your first asset!
+            </p>
+            <p>
+                Track locations, assignments, and values with ease.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_unassigned_assets" model="ir.actions.act_window">
+        <field name="name">Unassigned Assets</field>
+        <field name="res_model">am.asset</field>
+        <field name="view_mode">list,kanban,form,graph,pivot</field>
+        <field name="domain">[('location', 'in', ('neither', False))]</field>
+        <field name="view_id" ref="view_asset_list"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No unassigned assets found!
+            </p>
+            <p>
+                All assets are currently assigned to employees or warehouses.
+            </p>
+        </field>
+    </record>
+
+</odoo>

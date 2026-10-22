@@ -48,6 +48,47 @@ class ProductTemplate(models.Model):
         string='All Part Numbers',
         help="All part numbers (Primary and Secondary) available for this product.",
     )
+    secondary_parts_display = fields.Char(
+        string='Secondary Part Numbers',
+        compute='_compute_secondary_parts_info',
+        store=True,
+        help="Summary list of all secondary / cross-reference part numbers.",
+    )
+    has_secondary_parts = fields.Boolean(
+        string='Has Secondary Parts',
+        compute='_compute_secondary_parts_info',
+        store=True,
+        help="Indicates whether this product has secondary / cross-reference part numbers.",
+    )
+    secondary_parts_count = fields.Integer(
+        string='Secondary Parts Count',
+        compute='_compute_secondary_parts_info',
+        store=True,
+    )
+
+    @api.depends('secondary_part_number_ids.name', 'secondary_part_number_ids.part_type')
+    def _compute_secondary_parts_info(self):
+        for tmpl in self:
+            sec_records = tmpl.secondary_part_number_ids.filtered(lambda r: r.part_type == 'secondary' and r.name)
+            names = [r.name for r in sec_records]
+            tmpl.secondary_parts_display = ", ".join(names) if names else False
+            tmpl.secondary_parts_count = len(names)
+            tmpl.has_secondary_parts = bool(names)
+
+    def action_view_secondary_part_numbers(self):
+        self.ensure_one()
+        return {
+            'name': _("Secondary / Cross-Reference Part Numbers - %s") % (self.name or self.part_number or ''),
+            'type': 'ir.actions.act_window',
+            'res_model': 'product.secondary.part.number',
+            'view_mode': 'list',
+            'domain': [('product_tmpl_id', '=', self.id), ('part_type', '=', 'secondary')],
+            'context': {
+                'default_product_tmpl_id': self.id,
+                'default_part_type': 'secondary',
+            },
+            'target': 'new',
+        }
 
     def _get_single_tax_amount_and_type(self, price):
         currency = self.currency_id

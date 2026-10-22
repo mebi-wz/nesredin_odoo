@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Sale Order Form View -->
+    <record id="view_order_form_inherit_sale_return" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.sale.return</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <!-- Add Sales Return Ribbon -->
+            <xpath expr="//sheet" position="before">
+                <field name="is_return" invisible="1"/>
+                <div class="alert alert-warning mb-0" role="alert" invisible="not is_return">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Sales Return Order: </strong>
+                            This order is a return for original order 
+                            <field name="original_sale_order_id" readonly="1" class="d-inline fw-bold"/>.
+                            <span invisible="not original_invoice_id"> Original Invoice: <field name="original_invoice_id" readonly="1" class="d-inline fw-bold"/>.</span>
+                            <span invisible="not return_reason"> Reason: <field name="return_reason" readonly="1" class="d-inline fst-italic"/></span>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+
+            <!-- Adjust Approve Quotation button: hide on returns -->
+            <xpath expr="//button[@name='action_approve_quotation']" position="attributes">
+                <attribute name="invisible">is_return or state != 'to_approve' or not is_sales_approver</attribute>
+            </xpath>
+
+            <!-- Adjust Quotation Approval banner: hide on returns -->
+            <xpath expr="//div[hasclass('alert-info') and @role='alert']" position="attributes">
+                <attribute name="invisible">is_return or state != 'to_approve'</attribute>
+            </xpath>
+
+            <!-- Return Approval Banner -->
+            <xpath expr="//header" position="after">
+                <div class="alert alert-info mb-0" role="alert" invisible="not is_return or state != 'to_approve'">
+                    <strong>Return Approval Required: </strong> This sales return order is pending Manager/GM review and approval.
+                </div>
+            </xpath>
+
+            <!-- Return Buttons in Header -->
+            <xpath expr="//header" position="inside">
+                <field name="can_return_sale" invisible="1"/>
+                <!-- Return Sale Button on Original Confirmed/Delivered Sales Orders -->
+                <button name="action_open_return_wizard"
+                        string="Return Sale"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-undo"
+                        invisible="not can_return_sale"/>
+
+                <!-- Approve Return Button on Return Orders -->
+                <button name="action_approve_quotation"
+                        string="Approve Return"
+                        type="object"
+                        class="btn-success"
+                        invisible="not is_return or state != 'to_approve' or not is_sales_approver"/>
+
+                <!-- View / Create Return Invoice Button on Confirmed Return Sales Orders -->
+                <button name="action_create_return_invoice"
+                        string="View / Create Return Invoice"
+                        type="object"
+                        class="btn-primary"
+                        icon="fa-pencil-square-o"
+                        invisible="not is_return or state != 'sale'"/>
+            </xpath>
+
+            <!-- Adjust Standard Create Invoice button to hide on return orders -->
+            <xpath expr="//button[@name='%(sale.action_view_sale_advance_payment_inv)d']" position="attributes">
+                <attribute name="invisible">is_return or invoice_status != 'to invoice'</attribute>
+            </xpath>
+
+            <!-- Smart Buttons in button_box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <!-- Returns smart button on original sales order -->
+                <button name="action_view_returns"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-undo"
+                        invisible="is_return or return_count == 0">
+                    <field name="return_count" widget="statinfo" string="Returns"/>
+                </button>
+
+                <!-- Original Order smart button on return sales order -->
+                <button name="%(sale.action_orders)d"
+                        type="action"
+                        class="oe_stat_button"
+                        icon="fa-arrow-left"
+                        context="{'search_default_name': original_sale_order_id}"
+                        invisible="not is_return or not original_sale_order_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Original SO</span>
+                        <span class="o_stat_value"><field name="original_sale_order_id" readonly="1"/></span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Return Info Fields in Order Details -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="original_sale_order_id" readonly="state != 'draft'" invisible="not is_return"/>
+                <field name="original_invoice_id" readonly="state != 'draft'" invisible="not is_return" options="{'no_create': True}"/>
+                <field name="return_reason" readonly="state != 'draft'" invisible="not is_return"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Return Orders List / Tree View -->
+    <record id="view_sale_order_return_tree" model="ir.ui.view">
+        <field name="name">sale.order.return.tree</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <list string="Sales Returns" decoration-info="state in ('draft', 'sent')" decoration-warning="state in ('to_approve', 'to_approve_discount')" decoration-success="state == 'sale'" decoration-muted="state == 'cancel'">
+                <field name="name" string="Return Reference" decoration-bf="1"/>
+                <field name="original_sale_order_id" string="Original Order"/>
+                <field name="original_invoice_id" string="Original Invoice" optional="show"/>
+                <field name="date_order" string="Return Date"/>
+                <field name="partner_id"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="team_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="return_reason" optional="show"/>
+                <field name="amount_total" sum="Total Tax Included" widget="monetary" decoration-bf="1"/>
+                <field name="state" widget="badge" decoration-info="state in ('draft', 'sent')" decoration-warning="state in ('to_approve', 'to_approve_discount')" decoration-success="state == 'sale'" decoration-danger="state == 'cancel'"/>
+                <field name="invoice_status" widget="badge" decoration-success="invoice_status == 'invoiced'" decoration-warning="invoice_status == 'to invoice'" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action for Sales Returns -->
+    <record id="action_sale_order_returns" model="ir.actions.act_window">
+        <field name="name">Sales Returns</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">list,form,calendar,graph,pivot</field>
+        <field name="domain">[('is_return', '=', True)]</field>
+        <field name="context">{'default_is_return': True}</field>
+        <field name="view_id" ref="view_sale_order_return_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Sales Returns found!
+            </p>
+            <p>
+                To create a Sales Return, open any confirmed Sales Order and click the <b>Return Sale</b> button.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu for Sales Returns under Sales > Orders -->
+    <menuitem id="menu_sale_order_returns"
+              name="Sales Returns"
+              action="action_sale_order_returns"
+              parent="sale.sale_order_menu"
+              groups="sales_team.group_sale_salesman"
+              sequence="25"/>
+</odoo>

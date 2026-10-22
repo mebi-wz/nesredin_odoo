@@ -1,0 +1,56 @@
+<odoo>
+    <!-- Asset Transaction Tree View -->
+    <record id="view_asset_transaction_tree" model="ir.ui.view">
+        <field name="name">am.asset.transaction.tree</field>
+        <field name="model">am.asset.transaction</field>
+        <field name="arch" type="xml">
+            <list string="Asset Transactions">
+                <field name="tag_number" string="Tag Number" decoration-bf="1"/>
+                <field name="asset_id"/>
+                <field name="transaction_type"/>
+                <field name="from_warehouse_id"/>
+                <field name="to_warehouse_id"/>
+                <field name="employee_id"/>
+                <field name="transaction_date"/>
+                <field name="reference"/>
+                <field name="performed_by"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Asset Transaction Form View -->
+    <record id="view_asset_transaction_form" model="ir.ui.view">
+        <field name="name">am.asset.transaction.form</field>
+        <field name="model">am.asset.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Asset Transaction">
+                <sheet>
+                    <group>
+                        <field name="asset_id"/>
+                        <field name="tag_number" readonly="1"/>
+                        <field name="transaction_type"/>
+                    </group>
+                    <group>
+                        <field name="from_warehouse_id"/>
+                        <field name="from_location_id"/>
+                        <field name="to_warehouse_id"/>
+                        <field name="to_location_id"/>
+                        <field name="employee_id"/>
+                    </group>
+                    <group>
+                        <field name="transaction_date"/>
+                        <field name="reference"/>
+                        <field name="performed_by"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Asset Transaction Action -->
+    <record id="action_asset_transactions" model="ir.actions.act_window">
+        <field name="name">Asset Transactions</field>
+        <field name="res_model">am.asset.transaction</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

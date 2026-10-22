@@ -1,6 +1,178 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Inherit Sales Analysis List View: Add Image and Part Number -->
+    <!-- ======================================================== -->
+    <!-- Inherit Standard Sales Analysis Search View              -->
+    <!-- ======================================================== -->
+    <record id="view_order_product_search_inherit_ibms" model="ir.ui.view">
+        <field name="name">sale.report.search.inherit.ibms</field>
+        <field name="model">sale.report</field>
+        <field name="inherit_id" ref="sale.view_order_product_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="default_code" string="Product Code"/>
+                <field name="part_number" string="Part Number (Primary)"/>
+                <field name="secondary_parts_display" string="Secondary Part Number"/>
+            </xpath>
+            <xpath expr="//filter[@name='Sales']" position="after">
+                <filter string="Has Secondary Part Numbers" name="filter_has_secondary" domain="[('has_secondary_parts', '=', True)]"/>
+            </xpath>
+            <xpath expr="//filter[@name='filter_date']" position="after">
+                <filter string="Order Date: Today" name="filter_today" domain="[('date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')), ('date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+            </xpath>
+            <xpath expr="//filter[@name='product_tmpl_id']" position="after">
+                <filter string="Day" name="group_by_day" context="{'group_by': 'date:day'}"/>
+                <filter string="Primary Part Number" name="group_by_part_number" context="{'group_by':'part_number'}"/>
+                <filter string="Product Code" name="group_by_default_code" context="{'group_by':'default_code'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ======================================================== -->
+    <!-- 1. Daily Sales Report List View                          -->
+    <!-- ======================================================== -->
+    <record id="sale_report_view_tree_daily" model="ir.ui.view">
+        <field name="name">sale.report.view.list.daily</field>
+        <field name="model">sale.report</field>
+        <field name="arch" type="xml">
+            <list string="Daily Sales Report" create="0" delete="0" expand="1">
+                <field name="date" string="Order Date" widget="date"/>
+                <field name="order_reference" string="Order Ref" optional="show"/>
+                <field name="partner_id" string="Customer"/>
+                <field name="default_code" string="Product Code" optional="show"/>
+                <field name="part_number" string="Part Number" optional="show"/>
+                <field name="product_id" string="Product"/>
+                <field name="product_uom_qty" string="Qty Ordered" sum="Total Ordered"/>
+                <field name="qty_invoiced" string="Qty Invoiced" optional="show" sum="Total Invoiced"/>
+                <field name="price_unit" string="Unit Price" widget="monetary" avg="Avg Price"/>
+                <field name="price_subtotal" string="Untaxed Total" sum="Total Untaxed" optional="show"/>
+                <field name="price_total" string="Total Amount" sum="Grand Total"/>
+                <field name="state" string="Status" optional="show" widget="badge"/>
+                <field name="user_id" string="Salesperson" optional="hide"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Daily Sales Report Action -->
+    <record id="action_sale_report_daily" model="ir.actions.act_window">
+        <field name="name">Daily Sales Report</field>
+        <field name="res_model">sale.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="view_id" ref="sale_report_view_tree_daily"/>
+        <field name="search_view_id" ref="view_order_product_search_inherit_ibms"/>
+        <field name="context">{
+            'search_default_Sales': 1,
+            'search_default_group_by_day': 1,
+            'search_default_filter_date': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No daily sales data found for the selected period.
+            </p>
+        </field>
+    </record>
+
+    <!-- ======================================================== -->
+    <!-- 2. Sales Report by Customer List View                    -->
+    <!-- ======================================================== -->
+    <record id="sale_report_view_tree_customer" model="ir.ui.view">
+        <field name="name">sale.report.view.list.customer</field>
+        <field name="model">sale.report</field>
+        <field name="arch" type="xml">
+            <list string="Sales by Customer" create="0" delete="0" expand="1">
+                <field name="partner_id" string="Customer"/>
+                <field name="country_id" string="Country" optional="show"/>
+                <field name="order_reference" string="Order Ref" optional="show"/>
+                <field name="date" string="Date" widget="date" optional="show"/>
+                <field name="default_code" string="Product Code" optional="hide"/>
+                <field name="part_number" string="Part Number" optional="hide"/>
+                <field name="product_id" string="Product" optional="show"/>
+                <field name="product_uom_qty" string="Qty Ordered" sum="Total Ordered"/>
+                <field name="qty_invoiced" string="Qty Invoiced" sum="Total Invoiced"/>
+                <field name="price_subtotal" string="Untaxed Total" sum="Total Untaxed" optional="show"/>
+                <field name="price_total" string="Total Amount" sum="Total Spent"/>
+                <field name="untaxed_amount_invoiced" string="Invoiced Amount" optional="hide" sum="Total Invoiced"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Sales Report by Customer Action -->
+    <record id="action_sale_report_customer" model="ir.actions.act_window">
+        <field name="name">Sales by Customer</field>
+        <field name="res_model">sale.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="view_id" ref="sale_report_view_tree_customer"/>
+        <field name="search_view_id" ref="view_order_product_search_inherit_ibms"/>
+        <field name="context">{
+            'search_default_Sales': 1,
+            'search_default_Customer': 1,
+            'search_default_filter_date': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No customer sales data found for the selected period.
+            </p>
+        </field>
+    </record>
+
+    <!-- ======================================================== -->
+    <!-- 3. Sales Report by Product List View (Full Parts & Images) -->
+    <!-- ======================================================== -->
+    <record id="sale_report_view_tree_product" model="ir.ui.view">
+        <field name="name">sale.report.view.list.product</field>
+        <field name="model">sale.report</field>
+        <field name="arch" type="xml">
+            <list string="Sales by Product" create="0" delete="0" expand="1">
+                <field name="image_1920"
+                       string="Image"
+                       widget="image"
+                       options="{'zoom': true, 'preview_image': 'image_128', 'size': [40, 40]}"
+                       width="45"
+                       readonly="1"/>
+                <field name="default_code" string="Product Code" optional="show" readonly="1"/>
+                <field name="part_number" string="Primary Part #" optional="show" readonly="1"/>
+                <field name="product_id" string="Product Name"/>
+                <field name="secondary_parts_display" string="Secondary Part Numbers" optional="show" readonly="1"/>
+                <field name="has_secondary_parts" column_invisible="True"/>
+                <button name="action_view_secondary_part_numbers"
+                        type="object"
+                        string="Secondary Parts"
+                        icon="fa-tags"
+                        invisible="not has_secondary_parts"
+                        title="View Additional Part Numbers / Cross-References"
+                        class="btn-sm btn-outline-primary"/>
+                <field name="product_uom_qty" string="Qty Ordered" sum="Total Ordered"/>
+                <field name="qty_delivered" string="Qty Delivered" optional="show" sum="Total Delivered"/>
+                <field name="qty_invoiced" string="Qty Invoiced" optional="show" sum="Total Invoiced"/>
+                <field name="price_unit" string="Avg Price" widget="monetary" avg="Avg Price"/>
+                <field name="price_subtotal" string="Untaxed Total" optional="show" sum="Total Untaxed"/>
+                <field name="price_total" string="Total Sales" sum="Total Sales"/>
+                <field name="currency_id" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Sales Report by Product Action -->
+    <record id="action_sale_report_product" model="ir.actions.act_window">
+        <field name="name">Sales by Product</field>
+        <field name="res_model">sale.report</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="view_id" ref="sale_report_view_tree_product"/>
+        <field name="search_view_id" ref="view_order_product_search_inherit_ibms"/>
+        <field name="context">{
+            'search_default_Sales': 1,
+            'search_default_Product': 1,
+            'search_default_filter_date': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No product sales data found for the selected period.
+            </p>
+        </field>
+    </record>
+
+    <!-- Inherit Standard List View: Also show Image, Code, Part Number -->
     <record id="sale_report_view_tree_inherit_ibms" model="ir.ui.view">
         <field name="name">sale.report.view.list.inherit.ibms</field>
         <field name="model">sale.report</field>
@@ -14,25 +186,48 @@
                        width="45"
                        optional="show"
                        readonly="1"/>
+                <field name="default_code" string="Product Code" optional="show" readonly="1"/>
             </xpath>
             <xpath expr="//field[@name='product_id']" position="after">
                 <field name="part_number" string="Part Number" optional="show" readonly="1"/>
+                <field name="secondary_parts_display" string="Secondary Part Numbers" optional="show" readonly="1"/>
+                <field name="has_secondary_parts" column_invisible="True"/>
+                <button name="action_view_secondary_part_numbers"
+                        type="object"
+                        string="Secondary Parts"
+                        icon="fa-tags"
+                        invisible="not has_secondary_parts"
+                        title="View Additional Part Numbers / Cross-References"
+                        class="btn-sm btn-outline-primary"/>
             </xpath>
         </field>
     </record>
 
-    <!-- Inherit Sales Analysis Search View: Add Part Number search and grouping -->
-    <record id="view_order_product_search_inherit_ibms" model="ir.ui.view">
-        <field name="name">sale.report.search.inherit.ibms</field>
-        <field name="model">sale.report</field>
-        <field name="inherit_id" ref="sale.view_order_product_search"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='product_id']" position="after">
-                <field name="part_number" string="Part Number"/>
-            </xpath>
-            <xpath expr="//filter[@name='product_tmpl_id']" position="after">
-                <filter string="Part Number" name="group_by_part_number" context="{'group_by':'part_number'}"/>
-            </xpath>
-        </field>
-    </record>
+    <!-- ======================================================== -->
+    <!-- Menus under Sales > Reporting                            -->
+    <!-- ======================================================== -->
+    <menuitem id="menu_sale_report_daily"
+              name="Daily Sales Report"
+              parent="sale.menu_sale_report"
+              action="action_sale_report_daily"
+              sequence="5"/>
+
+    <menuitem id="menu_sale_report_customer"
+              name="Sales by Customer"
+              parent="sale.menu_sale_report"
+              action="action_sale_report_customer"
+              sequence="15"/>
+
+    <menuitem id="menu_sale_report_product"
+              name="Sales by Product"
+              parent="sale.menu_sale_report"
+              action="action_sale_report_product"
+              sequence="25"/>
+
+    <menuitem id="menu_sale_report_wizard"
+              name="Sales Reports (Print &amp; Export)"
+              parent="sale.menu_sale_report"
+              action="action_sale_report_wizard"
+              sequence="35"/>
+
 </odoo>

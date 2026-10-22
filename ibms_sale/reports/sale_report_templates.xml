@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_custom_sales_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <t t-set="data" t-value="doc._get_report_data()"/>
+                    <div class="page" style="font-family: Arial, Helvetica, sans-serif; font-size: 13px;">
+                        
+                        <!-- Header Banner -->
+                        <div class="row pb-2 mb-3 border-bottom border-dark">
+                            <div class="col-8">
+                                <h2 class="fw-bold mb-1" style="color: #0d3b66;">
+                                    <t t-if="doc.report_type == 'daily'">Daily Sales Report</t>
+                                    <t t-elif="doc.report_type == 'customer'">Sales Report by Customer</t>
+                                    <t t-elif="doc.report_type == 'product'">Sales Report by Product</t>
+                                    <t t-else="">Comprehensive Sales Report</t>
+                                </h2>
+                                <div class="text-muted">
+                                    <span>Period: <strong><t t-esc="data['date_from']"/></strong> to <strong><t t-esc="data['date_to']"/></strong></span>
+                                    <span class="ms-3">| Status: <strong><t t-esc="data['order_state']"/></strong></span>
+                                </div>
+                            </div>
+                            <div class="col-4 text-end">
+                                <span class="badge bg-primary fs-6 p-2">
+                                    <t t-esc="data['company'].name"/>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- KPI Summary Cards -->
+                        <div class="row g-2 mb-4 text-center">
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <div class="text-muted small text-uppercase fw-bold">Total Revenue</div>
+                                    <div class="fs-5 fw-bold text-success">
+                                        <t t-esc="data['kpis']['total_revenue']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <div class="text-muted small text-uppercase fw-bold">Total Orders</div>
+                                    <div class="fs-5 fw-bold text-primary">
+                                        <t t-esc="data['kpis']['total_orders']"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <div class="text-muted small text-uppercase fw-bold">Units Sold</div>
+                                    <div class="fs-5 fw-bold text-dark">
+                                        <t t-esc="'%.2f' % data['kpis']['total_qty']"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <div class="text-muted small text-uppercase fw-bold">Active Customers</div>
+                                    <div class="fs-5 fw-bold text-info">
+                                        <t t-esc="data['kpis']['total_customers']"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 1. Daily Report Table -->
+                        <t t-if="doc.report_type in ('daily', 'all')">
+                            <div class="mb-4">
+                                <h4 class="fw-bold mb-2" style="color: #1d3557; border-bottom: 2px solid #1d3557; padding-bottom: 4px;">
+                                    <i class="fa fa-calendar me-2"/> Daily Sales Breakdown
+                                </h4>
+                                <table class="table table-sm table-striped table-bordered align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th style="width: 15%;">Date</th>
+                                            <th style="width: 12%;">Orders Count</th>
+                                            <th>Key Customers</th>
+                                            <th style="width: 12%;">Total Qty</th>
+                                            <th style="width: 15%;">Untaxed Amount</th>
+                                            <th style="width: 16%;">Total Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="data['daily_data']" t-as="d">
+                                            <tr>
+                                                <td class="text-center fw-bold"><t t-esc="d['date']"/></td>
+                                                <td class="text-center"><t t-esc="d['orders_count']"/></td>
+                                                <td><t t-esc="d['customers_display']"/></td>
+                                                <td class="text-end"><t t-esc="'%.2f' % d['qty']"/></td>
+                                                <td class="text-end"><t t-esc="d['untaxed']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                                <td class="text-end fw-bold text-success"><t t-esc="d['total']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                            </tr>
+                                        </t>
+                                        <tr class="table-secondary fw-bold">
+                                            <td colspan="3" class="text-end">Grand Total:</td>
+                                            <td class="text-end"><t t-esc="'%.2f' % data['kpis']['total_qty']"/></td>
+                                            <td class="text-end"><t t-esc="data['kpis']['total_untaxed']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                            <td class="text-end text-success"><t t-esc="data['kpis']['total_revenue']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- 2. Customer Report Table -->
+                        <t t-if="doc.report_type in ('customer', 'all')">
+                            <div class="mb-4">
+                                <h4 class="fw-bold mb-2" style="color: #1d3557; border-bottom: 2px solid #1d3557; padding-bottom: 4px;">
+                                    <i class="fa fa-users me-2"/> Sales Analysis by Customer
+                                </h4>
+                                <table class="table table-sm table-striped table-bordered align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>Customer Name</th>
+                                            <th style="width: 12%;">Code / Ref</th>
+                                            <th style="width: 12%;">Orders</th>
+                                            <th style="width: 12%;">Total Qty</th>
+                                            <th style="width: 15%;">Untaxed Total</th>
+                                            <th style="width: 16%;">Total Spent</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="data['customer_data']" t-as="c">
+                                            <tr>
+                                                <td class="fw-bold"><t t-esc="c['partner_name']"/></td>
+                                                <td class="text-center"><t t-esc="c['customer_code']"/></td>
+                                                <td class="text-center"><t t-esc="c['orders_count']"/></td>
+                                                <td class="text-end"><t t-esc="'%.2f' % c['qty']"/></td>
+                                                <td class="text-end"><t t-esc="c['untaxed']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                                <td class="text-end fw-bold text-success"><t t-esc="c['total']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                            </tr>
+                                        </t>
+                                        <tr class="table-secondary fw-bold">
+                                            <td colspan="3" class="text-end">Grand Total:</td>
+                                            <td class="text-end"><t t-esc="'%.2f' % data['kpis']['total_qty']"/></td>
+                                            <td class="text-end"><t t-esc="data['kpis']['total_untaxed']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                            <td class="text-end text-success"><t t-esc="data['kpis']['total_revenue']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                        <!-- 3. Product Report Table (Full Part Number & Image) -->
+                        <t t-if="doc.report_type in ('product', 'all')">
+                            <div class="mb-4">
+                                <h4 class="fw-bold mb-2" style="color: #1d3557; border-bottom: 2px solid #1d3557; padding-bottom: 4px;">
+                                    <i class="fa fa-cubes me-2"/> Sales Analysis by Product (with Part Numbers &amp; Images)
+                                </h4>
+                                <table class="table table-sm table-striped table-bordered align-middle" style="font-size: 12px;">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th style="width: 5%;">Image</th>
+                                            <th style="width: 12%;">Product Code</th>
+                                            <th style="width: 15%;">Primary Part #</th>
+                                            <th>Product Name</th>
+                                            <th style="width: 20%;">Secondary / Cross-Ref Part #s</th>
+                                            <th style="width: 8%;">Qty Sold</th>
+                                            <th style="width: 10%;">Avg Price</th>
+                                            <th style="width: 12%;">Total Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="data['product_data']" t-as="p">
+                                            <tr>
+                                                <td class="text-center p-1">
+                                                    <t t-if="p['image_128']">
+                                                        <img t-att-src="image_data_uri(p['image_128'])" style="max-height: 38px; max-width: 38px; object-fit: contain; border-radius: 4px; border: 1px solid #ccc;"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="text-muted small">-</span>
+                                                    </t>
+                                                </td>
+                                                <td class="fw-bold text-primary"><t t-esc="p['product_code']"/></td>
+                                                <td class="fw-bold text-dark"><t t-esc="p['part_number']"/></td>
+                                                <td><t t-esc="p['name']"/></td>
+                                                <td>
+                                                    <t t-if="p['has_secondary']">
+                                                        <span class="badge bg-secondary p-1" style="font-size: 10px; white-space: normal; text-align: left;">
+                                                            <t t-esc="p['secondary_parts']"/>
+                                                        </span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="text-muted fst-italic">None</span>
+                                                    </t>
+                                                </td>
+                                                <td class="text-end fw-bold"><t t-esc="'%.2f' % p['qty']"/> <span class="text-muted small"><t t-esc="p['uom']"/></span></td>
+                                                <td class="text-end"><t t-esc="p['avg_price']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                                <td class="text-end fw-bold text-success"><t t-esc="p['total']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                            </tr>
+                                        </t>
+                                        <tr class="table-secondary fw-bold">
+                                            <td colspan="5" class="text-end">Grand Total:</td>
+                                            <td class="text-end"><t t-esc="'%.2f' % data['kpis']['total_qty']"/></td>
+                                            <td class="text-end">-</td>
+                                            <td class="text-end text-success"><t t-esc="data['kpis']['total_revenue']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

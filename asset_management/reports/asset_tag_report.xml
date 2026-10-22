@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_asset_tag_template">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="padding: 10px 0;">
+                    <style>
+                        .asset-tag-col {
+                            float: left;
+                            width: 50%;
+                            padding: 6px;
+                            box-sizing: border-box;
+                            page-break-inside: avoid;
+                        }
+                        .asset-tag-col:nth-child(2n+1) {
+                            clear: left;
+                        }
+                        .asset-tag-card {
+                            border: 2px solid #2c3e50;
+                            border-radius: 4px;
+                            background: #ffffff;
+                            padding: 22px 10px;
+                            box-sizing: border-box;
+                            text-align: center;
+                        }
+                        .asset-tag-number {
+                            font-family: monospace, 'Courier New', Courier;
+                            font-size: 20px;
+                            font-weight: 800;
+                            letter-spacing: 2px;
+                            color: #1a252f;
+                            word-break: break-all;
+                        }
+                    </style>
+                    <div class="row" style="margin: 0;">
+                        <t t-foreach="docs" t-as="doc">
+                            <div class="col-6 asset-tag-col">
+                                <div class="asset-tag-card">
+                                    <div class="asset-tag-number">
+                                        <t t-esc="doc.tag_number or doc.name"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                    <div style="clear: both;"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_asset_tag" model="ir.actions.report">
+        <field name="name">Asset Tags (Print Tag)</field>
+        <field name="model">am.asset</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">asset_management.report_asset_tag_template</field>
+        <field name="report_file">asset_management.report_asset_tag_template</field>
+        <field name="print_report_name">('Asset_Tag_%s' % (object.tag_number or object.name or 'Tag')).replace(' ', '_') if object else 'Asset_Tags'</field>
+        <field name="binding_model_id" ref="model_am_asset"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_order_return_wizard_form" model="ir.ui.view">
+        <field name="name">sale.order.return.wizard.form</field>
+        <field name="model">sale.order.return.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sales Order Return">
+                <sheet>
+                    <div class="alert alert-info mb-3" role="alert">
+                        <strong>Sales Return Initiation:</strong> Select the items and quantities the customer is returning. A Return Sales Order will be created in <b>Draft</b> status. Upon management approval, both the <b>Draft Return Delivery</b> (for storekeeper receipt) and <b>Draft Return Invoice</b> (Customer Credit Note) will be created automatically.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="order_id" options="{'no_open': True}"/>
+                            <field name="partner_id" options="{'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="available_invoice_ids" invisible="1"/>
+                            <field name="invoice_id" options="{'no_create': True}" placeholder="Select original customer invoice (optional)"/>
+                            <field name="reason" placeholder="e.g. Defective part, incorrect specification, customer cancellation..."/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Return Items" name="return_lines">
+                            <field name="line_ids">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="sale_line_id" column_invisible="1" force_save="1"/>
+                                    <field name="product_id" readonly="1" force_save="1"/>
+                                    <field name="part_number" optional="show" readonly="1"/>
+                                    <field name="qty_ordered" optional="hide" readonly="1" force_save="1"/>
+                                    <field name="qty_delivered" optional="show" readonly="1" force_save="1"/>
+                                    <field name="qty_already_returned" optional="show" readonly="1" force_save="1"/>
+                                    <field name="max_returnable_qty" string="Available" readonly="1" force_save="1" decoration-bf="1"/>
+                                    <field name="qty_to_return" string="Qty to Return" decoration-success="qty_to_return &gt; 0"/>
+                                    <field name="uom_id" readonly="1" force_save="1"/>
+                                    <field name="price_unit" readonly="1" force_save="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_create_return_order" string="Create Return Order" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

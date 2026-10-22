@@ -6,6 +6,26 @@ from odoo.exceptions import ValidationError
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
+    secondary_parts_display = fields.Char(
+        related='product_tmpl_id.secondary_parts_display',
+        string='Secondary Part Numbers',
+        readonly=True,
+    )
+    has_secondary_parts = fields.Boolean(
+        related='product_tmpl_id.has_secondary_parts',
+        string='Has Secondary Parts',
+        readonly=True,
+    )
+    secondary_parts_count = fields.Integer(
+        related='product_tmpl_id.secondary_parts_count',
+        string='Secondary Parts Count',
+        readonly=True,
+    )
+
+    def action_view_secondary_part_numbers(self):
+        self.ensure_one()
+        return self.product_tmpl_id.action_view_secondary_part_numbers()
+
     @api.depends('taxes_id', 'lst_price', 'wholesale_price')
     @api.depends_context('company')
     def _compute_tax_string(self):

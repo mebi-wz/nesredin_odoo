@@ -1,0 +1,61 @@
+<odoo>
+    <!-- ============================= -->
+    <!-- 1️⃣ Server Action for Assets -->
+    <!-- ============================= -->
+    <record id="server_action_asset_transaction_wizard_asset" model="ir.actions.server">
+        <field name="name">Batch Asset Transaction (Assets)</field>
+        <field name="model_id" ref="model_am_asset"/>
+        <field name="binding_model_id" ref="model_am_asset"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'am.asset.transaction.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {'default_asset_ids': [r.id for r in records]},
+}
+        </field>
+    </record>
+
+    <!-- ============================= -->
+    <!-- 2️⃣ Server Action for Employee Assets -->
+    <!-- ============================= -->
+    <record id="server_action_asset_transaction_wizard_employee" model="ir.actions.server">
+        <field name="name">Batch Asset Transaction (Employee Assets)</field>
+        <field name="model_id" ref="model_am_employee_asset"/>
+        <field name="binding_model_id" ref="model_am_employee_asset"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'am.asset.transaction.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {'default_asset_ids': [r.asset_id.id for r in records]},
+}
+        </field>
+    </record>
+
+    <!-- ============================= -->
+    <!-- 3️⃣ Server Action for Warehouse Stock -->
+    <!-- ============================= -->
+    <record id="server_action_asset_transaction_wizard_warehouse" model="ir.actions.server">
+        <field name="name">Batch Asset Transaction (Warehouse Stock)</field>
+        <field name="model_id" ref="model_am_asset_warehouse_stock"/>
+        <field name="binding_model_id" ref="model_am_asset_warehouse_stock"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'res_model': 'am.asset.transaction.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {'default_asset_ids': [r.asset_id.id for r in records]},
+}
+        </field>
+    </record>
+</odoo>

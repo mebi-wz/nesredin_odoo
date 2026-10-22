@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_qr_config_list" model="ir.ui.view">
+        <field name="name">am.asset.qr.config.list</field>
+        <field name="model">am.asset.qr.config</field>
+        <field name="arch" type="xml">
+            <list string="Tag Number Configurations">
+                <field name="company_id"/>
+                <field name="format_preview"/>
+                <field name="separator"/>
+                <field name="sequence_padding"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_qr_config_form" model="ir.ui.view">
+        <field name="name">am.asset.qr.config.form</field>
+        <field name="model">am.asset.qr.config</field>
+        <field name="arch" type="xml">
+            <form string="Asset Tag Number Configuration">
+                <header>
+                    <button name="action_regenerate_qr_codes" type="object"
+                            string="Regenerate All Asset Tag Numbers"
+                            class="oe_highlight"
+                            groups="asset_management.group_asset_ffa_expert"
+                            confirm="This will renumber every asset using this configuration. Continue?"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Asset Tag Number Format</h1>
+                    </div>
+                    <group>
+                        <group string="Components">
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="include_company"/>
+                            <field name="include_branch"/>
+                            <field name="include_major_category"/>
+                            <field name="include_minor_category"/>
+                        </group>
+                        <group string="Formatting">
+                            <field name="separator"/>
+                            <field name="sequence_padding"/>
+                            <field name="format_preview" readonly="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        The sequential number is always included to keep every asset tag unique.
+                        Save the configuration before regenerating existing tag numbers.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_qr_config" model="ir.actions.act_window">
+        <field name="name">Tag Number Configuration</field>
+        <field name="res_model">am.asset.qr.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

@@ -1,0 +1,101 @@
+<odoo>
+    <!-- =====================================================
+         TREE & FORM VIEWS
+    ===================================================== -->
+    <record id="view_asset_specification_tree" model="ir.ui.view">
+        <field name="name">am.asset.specification.tree</field>
+        <field name="model">am.asset.specification</field>
+        <field name="arch" type="xml">
+            <list string="Asset Specifications">
+                <field name="tag_number" string="Tag Number" decoration-bf="1"/>
+                <field name="asset_id"/>
+                <field name="name"/>
+                <field name="value"/>
+                <field name="uom"/>
+                <field name="is_accessory"/>
+                <field name="is_required"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_specification_form" model="ir.ui.view">
+        <field name="name">am.asset.specification.form</field>
+        <field name="model">am.asset.specification</field>
+        <field name="arch" type="xml">
+            <form string="Asset Specification">
+                <sheet>
+                    <group>
+                        <field name="asset_id"/>
+                        <field name="tag_number" readonly="1"/>
+                        <field name="name"/>
+                        <field name="value"/>
+                        <field name="uom"/>
+                        <field name="is_accessory"/>
+                        <field name="is_required"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         KANBAN VIEW
+    ===================================================== -->
+    <record id="view_asset_specification_kanban" model="ir.ui.view">
+        <field name="name">am.asset.specification.kanban</field>
+        <field name="model">am.asset.specification</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="asset_id" class="o_kanban_example">
+                <field name="tag_number"/>
+                <field name="asset_id"/>
+                <field name="is_accessory"/>
+                <field name="is_required"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <strong><field name="name"/></strong>
+                                <span class="badge text-bg-light border text-primary fw-bold" t-if="record.tag_number.raw_value">
+                                    <i class="fa fa-tag me-1" title="Tag Number"/> <field name="tag_number"/>
+                                </span>
+                            </div>
+                            <div><span>Value:</span> <field name="value"/></div>
+                            <div><span>UoM:</span> <field name="uom"/></div>
+                            <div><span>Asset:</span> <field name="asset_id"/></div>
+                            <div t-if="record.is_accessory.raw_value">
+                                <span class="badge text-bg-info">Accessory</span>
+                            </div>
+                            <div t-if="!record.is_required.raw_value">
+                                <span class="badge text-bg-warning">Optional</span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         GRAPH VIEW
+    ===================================================== -->
+    <record id="view_asset_specification_graph" model="ir.ui.view">
+        <field name="name">am.asset.specification.graph</field>
+        <field name="model">am.asset.specification</field>
+        <field name="arch" type="xml">
+            <graph string="Specifications by Asset" type="bar">
+                <field name="asset_id" type="row"/>
+                <field name="id" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         ACTION
+    ===================================================== -->
+    <record id="action_asset_specification" model="ir.actions.act_window">
+        <field name="name">Asset Specifications</field>
+        <field name="res_model">am.asset.specification</field>
+        <field name="view_mode">kanban,list,form,graph</field>
+    </record>
+
+</odoo>

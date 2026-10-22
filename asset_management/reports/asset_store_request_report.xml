@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="asset_store_request_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">TEMPORARY ASSET STORE REQUEST</h2>
+                        <table class="table table-bordered mt-4">
+                            <tbody>
+                                <tr>
+                                    <th>Reference</th><td><span t-field="doc.name"/></td>
+                                    <th>Status</th><td><span t-field="doc.state"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Requested By</th><td><span t-field="doc.requested_by"/></td>
+                                    <th>Requesting Employee</th><td><span t-field="doc.employee_id"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Request Date</th><td><span t-field="doc.requested_date"/></td>
+                                    <th>Expected Return</th><td><span t-field="doc.return_date"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Reason</th><td colspan="3"><span t-field="doc.note"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4>Requested Assets</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr><th>#</th><th>Tag Number</th><th>Asset</th><th>Category</th><th>Serial Number</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="doc.asset_ids" t-as="asset">
+                                    <td><span t-esc="asset_index + 1"/></td>
+                                    <td><span t-field="asset.tag_number"/></td>
+                                    <td><span t-field="asset.name"/></td>
+                                    <td><span t-field="asset.major_category_id"/></td>
+                                    <td><span t-field="asset.serial_number"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="row mt-5">
+                            <div class="col-6 text-center">_____________________<br/>Requester Confirmation</div>
+                            <div class="col-6 text-center">_____________________<br/>Property Manager</div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_store_request_report" model="ir.actions.report">
+        <field name="name">Temporary Asset Store Request</field>
+        <field name="model">am.asset.temporary.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">asset_management.asset_store_request_report</field>
+        <field name="report_file">asset_management.asset_store_request_report</field>
+        <field name="print_report_name">'Store Request - %s' % object.name</field>
+    </record>
+</odoo>

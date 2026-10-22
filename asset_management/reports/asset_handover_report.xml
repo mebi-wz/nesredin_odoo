@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ============================================ -->
+    <!-- Asset Handover Request PDF Report Template   -->
+    <!-- ============================================ -->
+   <template id="asset_handover_request_report" name="Asset Handover Report">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="doc">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <!-- Header Title -->
+                    <div style="text-align:center; margin-bottom: 20px;">
+                        <h2 style="color:#714B67; margin:0;">
+                            ASSET HANDOVER FORM
+                        </h2>
+                        <p style="color:#999; font-size:12px; margin:4px 0;">
+                            Ref: <strong t-esc="doc.name"/> |
+                            Date: <strong t-esc="doc.requested_date" t-options="{'widget': 'date'}"/>
+                        </p>
+                        <t t-if="doc.handover_type == 'temporary'">
+                            <div style="background:#fff3cd; border:1px solid #ffc107; border-radius:4px; padding:6px 12px; display:inline-block; margin-top:6px;">
+                                <strong>⏰ TEMPORARY — Expected Return: </strong>
+                                <t t-esc="doc.return_date" t-options="{'widget': 'date'}"/>
+                            </div>
+                        </t>
+                    </div>
+
+                    <hr style="border-top: 2px solid #714B67;"/>
+
+                    <!-- Request Details Table -->
+                    <table class="table table-bordered" style="width:100%; margin-bottom:16px;">
+                        <thead style="background-color:#714B67; color:white;">
+                            <tr>
+                                <th colspan="4" style="padding:8px; text-align:center;">HANDOVER DETAILS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="width:20%; font-weight:bold; background:#f5f0f5; padding:6px;">Reference</td>
+                                <td style="padding:6px;"><t t-esc="doc.name"/></td>
+                                <td style="width:20%; font-weight:bold; background:#f5f0f5; padding:6px;">Status</td>
+                                <td style="padding:6px; text-transform:capitalize;"><t t-esc="doc.state"/></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:bold; background:#f5f0f5; padding:6px;">Requested By</td>
+                                <td style="padding:6px;"><t t-esc="doc.requested_by.name"/></td>
+                                <td style="font-weight:bold; background:#f5f0f5; padding:6px;">Request Date</td>
+                                <td style="padding:6px;">
+                                    <t t-esc="doc.requested_date" t-options="{'widget': 'date'}"/>
+                                </td>
+                            </tr>
+                            <tr t-if="doc.to_employee_id">
+                                <td style="font-weight:bold; background:#f5f0f5; padding:6px;">Assigned To (Employee)</td>
+                                <td style="padding:6px;" colspan="3"><t t-esc="doc.to_employee_id.name"/></td>
+                            </tr>
+                            <tr t-if="doc.to_warehouse_id">
+                                <td style="font-weight:bold; background:#f5f0f5; padding:6px;">Assigned To (Warehouse)</td>
+                                <td style="padding:6px;" colspan="3"><t t-esc="doc.to_warehouse_id.name"/></td>
+                            </tr>
+                            <tr t-if="doc.handover_type == 'temporary'">
+                                <td style="font-weight:bold; background:#fff3cd; padding:6px;">Expected Return Date</td>
+                                <td style="padding:6px; background:#fff3cd;" colspan="3">
+                                    <t t-esc="doc.return_date" t-options="{'widget': 'date'}"/>
+                                </td>
+                            </tr>
+                            <tr t-if="doc.note">
+                                <td style="font-weight:bold; background:#f5f0f5; padding:6px;">Reason / Remark</td>
+                                <td style="padding:6px;" colspan="3"><t t-esc="doc.note"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Assets Table -->
+                    <table class="table table-bordered table-sm" style="width:100%; margin-bottom:20px;">
+                        <thead style="background-color:#714B67; color:white;">
+                            <tr>
+                                <th style="padding:8px;">#</th>
+                                <th style="padding:8px;">Tag Number</th>
+                                <th style="padding:8px;">Asset Name</th>
+                                <th style="padding:8px;">Category</th>
+                                <th style="padding:8px;">Serial No.</th>
+                                <th style="padding:8px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="doc.asset_ids" t-as="asset">
+                                <tr t-att-style="'background:' + ('#f9f9f9' if asset_index % 2 == 0 else 'white')">
+                                    <td style="padding:6px; text-align:center;"><t t-esc="asset_index + 1"/></td>
+                                    <td style="padding:6px; font-weight:bold; color:#714B67;"><t t-esc="asset.tag_number or asset.qr_code_number or '-'"/></td>
+                                    <td style="padding:6px;"><t t-esc="asset.name"/></td>
+                                    <td style="padding:6px;"><t t-esc="asset.minor_category_id.name or asset.major_category_id.name or '-'"/></td>
+                                    <td style="padding:6px;"><t t-esc="asset.serial_number or '-'"/></td>
+                                    <td style="padding:6px;"><t t-esc="asset.status_id.name or '-'"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <!-- Signature Section -->
+                    <table style="width:100%; margin-top:30px; border-top: 1px solid #ddd; padding-top:20px;">
+                        <tr>
+                            <td style="width:45%; text-align:center; vertical-align:bottom;">
+                                <t t-if="doc.signature">
+                                    <img t-att-src="'data:image/png;base64,%s' % doc.signature.decode()"
+                                         style="max-width:200px; max-height:80px; margin-bottom:8px;"/>
+                                    <br/>
+                                </t>
+                                <div style="border-top:1px solid #333; margin:0 20px; padding-top:4px;">
+                                    <strong>Recipient Signature</strong><br/>
+                                    <span style="font-size:11px; color:#555;">
+                                        <t t-esc="doc.signed_by or doc.to_employee_id.name or '________________________'"/>
+                                    </span>
+                                </div>
+                            </td>
+                            <td style="width:10%;"></td>
+                            <td style="width:45%; text-align:center; vertical-align:bottom;">
+                                <div style="border-top:1px solid #333; margin:0 20px; padding-top:4px; margin-top:80px;">
+                                    <strong>Authorized Signature</strong><br/>
+                                    <span style="font-size:11px; color:#555;">Property Management</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Footer Note -->
+                    <div style="margin-top:20px; font-size:10px; color:#999; text-align:center; border-top:1px solid #eee; padding-top:8px;">
+                        This document confirms the permanent transfer of the listed assets. Both parties acknowledge receipt.
+                        <br/>
+                        Generated on <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+        </t>
+    </template>
+
+
+    <record id="action_handover_request_report" model="ir.actions.report">
+        <field name="name">Asset Handover Report</field>
+        <field name="model">am.asset.handover.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">asset_management.asset_handover_request_report</field>
+        <field name="report_file">asset_management.asset_handover_request_report</field>
+        <field name="print_report_name">'Handover - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_am_asset_handover_request"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

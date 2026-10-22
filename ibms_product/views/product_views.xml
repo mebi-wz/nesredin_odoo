@@ -132,4 +132,26 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Secondary Part Numbers List View (for Popup Dialog & Reference) -->
+    <record id="product_secondary_part_number_view_tree" model="ir.ui.view">
+        <field name="name">product.secondary.part.number.list</field>
+        <field name="model">product.secondary.part.number</field>
+        <field name="arch" type="xml">
+            <list string="Secondary / Cross-Reference Part Numbers" editable="bottom">
+                <field name="name" string="Secondary Part Number" required="1"/>
+                <field name="source_product_id" string="Reference Product" options="{'no_create': True}" optional="show"/>
+                <field name="note" string="Source / Note" placeholder="e.g. OEM, Superseded, Supplier code..."/>
+                <field name="part_type" string="Type" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_product_secondary_parts" model="ir.actions.act_window">
+        <field name="name">Secondary Part Numbers</field>
+        <field name="res_model">product.secondary.part.number</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="product_secondary_part_number_view_tree"/>
+        <field name="target">new</field>
+    </record>
 </odoo>

@@ -1,0 +1,184 @@
+/* ==========================================================================
+   Asset Management Premium Dashboard Stylesheet
+   ========================================================================== */
+
+/* Main Container */
+.o_asset_dashboard {
+    background-color: #f4f6fa !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #2D3748;
+}
+
+/* Card Design System */
+.o_asset_dashboard .card {
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    background-color: #ffffff;
+    box-shadow: 0 4px 20px -2px rgba(50, 50, 93, 0.04), 0 2px 8px -1px rgba(0, 0, 0, 0.02) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Glassmorphism subtle overlay */
+.o_asset_dashboard .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: transparent;
+    transition: background 0.3s ease;
+}
+
+/* Card Hover Lift & Glow */
+.o_asset_dashboard .hover-lift {
+    cursor: pointer;
+}
+
+.o_asset_dashboard .hover-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 27px 0 rgba(0, 0, 0, 0.05) !important;
+    border-color: rgba(113, 75, 103, 0.3) !important;
+}
+
+.o_asset_dashboard .hover-lift:hover::before {
+    background: linear-gradient(90deg, #714B67, #b24592);
+}
+
+/* Specific Card Headings & Decorators */
+.o_asset_dashboard .card-header-gradient-blue::before { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+.o_asset_dashboard .card-header-gradient-green::before { background: linear-gradient(90deg, #10b981, #047857); }
+.o_asset_dashboard .card-header-gradient-purple::before { background: linear-gradient(90deg, #8b5cf6, #6d28d9); }
+.o_asset_dashboard .card-header-gradient-amber::before { background: linear-gradient(90deg, #f59e0b, #b45309); }
+.o_asset_dashboard .card-header-gradient-rose::before { background: linear-gradient(90deg, #f43f5e, #be123c); }
+
+/* Color Badges & Lights */
+.bg-primary-light { background-color: rgba(113, 75, 103, 0.08) !important; }
+.bg-success-light { background-color: rgba(16, 185, 129, 0.08) !important; }
+.bg-info-light { background-color: rgba(59, 130, 246, 0.08) !important; }
+.bg-warning-light { background-color: rgba(245, 158, 11, 0.08) !important; }
+.bg-danger-light { background-color: rgba(239, 68, 68, 0.08) !important; }
+.bg-purple-light { background-color: rgba(139, 92, 246, 0.08) !important; }
+
+/* Custom Text and Icons */
+.text-primary-custom { color: #714B67 !important; }
+.text-success-custom { color: #10b981 !important; }
+.text-info-custom { color: #3b82f6 !important; }
+.text-warning-custom { color: #f59e0b !important; }
+.text-danger-custom { color: #ef4444 !important; }
+.text-purple-custom { color: #8b5cf6 !important; }
+
+/* Stat Icon Circle wrappers */
+.stat-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    transition: transform 0.3s ease;
+}
+
+.o_asset_dashboard .card:hover .stat-icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Premium Quick Action Buttons */
+.o_asset_dashboard .btn-primary-gradient {
+    background: linear-gradient(135deg, #714B67, #8e3678) !important;
+    border: none !important;
+    color: white !important;
+    transition: all 0.3s ease;
+}
+
+.o_asset_dashboard .btn-primary-gradient:hover {
+    background: linear-gradient(135deg, #8e3678, #714B67) !important;
+    box-shadow: 0 8px 16px rgba(113, 75, 103, 0.25) !important;
+    transform: translateY(-2px);
+}
+
+.o_asset_dashboard .btn-outline-custom {
+    border: 1.5px solid #714B67 !important;
+    color: #714B67 !important;
+    background-color: transparent !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.o_asset_dashboard .btn-outline-custom:hover {
+    background-color: #714B67 !important;
+    color: white !important;
+    box-shadow: 0 6px 12px rgba(113, 75, 103, 0.15) !important;
+    transform: translateY(-2px);
+}
+
+/* Grid Spacing Extensions */
+.gap-4-custom {
+    gap: 1.5rem !important;
+}
+
+/* List/Table Styles */
+.o_asset_dashboard .table-responsive {
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.o_asset_dashboard .table-custom-row {
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.o_asset_dashboard .table-custom-row:hover {
+    background-color: #f7fafc;
+}
+
+.category-chip {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    background-color: #f7fafc;
+    border: 1px solid #e2e8f0;
+}
+
+/* Progress Section styling */
+.progress-container {
+    padding: 0.5rem 0;
+}
+
+.progress-bar-premium {
+    background: linear-gradient(90deg, #714B67, #a25590) !important;
+    box-shadow: 0 2px 4px rgba(113, 75, 103, 0.2);
+}
+
+/* Mini Cards/Badges inside stats */
+.mini-stat-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.mini-stat-card:hover {
+    background: #ffffff;
+    border-color: rgba(113, 75, 103, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transform: translateY(-2px);
+}
+
+/* Subtitles & Typography refinement */
+.text-uppercase-tracking {
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.text-value-lg {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #1a202c;
+}

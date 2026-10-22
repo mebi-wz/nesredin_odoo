@@ -1,0 +1,93 @@
+<odoo>
+    <data noupdate="0">
+
+        <record id="rule_asset_company_visibility" model="ir.rule">
+            <field name="name">Asset: multi-company</field>
+            <field name="model_id" ref="model_am_asset"/>
+            <field name="groups" eval="[(4, ref('group_asset_user')), (4, ref('group_asset_dashboard_viewer')), (4, ref('base.group_user'))]"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="rule_employee_asset_company_visibility" model="ir.rule">
+            <field name="name">Employee Asset: multi-company</field>
+            <field name="model_id" ref="model_am_employee_asset"/>
+            <field name="groups" eval="[(4, ref('group_asset_user')), (4, ref('base.group_user'))]"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="rule_warehouse_stock_company_visibility" model="ir.rule">
+            <field name="name">Warehouse Stock: multi-company</field>
+            <field name="model_id" ref="model_am_asset_warehouse_stock"/>
+            <field name="groups" eval="[(4, ref('group_asset_user')), (4, ref('group_asset_dashboard_viewer'))]"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="rule_transaction_company_visibility" model="ir.rule">
+            <field name="name">Asset Transaction: multi-company</field>
+            <field name="model_id" ref="model_am_asset_transaction"/>
+            <field name="groups" eval="[(4, ref('group_asset_user'))]"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="rule_warehouse_company_visibility" model="ir.rule">
+            <field name="name">Asset Warehouse: multi-company</field>
+            <field name="model_id" ref="model_am_asset_warehouse"/>
+            <field name="groups" eval="[(4, ref('group_asset_user'))]"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+
+
+        <record id="rule_asset_qr_config_company" model="ir.rule">
+            <field name="name">Asset Tag Configuration: allowed companies</field>
+            <field name="model_id" ref="model_am_asset_qr_config"/>
+            <field name="groups" eval="[(4, ref('group_asset_ffa_expert')), (4, ref('group_asset_configuration_manager')), (4, ref('group_asset_manager'))]"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="rule_handover_request_company_visibility" model="ir.rule">
+            <field name="name">Handover Request: multi-company</field>
+            <field name="model_id" ref="model_am_asset_handover_request"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+        <record id="rule_temporary_request_company_visibility" model="ir.rule">
+            <field name="name">Store Request: multi-company</field>
+            <field name="model_id" ref="model_am_asset_temporary_request"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_create" eval="1"/>
+            <field name="perm_unlink" eval="1"/>
+        </record>
+
+    </data>
+</odoo>

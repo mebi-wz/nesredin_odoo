@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_custom_sales" model="ir.actions.report">
+        <field name="name">Sales Report</field>
+        <field name="model">sale.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ibms_sale.report_custom_sales_template</field>
+        <field name="report_file">ibms_sale.report_custom_sales_template</field>
+        <field name="print_report_name">'Sales Report - %s' % (object.report_type.capitalize())</field>
+    </record>
+</odoo>

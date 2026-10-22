@@ -1,0 +1,55 @@
+<odoo>
+    <!-- Minor Category Tree View -->
+    <record id="view_asset_minor_category_tree" model="ir.ui.view">
+        <field name="name">am.asset.minor_category.list</field>
+        <field name="model">am.asset.minor_category</field>
+        <field name="arch" type="xml">
+            <list string="Minor Categories">
+                <field name="name"/>
+                <field name="code" readonly="1"/>
+                <field name="major_category_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Minor Category Form View -->
+    <record id="view_asset_minor_category_form" model="ir.ui.view">
+        <field name="name">am.asset.minor_category.form</field>
+        <field name="model">am.asset.minor_category</field>
+        <field name="arch" type="xml">
+            <form string="Asset Minor Category">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="major_category_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Specifications">
+                            <field name="specification_template_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="default_value"/>
+                                    <field name="uom"/>
+                                    <field name="is_accessory"/>
+                                    <field name="is_required"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Minor Category Action -->
+    <record id="action_asset_minor_category" model="ir.actions.act_window">
+        <field name="name">Asset Minor Categories</field>
+        <field name="res_model">am.asset.minor_category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

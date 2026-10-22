@@ -1,0 +1,52 @@
+<odoo>
+    <!-- Root Menu -->
+    <menuitem id="menu_asset_root" name="Asset Management" web_icon="asset_management,static/description/icon.png" groups="asset_management.group_asset_user,asset_management.group_asset_dashboard_viewer,asset_management.group_asset_configuration_manager" sequence="10"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_asset_overview" name="Dashboard" parent="menu_asset_root" action="action_asset_dashboard_main" groups="asset_management.group_asset_dashboard_viewer,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="1"/>
+
+    <!-- Assets -->
+    <menuitem id="menu_asset_assets_main" name="Assets" parent="menu_asset_root" groups="asset_management.group_asset_user" sequence="2"/>
+    <menuitem id="menu_asset_assets" name="All Assets" parent="menu_asset_assets_main" action="action_assets_overview" groups="asset_management.group_asset_user" sequence="1"/>
+    <menuitem id="menu_employee_assets" name="Employee Assets" parent="menu_asset_assets_main" action="action_employee_assets" groups="asset_management.group_asset_user" sequence="2"/>
+    <menuitem id="menu_warehouse_assets" name="Assets In Warehouse" parent="menu_asset_assets_main" action="action_am_asset_warehouse_stock" groups="asset_management.group_asset_user" sequence="3"/>
+    <menuitem id="menu_unassigned_assets" name="Unassigned Assets" parent="menu_asset_assets_main" action="action_unassigned_assets" groups="asset_management.group_asset_user" sequence="4"/>
+
+
+    <!-- Vehicles -->
+    <menuitem id="menu_asset_vehicle_root" name="Vehicles" parent="menu_asset_root" groups="asset_management.group_asset_property_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="3"/>
+    <menuitem id="menu_asset_vehicles" name="Vehicle List" parent="menu_asset_vehicle_root" action="action_asset_vehicles" groups="asset_management.group_asset_property_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="1"/>
+    <menuitem id="menu_asset_models" name="Vehicle Models" parent="menu_asset_vehicle_root" action="action_asset_models" groups="asset_management.group_asset_property_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="2"/>
+    <menuitem id="menu_asset_vehicle_type" name="Vehicle Types" parent="menu_asset_vehicle_root" action="action_asset_vehicle_type" groups="asset_management.group_asset_property_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="3"/>
+
+    <!-- Requests (for Asset Users — create their own requests) -->
+    <menuitem id="menu_asset_assets_requests" name="Handover &amp; Store Requests" parent="menu_asset_root" groups="asset_management.group_asset_user" sequence="5"/>
+    <menuitem id="menu_asset_assets_handover" name="Handover Requests" parent="menu_asset_assets_requests" action="action_am_asset_handover_request" groups="asset_management.group_asset_user" sequence="1"/>
+    <menuitem id="menu_asset_assets_temporary" name="Store Requests (Temporary)" parent="menu_asset_assets_requests" action="action_am_asset_temporary_request" groups="asset_management.group_asset_user" sequence="2"/>
+
+    <!-- Transactions -->
+    <menuitem id="menu_asset_transactions_root" name="Transactions" parent="menu_asset_root" groups="asset_management.group_asset_property_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="5"/>
+    <menuitem id="menu_asset_transactions" name="Asset Transactions" parent="menu_asset_transactions_root" action="action_asset_transactions" groups="asset_management.group_asset_property_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="1"/>
+
+    <!-- APPROVALS — visible to property managers and fixed asset experts -->
+    <menuitem id="menu_asset_approvals_root" name="Approvals" parent="menu_asset_root" groups="asset_management.group_asset_property_manager,asset_management.group_asset_manager,asset_management.group_asset_ffa_expert" sequence="7"/>
+    <menuitem id="menu_asset_approvals_handover" name="Handover Requests" parent="menu_asset_approvals_root" action="action_am_asset_handover_approval" groups="asset_management.group_asset_property_manager,asset_management.group_asset_manager,asset_management.group_asset_ffa_expert" sequence="1"/>
+    <menuitem id="menu_asset_approvals_temporary" name="Store Requests (Temporary)" parent="menu_asset_approvals_root" action="action_am_asset_temporary_approval" groups="asset_management.group_asset_property_manager,asset_management.group_asset_manager,asset_management.group_asset_ffa_expert" sequence="2"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_asset_configuration_root" name="Configuration" parent="menu_asset_root" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="100"/>
+
+    <menuitem id="menu_asset_specification" name="Asset Specifications" parent="menu_asset_configuration_root" action="action_asset_specification" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_manager" sequence="1"/>
+    <menuitem id="menu_asset_qr_config" name="Tag Number Format" parent="menu_asset_configuration_root" action="action_asset_qr_config" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_ffa_expert,asset_management.group_asset_manager" sequence="2"/>
+
+    <!-- Categories Configuration -->
+    <menuitem id="menu_asset_category_config" name="Categories" parent="menu_asset_configuration_root" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_manager" sequence="2"/>
+    <menuitem id="menu_asset_category" name="Major Categories" parent="menu_asset_category_config" action="action_asset_category" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_manager" sequence="1"/>
+    <menuitem id="menu_asset_minor_category" name="Minor Categories" parent="menu_asset_category_config" action="action_asset_minor_category" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_manager" sequence="2"/>
+
+    <!-- Warehouse Configuration -->
+    <menuitem id="menu_asset_warehouse_config" name="Warehouse Setup" parent="menu_asset_configuration_root" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_manager" sequence="3"/>
+    <menuitem id="menu_asset_warehouse" name="Warehouses" parent="menu_asset_warehouse_config" action="action_asset_warehouse" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_manager" sequence="1"/>
+    <menuitem id="menu_asset_location" name="Locations" parent="menu_asset_warehouse_config" action="action_asset_location" groups="asset_management.group_asset_configuration_manager,asset_management.group_asset_manager" sequence="2"/>
+
+</odoo>

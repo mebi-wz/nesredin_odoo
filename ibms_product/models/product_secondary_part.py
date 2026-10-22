@@ -78,3 +78,20 @@ class ProductSecondaryPartNumber(models.Model):
                         _("'%s' is already the Primary Part Number of this product! Secondary numbers must be alternative or cross-reference codes.")
                         % record.name
                     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records.product_tmpl_id._compute_secondary_parts_info()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        self.product_tmpl_id._compute_secondary_parts_info()
+        return res
+
+    def unlink(self):
+        tmpls = self.product_tmpl_id
+        res = super().unlink()
+        tmpls._compute_secondary_parts_info()
+        return res

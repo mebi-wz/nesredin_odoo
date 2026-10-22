@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_am_asset_request_reject_wizard_form" model="ir.ui.view">
+        <field name="name">am.asset.request.reject.wizard.form</field>
+        <field name="model">am.asset.request.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Request">
+                <p class="text-muted">
+                    Please provide the reason for rejecting this request. This reason will be logged in the record's audit history and communicated to the requester.
+                </p>
+                <group>
+                    <field name="handover_id" invisible="1"/>
+                    <field name="temporary_id" invisible="1"/>
+                    <field name="reason" placeholder="Type reason for rejection here..." nolabel="1" required="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_reject" string="Reject Request" type="object" class="btn-danger"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
