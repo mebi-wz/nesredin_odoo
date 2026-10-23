@@ -15,8 +15,9 @@
             <xpath expr="//button[@id='action_confirm']" position="attributes">
                 <attribute name="invisible">state not in ('draft', 'sent') or not is_sales_approver</attribute>
             </xpath>
+            <!-- Eliminate duplicate Confirm button: hide the secondary un-IDed button -->
             <xpath expr="//button[@name='action_confirm' and not(@id)]" position="attributes">
-                <attribute name="invisible">state not in ('draft', 'sent') or not is_sales_approver</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
 
             <!-- Add Approval buttons in header -->

@@ -6,3 +6,4 @@ access_stock_location_transfer_line_manager,stock.location.transfer.line.manager
 access_product_secondary_part_number_user,product.secondary.part.number.user,model_product_secondary_part_number,base.group_user,1,0,0,0
 access_product_secondary_part_number_stock,product.secondary.part.number.stock,model_product_secondary_part_number,stock.group_stock_user,1,1,1,1
 access_product_secondary_part_number_manager,product.secondary.part.number.manager,model_product_secondary_part_number,product.group_product_manager,1,1,1,1
+access_main_warehouse_stock_user,main.warehouse.stock.user,model_main_warehouse_stock,base.group_user,1,0,0,0

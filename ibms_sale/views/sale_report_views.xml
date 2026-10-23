@@ -230,4 +230,11 @@
               action="action_sale_report_wizard"
               sequence="35"/>
 
+    <!-- Menuitem under Sales > Products for Shop / Sales Users -->
+    <menuitem id="menu_main_warehouse_stock_sales"
+              name="Main Warehouse Stock"
+              parent="sale.product_menu_catalog"
+              action="ibms_product.action_main_warehouse_stock"
+              sequence="25"/>
+
 </odoo>
