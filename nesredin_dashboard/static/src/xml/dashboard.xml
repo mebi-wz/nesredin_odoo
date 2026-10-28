@@ -11,88 +11,7 @@
             </t>
 
             <!-- ======================================================== -->
-            <!-- HERO REPORT HEADER (COMPACT & WHITE LIGHT THEME) -->
-            <!-- ======================================================== -->
-            <div class="nesredin-hero-header">
-                <div class="hero-content">
-                    <div class="hero-titles">
-                        <div class="hero-badge">
-                            <span class="company-brand-dot me-2" t-attf-style="background-color: {{state.data.brand ? state.data.brand.primary : '#5D8DA8'}};"/>
-                            <t t-esc="state.data.company_name || 'Enterprise'"/> • Executive Analytics &amp; Operations Report
-                        </div>
-                        <h1 class="hero-heading">
-                            <t t-esc="getGreeting()"/>, <t t-esc="state.data.user_name || 'Executive'"/>
-                        </h1>
-                        <p class="hero-subtext">
-                            Consolidated corporate report covering fixed asset valuation, commercial sales, working capital in inventory, and banking cash flows.
-                        </p>
-                    </div>
-
-                    <!-- Report Utility Actions -->
-                    <div class="hero-quick-actions">
-                        <div class="report-live-pill">
-                            <i class="fa fa-dot-circle-o text-success me-1"/>
-                            <span>LIVE DATA</span>
-                        </div>
-                        <button class="hero-action-btn btn-bank" t-on-click="viewBankTransactions" title="View Bank Journal Transactions">
-                            <i class="fa fa-university me-2"/> Bank Entries
-                        </button>
-                        <button class="hero-refresh-btn" t-on-click="refreshDashboard" title="Refresh Live Data">
-                            <i t-att-class="state.isLoading ? 'fa fa-refresh fa-spin' : 'fa fa-refresh'"/>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Hero Spotlight Metrics Strip (Assets, Sales & Inventory) -->
-                <div class="hero-spotlights-grid">
-                    <!-- Net Asset Valuation -->
-                    <div class="spotlight-card spotlight-asset" t-on-click="viewAllAssets">
-                        <div class="spotlight-icon-wrap">
-                            <i class="fa fa-balance-scale"/>
-                        </div>
-                        <div class="spotlight-info">
-                            <span class="spotlight-label">Fixed Asset Portfolio</span>
-                            <div class="spotlight-val"><t t-esc="state.data.assets.net_book_value_fmt"/></div>
-                            <span class="spotlight-sub"><t t-esc="state.data.assets.total_count"/> Assets (Orig: <t t-esc="state.data.assets.original_value_fmt"/>)</span>
-                        </div>
-                        <i class="fa fa-arrow-right spotlight-chevron"/>
-                    </div>
-
-                    <!-- Monthly Confirmed Revenue -->
-                    <div class="spotlight-card spotlight-revenue" t-on-click="viewSalesOrders">
-                        <div class="spotlight-icon-wrap">
-                            <i class="fa fa-line-chart"/>
-                        </div>
-                        <div class="spotlight-info">
-                            <span class="spotlight-label">This Month's Sales</span>
-                            <div class="spotlight-val"><t t-esc="state.data.sales.month_total_fmt"/></div>
-                            <span class="spotlight-sub"><t t-esc="state.data.sales.month_count"/> Confirmed Orders</span>
-                        </div>
-                        <i class="fa fa-arrow-right spotlight-chevron"/>
-                    </div>
-
-                    <!-- Inventory Working Capital -->
-                    <div class="spotlight-card spotlight-coverage" t-on-click="viewInventory">
-                        <div class="spotlight-icon-wrap">
-                            <i class="fa fa-cubes"/>
-                        </div>
-                        <div class="spotlight-info">
-                            <span class="spotlight-label">Inventory Valuation</span>
-                            <div class="spotlight-val"><t t-esc="state.data.inventory.total_valuation_fmt"/></div>
-                            <span class="spotlight-sub"><t t-esc="state.data.inventory.total_qty"/> Units • <t t-esc="state.data.inventory.products_count"/> Products</span>
-                        </div>
-                        <i class="fa fa-arrow-right spotlight-chevron"/>
-                    </div>
-                </div>
-
-                <div class="hero-meta-footer">
-                    <span><i class="fa fa-clock-o me-1"/> Generated at <t t-esc="state.data.generated_at"/> • Multi-company scoped</span>
-                    <span><i class="fa fa-shield me-1"/> Audited Enterprise Record</span>
-                </div>
-            </div>
-
-            <!-- ======================================================== -->
-            <!-- DASHBOARD NAVIGATION TABS                                -->
+            <!-- DASHBOARD NAVIGATION TABS (DASHBOARD HEADER)             -->
             <!-- ======================================================== -->
             <div class="nesredin-tabs-bar">
                 <button t-att-class="state.activeTab === 'all' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('all')">
@@ -120,6 +39,15 @@
                 <button t-att-class="state.activeTab === 'finance' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('finance')">
                     <i class="fa fa-university me-2"/> Finance &amp; Banking
                 </button>
+
+                <div class="tabs-bar-actions ms-auto d-flex align-items-center gap-2">
+                    <span class="text-muted d-none d-lg-inline" style="font-size: 0.76rem;">
+                        <i class="fa fa-clock-o me-1"/> <t t-esc="state.data.generated_at"/>
+                    </span>
+                    <button class="hero-refresh-btn" t-on-click="refreshDashboard" title="Refresh Live Data">
+                        <i t-att-class="state.isLoading ? 'fa fa-refresh fa-spin' : 'fa fa-refresh'"/>
+                    </button>
+                </div>
             </div>
 
             <div class="nesredin-dashboard-body">
