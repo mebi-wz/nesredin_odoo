@@ -11,16 +11,13 @@
             </t>
 
             <!-- ======================================================== -->
-            <!-- HERO REPORT HEADER (EXECUTIVE ANALYTICS, NO CREATION BTNS) -->
+            <!-- HERO REPORT HEADER (COMPACT & WHITE LIGHT THEME) -->
             <!-- ======================================================== -->
-            <div class="nesredin-hero-header" t-attf-style="background: {{state.data.brand ? state.data.brand.hero_gradient : 'linear-gradient(135deg, #182630 0%, #243742 45%, #355060 100%)'}};">
-                <div class="hero-ambient-glow glow-1" t-attf-style="background: radial-gradient(circle, {{state.data.brand ? state.data.brand.primary : '#5D8DA8'}} 0%, transparent 70%);"/>
-                <div class="hero-ambient-glow glow-2" t-attf-style="background: radial-gradient(circle, {{state.data.brand ? state.data.brand.secondary : '#c3df34'}} 0%, transparent 70%);"/>
-
+            <div class="nesredin-hero-header">
                 <div class="hero-content">
                     <div class="hero-titles">
-                        <div class="hero-badge" t-attf-style="border-color: rgba({{state.data.brand ? state.data.brand.rgb : '93, 141, 168'}}, 0.35); color: {{state.data.brand ? state.data.brand.light : '#f0f6f9'}};">
-                            <span class="company-brand-dot me-2" t-attf-style="background-color: {{state.data.brand ? state.data.brand.secondary : '#c3df34'}};"/>
+                        <div class="hero-badge">
+                            <span class="company-brand-dot me-2" t-attf-style="background-color: {{state.data.brand ? state.data.brand.primary : '#5D8DA8'}};"/>
                             <t t-esc="state.data.company_name || 'Enterprise'"/> • Executive Analytics &amp; Operations Report
                         </div>
                         <h1 class="hero-heading">
@@ -31,7 +28,7 @@
                         </p>
                     </div>
 
-                    <!-- Report Utility Actions (No creation buttons) -->
+                    <!-- Report Utility Actions -->
                     <div class="hero-quick-actions">
                         <div class="report-live-pill">
                             <i class="fa fa-dot-circle-o text-success me-1"/>
@@ -76,7 +73,7 @@
 
                     <!-- Inventory Working Capital -->
                     <div class="spotlight-card spotlight-coverage" t-on-click="viewInventory">
-                        <div class="spotlight-icon-wrap" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd;">
+                        <div class="spotlight-icon-wrap">
                             <i class="fa fa-cubes"/>
                         </div>
                         <div class="spotlight-info">

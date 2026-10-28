@@ -49,36 +49,16 @@
 /* ── Hero Header ──────────────────────────────────────────────────────────── */
 .nesredin-hero-header {
     position: relative;
-    background: var(--brand-hero-gradient, linear-gradient(135deg, #182630 0%, #243742 50%, #355060 100%));
-    color: #ffffff;
-    padding: 2.2rem 2.5rem 1.8rem 2.5rem;
+    background: #ffffff;
+    color: #1e293b;
+    padding: 1.1rem 2rem 0.85rem 2rem;
     overflow: hidden;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .hero-ambient-glow {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    pointer-events: none;
-    opacity: 0.38;
-}
-
-.glow-1 {
-    width: 340px;
-    height: 340px;
-    background: radial-gradient(circle, var(--brand-primary, #5D8DA8) 0%, transparent 70%);
-    top: -80px;
-    right: 15%;
-}
-
-.glow-2 {
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle, var(--brand-secondary, #c3df34) 0%, transparent 70%);
-    bottom: -60px;
-    left: 8%;
+    display: none;
 }
 
 .hero-content {
@@ -88,50 +68,48 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
 }
 
 .hero-badge {
     display: inline-flex;
     align-items: center;
-    padding: 5px 12px;
+    padding: 3px 10px;
     border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    font-size: 0.78rem;
-    font-weight: 600;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--brand-light, #ebf1f4);
-    margin-bottom: 0.6rem;
+    color: #475569;
+    margin-bottom: 0.35rem;
 }
 
 .company-brand-dot {
     display: inline-block;
-    width: 9px;
-    height: 9px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--brand-primary, #ffffff);
+    background-color: var(--brand-primary, #5D8DA8);
 }
 
 .hero-heading {
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0 0 0.4rem 0;
-    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: #0f172a;
+    line-height: 1.25;
 }
 
 .hero-subtext {
-    font-size: 0.95rem;
-    color: #94a3b8;
-    max-width: 620px;
-    margin: 0;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    color: #64748b;
+    max-width: 650px;
+    margin: 2px 0 0 0;
+    line-height: 1.4;
 }
 
 /* Quick Actions */
@@ -139,58 +117,78 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     position: relative;
     z-index: 2;
+}
+
+.report-live-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #065f46;
 }
 
 .hero-action-btn {
     display: inline-flex;
     align-items: center;
-    padding: 8px 16px;
-    border-radius: 10px;
-    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    backdrop-filter: blur(10px);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .hero-action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 255, 255, 0.35);
+    background: #f8fafc;
+    border-color: var(--brand-primary, #5D8DA8);
+    color: var(--brand-primary, #5D8DA8);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
 }
 
 .hero-action-btn.btn-asset {
-    background: linear-gradient(135deg, rgba(var(--brand-rgb, 93, 141, 168), 0.3) 0%, rgba(var(--brand-rgb, 93, 141, 168), 0.5) 100%);
-    border-color: rgba(var(--brand-rgb, 93, 141, 168), 0.4);
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #334155;
 }
 
 .hero-action-btn.btn-asset:hover {
-    background: linear-gradient(135deg, rgba(var(--brand-rgb, 93, 141, 168), 0.5) 0%, rgba(var(--brand-rgb, 93, 141, 168), 0.7) 100%);
+    background: #ffffff;
+    border-color: var(--brand-primary, #5D8DA8);
+    color: var(--brand-primary, #5D8DA8);
 }
 
 .hero-refresh-btn {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #ffffff;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .hero-refresh-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: #f8fafc;
+    border-color: var(--brand-primary, #5D8DA8);
+    color: var(--brand-primary, #5D8DA8);
 }
 
 /* Spotlights Grid */
@@ -198,125 +196,108 @@
     position: relative;
     z-index: 2;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 1.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 0.75rem;
 }
 
 .spotlight-card {
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
-    padding: 16px 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     cursor: pointer;
-    transition: all 0.25s ease;
-    backdrop-filter: blur(12px);
+    transition: all 0.2s ease;
 }
 
 .spotlight-card:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.25);
+    background: #ffffff;
+    border-color: var(--brand-primary, #5D8DA8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .spotlight-icon-wrap {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.15rem;
+    flex-shrink: 0;
 }
 
 .spotlight-asset .spotlight-icon-wrap {
-    background: rgba(var(--brand-rgb, 93, 141, 168), 0.2);
+    background: rgba(var(--brand-rgb, 93, 141, 168), 0.12);
     color: var(--brand-primary, #5D8DA8);
 }
 
 .spotlight-revenue .spotlight-icon-wrap {
-    background: rgba(var(--brand-rgb, 93, 141, 168), 0.2);
-    color: var(--brand-primary, #5D8DA8);
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.spotlight-coverage .spotlight-icon-wrap {
+    background: #eff6ff;
+    color: #2563eb;
 }
 
 .spotlight-info {
     flex: 1;
+    min-width: 0;
 }
 
 .spotlight-label {
     display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.68rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #94a3b8;
+    color: #64748b;
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .spotlight-val {
-    font-size: 1.35rem;
+    font-size: 1.18rem;
     font-weight: 800;
-    color: #ffffff;
+    color: #0f172a;
     line-height: 1.2;
 }
 
 .spotlight-sub {
-    font-size: 0.78rem;
-    color: #cbd5e1;
+    font-size: 0.72rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .spotlight-chevron {
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 0.9rem;
+    color: #cbd5e1;
+    font-size: 0.8rem;
     transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .spotlight-card:hover .spotlight-chevron {
-    color: #ffffff;
+    color: var(--brand-primary, #5D8DA8);
     transform: translateX(3px);
-}
-
-/* Coverage Ring */
-.coverage-gauge-ring {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: conic-gradient(#10b981 calc(var(--cov, 0) * 1%), rgba(255, 255, 255, 0.15) 0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.coverage-gauge-ring::after {
-    content: '';
-    position: absolute;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #0f172a;
-}
-
-.gauge-number {
-    position: relative;
-    z-index: 2;
-    font-size: 0.72rem;
-    font-weight: 800;
-    color: #34d399;
 }
 
 .hero-meta-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.78rem;
-    color: #64748b;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 12px;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 8px;
 }
 
 /* ── Tab Navigation Bar ───────────────────────────────────────────────────── */
