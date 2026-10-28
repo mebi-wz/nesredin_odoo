@@ -171,5 +171,116 @@
               action="stock.action_view_inventory_tree"
               sequence="60"/>
 
-   
+    <!-- ======================================================== -->
+    <!-- PROCUREMENT / PURCHASE INVOICING & PAYMENTS MENUS        -->
+    <!-- (Added to Purchase module without altering Accounting)   -->
+    <!-- ======================================================== -->
+    <menuitem id="menu_purchase_invoicing_root"
+              name="Invoicing"
+              parent="purchase.menu_purchase_root"
+              sequence="20"/>
+
+    <menuitem id="menu_purchase_vendor_bills"
+              name="Bills"
+              parent="menu_purchase_invoicing_root"
+              action="account.action_move_in_invoice"
+              sequence="10"/>
+
+    <menuitem id="menu_purchase_vendor_refunds"
+              name="Refunds"
+              parent="menu_purchase_invoicing_root"
+              action="account.action_move_in_refund_type"
+              sequence="20"/>
+
+    <menuitem id="menu_purchase_vendor_margins"
+              name="Bill Margins"
+              parent="menu_purchase_invoicing_root"
+              action="action_purchase_import_margin_accounting"
+              sequence="30"/>
+
+    <menuitem id="menu_purchase_vendor_payments"
+              name="Payments"
+              parent="menu_purchase_invoicing_root"
+              action="account.action_account_payments_payable"
+              sequence="40"/>
+
+    <!-- Also expose Bill Margins directly under Foreign Procurement -->
+    <menuitem id="menu_purchase_foreign_margins"
+              name="Bill Margins"
+              parent="procurement_base.menu_foreign_purchase_root"
+              action="action_purchase_import_margin_accounting"
+              sequence="25"/>
+
+    <!-- ======================================================== -->
+    <!-- BANK TRANSACTIONS (JOURNAL ENTRIES PER BANK)             -->
+    <!-- ======================================================== -->
+    <record id="view_move_tree_bank_transactions" model="ir.ui.view">
+        <field name="name">account.move.list.bank.transactions</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <list string="Bank Transactions" sample="1" decoration-info="state == 'draft'" expand="context.get('expand', False)">
+                <field name="company_currency_id" column_invisible="True"/>
+                <field name="made_sequence_gap" column_invisible="True"/>
+                <field name="invoice_date" string="Invoice Date" optional="hide" readonly="state != 'draft'"/>
+                <field name="date" readonly="state in ['cancel', 'posted']"/>
+                <field name="name" string="Number" decoration-danger="made_sequence_gap and state == 'posted'" widget="char_with_placeholder_field_to_check" placeholder="/" readonly="state != 'draft'"/>
+                <field name="checked" column_invisible="True" groups="account.group_account_user"/>
+                <field name="partner_id" optional="show" readonly="state != 'draft'"/>
+                <field name="ref" string="Reference" optional="show"/>
+                <field name="journal_id" string="Bank"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="bank_amount_signed" sum="Total Amount" string="Amount" decoration-bf="1" decoration-danger="bank_amount_signed &lt; 0" decoration-success="bank_amount_signed &gt; 0"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+                <field name="currency_id" column_invisible="True" readonly="state in ['cancel', 'posted']"/>
+                <field name="activity_ids" widget="list_activity" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_bank_transactions_journal_entries" model="ir.actions.act_window">
+        <field name="name">Bank Transactions</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="view_id" ref="view_move_tree_bank_transactions"/>
+        <field name="search_view_id" ref="account.view_account_move_filter"/>
+        <field name="domain">[('journal_id.type', '=', 'bank')]</field>
+        <field name="context">{
+            'default_move_type': 'entry',
+            'search_default_bankoperations': 1,
+            'search_default_journal': 1,
+        }</field>
+        <field name="group_ids" eval="[(4, ref('accounting_procurement.group_bank_transactions_access'))]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No bank transactions found
+            </p>
+            <p>
+                Bank transactions recorded as journal entries will appear here, grouped per bank.
+            </p>
+        </field>
+    </record>
+
+    <!-- Bank Transactions under Sales -> Invoicing -->
+    <menuitem id="menu_sale_bank_transactions"
+              name="Bank Transactions"
+              parent="sale.menu_sale_invoicing"
+              action="action_bank_transactions_journal_entries"
+              groups="accounting_procurement.group_bank_transactions_access"
+              sequence="4"/>
+
+    <!-- Bank Transactions under Purchase -> Invoicing -->
+    <menuitem id="menu_purchase_bank_transactions"
+              name="Bank Transactions"
+              parent="menu_purchase_invoicing_root"
+              action="action_bank_transactions_journal_entries"
+              groups="accounting_procurement.group_bank_transactions_access"
+              sequence="50"/>
+
+    <!-- Bank Transactions under Accounting -> Transactions -->
+    <menuitem id="menu_accounting_bank_transactions"
+              name="Bank Transactions"
+              parent="account.account_transactions_menu"
+              action="action_bank_transactions_journal_entries"
+              groups="accounting_procurement.group_bank_transactions_access"
+              sequence="2"/>
 </odoo>

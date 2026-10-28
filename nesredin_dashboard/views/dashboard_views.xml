@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_nesredin_dashboard" model="ir.actions.client">
+        <field name="name">Executive Dashboard</field>
+        <field name="path">overview</field>
+        <field name="tag">nesredin_dashboard.main</field>
+    </record>
+
+    <record id="spreadsheet_dashboard.spreadsheet_dashboard_menu_root" model="ir.ui.menu">
+        <field name="name">Dashboard</field>
+        <field name="action" ref="action_nesredin_dashboard"/>
+        <field name="web_icon">nesredin_dashboard,static/description/icon.svg</field>
+    </record>
+
+    <menuitem
+        id="menu_nesredin_dashboard_overview"
+        name="Overview"
+        parent="spreadsheet_dashboard.spreadsheet_dashboard_menu_root"
+        action="action_nesredin_dashboard"
+        sequence="0"/>
+</odoo>

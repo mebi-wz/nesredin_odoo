@@ -455,16 +455,30 @@ class AssetRegistration(models.Model):
 
     @api.model
     def get_dashboard_data(self):
-        Company = self.env.company
-        currency = Company.currency_id
+        company = self.env.company
+        currency = company.currency_id
+        asset_domain = [
+            ('company_id', '=', company.id),
+            ('is_component', '=', False),
+        ]
 
-        # Basic Stats
-        total_count = self.search_count([('is_component', '=', False)])
-        assets = self.search([('is_component', '=', False)])
+        # Portfolio summary. Keep these searches in the current user's
+        # environment so dashboard totals respect asset record rules.
+        assets = self.search(asset_domain)
+        total_count = len(assets)
+        original_value = sum(assets.mapped('original_cost'))
+        accumulated_depreciation = sum(assets.mapped('accumulated_depreciation'))
         total_value = sum(assets.mapped('net_book_value'))
-        warehouse_count = self.search_count([('location', '=', 'warehouse'), ('is_component', '=', False)])
-        employee_count = self.search_count([('location', '=', 'employee'), ('is_component', '=', False)])
-        component_count = self.search_count([('is_component', '=', True)])
+        warehouse_count = self.search_count(asset_domain + [('location', '=', 'warehouse')])
+        employee_count = self.search_count(asset_domain + [('location', '=', 'employee')])
+        unassigned_count = self.search_count(asset_domain + [('location', 'in', ('neither', False))])
+        vehicle_count = self.search_count(asset_domain + [('is_vehicle', '=', True)])
+        component_count = self.search_count([
+            ('company_id', '=', company.id),
+            ('is_component', '=', True),
+        ])
+        assigned_count = warehouse_count + employee_count
+        assignment_rate = round((assigned_count / total_count) * 100, 1) if total_count else 0.0
 
         # Category Data
         categories = self.env['am.asset.category'].search([])
@@ -481,36 +495,68 @@ class AssetRegistration(models.Model):
                 })
 
         # Branch Data
-        branch_stats = self.read_group([('is_component', '=', False)], ['id:count'], ['branch_id'], orderby='branch_id_count desc')
+        branch_stats = self._read_group(
+            asset_domain,
+            ['branch_id'],
+            ['__count'],
+            order='__count DESC',
+        )
         branch_data = []
         if total_count > 0:
-            for stat in branch_stats:
-                if stat['branch_id']:
-                    branch_name = stat['branch_id'][1]
-                    count = stat['branch_id_count']
+            for branch, count in branch_stats:
+                if branch:
                     branch_data.append({
-                        'id': stat['branch_id'][0],
-                        'name': branch_name,
+                        'id': branch.id,
+                        'name': branch.name,
                         'count': count,
                         'perc': round((count / total_count) * 100, 1)
                     })
 
-        # Additional Statistics for Redesigned Dashboard
-        draft_count = self.search_count([('state', '=', 'draft'), ('is_component', '=', False)])
-        running_count = self.search_count([('state', '=', 'open'), ('is_component', '=', False)])
-        closed_count = self.search_count([('state', '=', 'close'), ('is_component', '=', False)])
+        draft_count = self.search_count(asset_domain + [('state', '=', 'draft')])
+        running_count = self.search_count(asset_domain + [('state', '=', 'open')])
+        closed_count = self.search_count(asset_domain + [('state', '=', 'close')])
+
+        # Approval counters are aggregate-only for dashboard viewers. Managers
+        # can open the corresponding actions from the dashboard.
+        request_domain = [('company_id', '=', company.id), ('state', '=', 'pending')]
+        pending_handover_count = self.env['am.asset.handover.request'].sudo().search_count(request_domain)
+        pending_temporary_count = self.env['am.asset.temporary.request'].sudo().search_count(request_domain)
+
+        state_labels = dict(self._fields['state']._description_selection(self.env))
+        location_labels = dict(self._fields['location']._description_selection(self.env))
+        recent_assets = []
+        for asset in assets.sorted('create_date', reverse=True)[:6]:
+            recent_assets.append({
+                'id': asset.id,
+                'name': asset.name,
+                'tag_number': asset.tag_number or '—',
+                'category': asset.major_category_id.name or '—',
+                'branch': asset.branch_id.name or '—',
+                'location': location_labels.get(asset.location, 'Unassigned'),
+                'state': asset.state,
+                'state_label': state_labels.get(asset.state, asset.state or '—'),
+                'value_fmt': currency.format(asset.net_book_value),
+            })
 
         return {
             'total_count': total_count,
+            'original_value_fmt': currency.format(original_value),
+            'accumulated_depreciation_fmt': currency.format(accumulated_depreciation),
             'total_value_fmt': currency.format(total_value),
             'warehouse_count': warehouse_count,
             'employee_count': employee_count,
+            'unassigned_count': unassigned_count,
+            'vehicle_count': vehicle_count,
             'component_count': component_count,
             'category_data': sorted(category_data, key=lambda x: x['count'], reverse=True),
-            'branch_data': branch_data,
+            'branch_data': branch_data[:8],
             'draft_count': draft_count,
             'running_count': running_count,
             'closed_count': closed_count,
+            'assignment_rate': assignment_rate,
+            'pending_handover_count': pending_handover_count,
+            'pending_temporary_count': pending_temporary_count,
+            'recent_assets': recent_assets,
         }
 
     def action_regenerate_all_qr_codes(self):

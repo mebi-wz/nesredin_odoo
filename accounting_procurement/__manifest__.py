@@ -6,6 +6,7 @@
     "author": "Droga Consulting",
     "depends": [
         "account",
+        "purchase",
         "procurement_base",
         "procurement_foreign_operations",
         "procurement_local_purchase",
@@ -15,6 +16,8 @@
         "stock",
     ],
     "data": [
+        "security/security.xml",
+        "security/ir.model.access.csv",
         "views/accounting_menus.xml",
     ],
     "installable": True,

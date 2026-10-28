@@ -126,25 +126,35 @@ class ProductProduct(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             tmpl = self.env['product.template'].browse(vals['product_tmpl_id']) if vals.get('product_tmpl_id') else False
+            is_landed_cost = bool(
+                vals.get('landed_cost_ok')
+                or (tmpl and tmpl.landed_cost_ok)
+                or self.env.context.get('default_landed_cost_ok')
+                or self.env.context.get('landed_cost_product_entry')
+            )
             prod_type = vals.get('type') or (tmpl and tmpl.type)
-            if prod_type == 'service':
+            if prod_type == 'service' and not is_landed_cost:
                 if not vals.get('default_code') and not (tmpl and tmpl.default_code):
                     vals['default_code'] = 'DISC' if 'discount' in (vals.get('name') or (tmpl and tmpl.name) or '').lower() else 'SRV'
                 if not vals.get('part_number') and not (tmpl and tmpl.part_number):
                     vals['part_number'] = vals.get('default_code') or 'SRV'
             code = vals.get('default_code') or (tmpl and tmpl.default_code)
             part = vals.get('part_number') or (tmpl and tmpl.part_number)
-            if not code and not self.env.context.get('install_mode'):
-                raise ValidationError(_("Product Code is required for product registration!"))
-            if not part and not self.env.context.get('install_mode'):
-                raise ValidationError(_("Product Part Number is required for product registration!"))
+            if not is_landed_cost:
+                if not code and not self.env.context.get('install_mode'):
+                    raise ValidationError(_("Product Code is required for product registration!"))
+                if not part and not self.env.context.get('install_mode'):
+                    raise ValidationError(_("Product Part Number is required for product registration!"))
         return super().create(vals_list)
 
     def write(self, vals):
-        if 'default_code' in vals and not vals.get('default_code'):
-            raise ValidationError(_("Product Code cannot be empty!"))
-        if 'part_number' in vals and not vals.get('part_number'):
-            raise ValidationError(_("Product Part Number cannot be empty!"))
+        for product in self:
+            is_landed_cost = vals.get('landed_cost_ok', product.landed_cost_ok)
+            if not is_landed_cost:
+                if 'default_code' in vals and not vals.get('default_code'):
+                    raise ValidationError(_("Product Code cannot be empty!"))
+                if 'part_number' in vals and not vals.get('part_number'):
+                    raise ValidationError(_("Product Part Number cannot be empty!"))
         return super().write(vals)
 
     def action_compute_amc(self):

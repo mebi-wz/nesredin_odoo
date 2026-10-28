@@ -17,7 +17,7 @@ IBMS Product & Inventory Customizations:
     """,
     'author': 'IBMS',
     'license': 'LGPL-3',
-    'depends': ['product', 'stock', 'account', 'analytic'],
+    'depends': ['product', 'stock', 'account', 'analytic', 'stock_landed_costs'],
     'data': [
         'security/ir.model.access.csv',
         'security/warehouse_security.xml',

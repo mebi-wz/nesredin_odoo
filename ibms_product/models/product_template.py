@@ -223,31 +223,41 @@ class ProductTemplate(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get('type') == 'service':
+            is_landed_cost = bool(
+                vals.get('landed_cost_ok')
+                or self.env.context.get('default_landed_cost_ok')
+                or self.env.context.get('landed_cost_product_entry')
+            )
+            if vals.get('type') == 'service' and not is_landed_cost:
                 if not vals.get('default_code'):
                     vals['default_code'] = 'DISC' if 'discount' in (vals.get('name') or '').lower() else 'SRV'
                 if not vals.get('part_number'):
                     vals['part_number'] = vals['default_code']
             if self.env.context.get('create_product_product') is False:
                 # Being created via product.product delegation; default_code is validated on product.product
-                if not vals.get('part_number') and not self.env.context.get('install_mode'):
+                if not is_landed_cost and not vals.get('part_number') and not self.env.context.get('install_mode'):
                     raise ValidationError(_("Product Part Number is required for product registration!"))
                 continue
 
-            if not vals.get('default_code') and not self.env.context.get('install_mode'):
-                raise ValidationError(_("Product Code is required for product registration!"))
-            if not vals.get('part_number') and not self.env.context.get('install_mode'):
-                raise ValidationError(_("Product Part Number is required for product registration!"))
+            if not is_landed_cost:
+                if not vals.get('default_code') and not self.env.context.get('install_mode'):
+                    raise ValidationError(_("Product Code is required for product registration!"))
+                if not vals.get('part_number') and not self.env.context.get('install_mode'):
+                    raise ValidationError(_("Product Part Number is required for product registration!"))
         records = super().create(vals_list)
         records._sync_primary_part_number()
         return records
 
     def write(self, vals):
-        if 'default_code' in vals and not vals.get('default_code'):
-            raise ValidationError(_("Product Code cannot be empty!"))
-        if 'part_number' in vals and not vals.get('part_number'):
-            raise ValidationError(_("Product Part Number cannot be empty!"))
+        for tmpl in self:
+            is_landed_cost = vals.get('landed_cost_ok', tmpl.landed_cost_ok)
+            if not is_landed_cost:
+                if 'default_code' in vals and not vals.get('default_code'):
+                    raise ValidationError(_("Product Code cannot be empty!"))
+                if 'part_number' in vals and not vals.get('part_number'):
+                    raise ValidationError(_("Product Part Number cannot be empty!"))
         res = super().write(vals)
         if 'part_number' in vals:
             self._sync_primary_part_number()
         return res
+

@@ -63,7 +63,8 @@
                         <page string="Landed Cost Products" name="products_tab">
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <field name="product_id"/>
+                                    <field name="product_id"
+                                           context="{'default_landed_cost_ok': True, 'default_type': 'service', 'display_default_code': False, 'landed_cost_product_entry': True, 'tree_view_ref': 'procurement_foreign_operations.view_landed_cost_product_selection_list', 'form_view_ref': 'procurement_foreign_operations.view_landed_cost_product_selection_form', 'search_view_ref': 'procurement_foreign_operations.view_landed_cost_product_selection_search'}"/>
                                     <field name="description"/>
                                     <field name="quantity"/>
                                     <field name="price_unit"/>

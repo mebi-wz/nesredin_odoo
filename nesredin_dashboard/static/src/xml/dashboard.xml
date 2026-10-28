@@ -1,0 +1,987 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="nesredin_dashboard.MainDashboard">
+        <div class="nesredin-dashboard-wrapper" t-attf-style="--brand-primary: {{state.data.brand ? state.data.brand.primary : '#5e4766'}}; --brand-secondary: {{state.data.brand ? state.data.brand.secondary : '#010101'}}; --brand-rgb: {{state.data.brand ? state.data.brand.rgb : '94, 71, 102'}}; --brand-dark: {{state.data.brand ? state.data.brand.dark : '#171119'}}; --brand-light: {{state.data.brand ? state.data.brand.light : '#e6e3e8'}}; --brand-hero-gradient: {{state.data.brand ? state.data.brand.hero_gradient : 'linear-gradient(135deg, #07090e 0%, #171119 45%, #5e4766 100%)'}}; --brand-accent-gradient: {{state.data.brand ? state.data.brand.accent_gradient : 'linear-gradient(135deg, #5e4766 0%, #8b5cf6 100%)'}};">
+            <!-- Loading Indicator Overlay -->
+            <t t-if="state.isLoading">
+                <div class="nesredin-loading-overlay">
+                    <div class="nesredin-spinner"/>
+                    <span>Refreshing enterprise analytical reports...</span>
+                </div>
+            </t>
+
+            <!-- ======================================================== -->
+            <!-- HERO REPORT HEADER (EXECUTIVE ANALYTICS, NO CREATION BTNS) -->
+            <!-- ======================================================== -->
+            <div class="nesredin-hero-header" t-attf-style="background: {{state.data.brand ? state.data.brand.hero_gradient : 'linear-gradient(135deg, #07090e 0%, #171119 45%, #5e4766 100%)'}};">
+                <div class="hero-ambient-glow glow-1" t-attf-style="background: radial-gradient(circle, {{state.data.brand ? state.data.brand.primary : '#8b5cf6'}} 0%, transparent 70%);"/>
+                <div class="hero-ambient-glow glow-2" t-attf-style="background: radial-gradient(circle, {{state.data.brand ? state.data.brand.secondary : '#1e1b4b'}} 0%, transparent 70%);"/>
+
+                <div class="hero-content">
+                    <div class="hero-titles">
+                        <div class="hero-badge" t-attf-style="border-color: rgba({{state.data.brand ? state.data.brand.rgb : '255,255,255'}}, 0.35); color: {{state.data.brand ? state.data.brand.light : '#ffffff'}};">
+                            <span class="company-brand-dot me-2" t-attf-style="background-color: {{state.data.brand ? state.data.brand.primary : '#ffffff'}};"/>
+                            <t t-esc="state.data.company_name || 'Enterprise'"/> • Executive Analytics &amp; Operations Report
+                        </div>
+                        <h1 class="hero-heading">
+                            <t t-esc="getGreeting()"/>, <t t-esc="state.data.user_name || 'Executive'"/>
+                        </h1>
+                        <p class="hero-subtext">
+                            Consolidated corporate report covering fixed asset valuation, commercial sales, working capital in inventory, and banking cash flows.
+                        </p>
+                    </div>
+
+                    <!-- Report Utility Actions (No creation buttons) -->
+                    <div class="hero-quick-actions">
+                        <div class="report-live-pill">
+                            <i class="fa fa-dot-circle-o text-success me-1"/>
+                            <span>LIVE DATA</span>
+                        </div>
+                        <button class="hero-action-btn btn-bank" t-on-click="viewBankTransactions" title="View Bank Journal Transactions">
+                            <i class="fa fa-university me-2"/> Bank Entries
+                        </button>
+                        <button class="hero-refresh-btn" t-on-click="refreshDashboard" title="Refresh Live Data">
+                            <i t-att-class="state.isLoading ? 'fa fa-refresh fa-spin' : 'fa fa-refresh'"/>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hero Spotlight Metrics Strip (Assets, Sales & Inventory) -->
+                <div class="hero-spotlights-grid">
+                    <!-- Net Asset Valuation -->
+                    <div class="spotlight-card spotlight-asset" t-on-click="viewAllAssets">
+                        <div class="spotlight-icon-wrap">
+                            <i class="fa fa-balance-scale"/>
+                        </div>
+                        <div class="spotlight-info">
+                            <span class="spotlight-label">Fixed Asset Portfolio</span>
+                            <div class="spotlight-val"><t t-esc="state.data.assets.net_book_value_fmt"/></div>
+                            <span class="spotlight-sub"><t t-esc="state.data.assets.total_count"/> Assets (Orig: <t t-esc="state.data.assets.original_value_fmt"/>)</span>
+                        </div>
+                        <i class="fa fa-arrow-right spotlight-chevron"/>
+                    </div>
+
+                    <!-- Monthly Confirmed Revenue -->
+                    <div class="spotlight-card spotlight-revenue" t-on-click="viewSalesOrders">
+                        <div class="spotlight-icon-wrap">
+                            <i class="fa fa-line-chart"/>
+                        </div>
+                        <div class="spotlight-info">
+                            <span class="spotlight-label">This Month's Sales</span>
+                            <div class="spotlight-val"><t t-esc="state.data.sales.month_total_fmt"/></div>
+                            <span class="spotlight-sub"><t t-esc="state.data.sales.month_count"/> Confirmed Orders</span>
+                        </div>
+                        <i class="fa fa-arrow-right spotlight-chevron"/>
+                    </div>
+
+                    <!-- Inventory Working Capital -->
+                    <div class="spotlight-card spotlight-coverage" t-on-click="viewInventory">
+                        <div class="spotlight-icon-wrap" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd;">
+                            <i class="fa fa-cubes"/>
+                        </div>
+                        <div class="spotlight-info">
+                            <span class="spotlight-label">Inventory Valuation</span>
+                            <div class="spotlight-val"><t t-esc="state.data.inventory.total_valuation_fmt"/></div>
+                            <span class="spotlight-sub"><t t-esc="state.data.inventory.total_qty"/> Units • <t t-esc="state.data.inventory.products_count"/> Products</span>
+                        </div>
+                        <i class="fa fa-arrow-right spotlight-chevron"/>
+                    </div>
+                </div>
+
+                <div class="hero-meta-footer">
+                    <span><i class="fa fa-clock-o me-1"/> Generated at <t t-esc="state.data.generated_at"/> • Multi-company scoped</span>
+                    <span><i class="fa fa-shield me-1"/> Audited Enterprise Record</span>
+                </div>
+            </div>
+
+            <!-- ======================================================== -->
+            <!-- DASHBOARD NAVIGATION TABS                                -->
+            <!-- ======================================================== -->
+            <div class="nesredin-tabs-bar">
+                <button t-att-class="state.activeTab === 'all' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('all')">
+                    <i class="fa fa-th-large me-2"/> All Reports
+                </button>
+                <button t-att-class="state.activeTab === 'assets' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('assets')">
+                    <i class="fa fa-cubes me-2"/> Fixed Assets
+                    <span class="tab-badge"><t t-esc="state.data.assets.total_count"/></span>
+                </button>
+                <button t-att-class="state.activeTab === 'sales' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('sales')">
+                    <i class="fa fa-shopping-cart me-2"/> Commercial &amp; Customers
+                    <t t-if="state.data.sales.credit_approval_count &gt; 0">
+                        <span class="tab-badge-alert"><t t-esc="state.data.sales.credit_approval_count"/></span>
+                    </t>
+                </button>
+                <button t-att-class="state.activeTab === 'inventory' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('inventory')">
+                    <i class="fa fa-archive me-2"/> Inventory &amp; Stock
+                    <t t-if="state.data.inventory.low_stock_count &gt; 0">
+                        <span class="tab-badge-alert"><t t-esc="state.data.inventory.low_stock_count"/></span>
+                    </t>
+                </button>
+                <button t-att-class="state.activeTab === 'procurement' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('procurement')">
+                    <i class="fa fa-truck me-2"/> Procurement &amp; POs
+                </button>
+                <button t-att-class="state.activeTab === 'finance' ? 'tab-btn active' : 'tab-btn'" t-on-click="() => this.setTab('finance')">
+                    <i class="fa fa-university me-2"/> Finance &amp; Banking
+                </button>
+            </div>
+
+            <div class="nesredin-dashboard-body">
+
+                <!-- ==================================================== -->
+                <!-- SECTION: ASSET MANAGEMENT                            -->
+                <!-- ==================================================== -->
+                <t t-if="state.activeTab === 'all' || state.activeTab === 'assets'">
+                    <div class="dashboard-section-block">
+                        <div class="section-header-row">
+                            <div class="section-title-wrap">
+                                <span class="section-tag bg-tag-purple">ASSET VALUATION &amp; LIFECYCLE</span>
+                                <h2 class="section-heading">Fixed Assets Overview &amp; Register</h2>
+                            </div>
+                            <div class="section-actions-wrap">
+                                <button class="sec-link-btn" t-on-click="viewAllAssets">
+                                    Full Asset Registry <i class="fa fa-angle-right ms-1"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 4-Card Asset Lifecycle Matrix -->
+                        <div class="kpi-cards-grid grid-4 mb-4">
+                            <!-- Total Assets -->
+                            <div class="kpi-tile tile-purple" t-on-click="viewAllAssets">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-purple">
+                                        <i class="fa fa-cubes"/>
+                                    </div>
+                                    <span class="tile-status-tag">Total Register</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.assets.total_count"/></div>
+                                    <div class="tile-title">Fixed Assets</div>
+                                    <div class="tile-meta">Net Value: <t t-esc="state.data.assets.net_book_value_fmt"/></div>
+                                </div>
+                                <div class="tile-footer-bar bar-purple"/>
+                            </div>
+
+                            <!-- In Warehouse -->
+                            <div class="kpi-tile tile-blue" t-on-click="viewWarehouseAssets">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-blue">
+                                        <i class="fa fa-building"/>
+                                    </div>
+                                    <span class="tile-status-tag">In Storage</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.assets.warehouse_count"/></div>
+                                    <div class="tile-title">Warehouse Stock</div>
+                                    <div class="tile-meta">Available for assignment</div>
+                                </div>
+                                <div class="tile-footer-bar bar-blue"/>
+                            </div>
+
+                            <!-- With Employees -->
+                            <div class="kpi-tile tile-teal" t-on-click="viewEmployeeAssets">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-teal">
+                                        <i class="fa fa-id-badge"/>
+                                    </div>
+                                    <span class="tile-status-tag">Deployed</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.assets.employee_count"/></div>
+                                    <div class="tile-title">Staff Assigned</div>
+                                    <div class="tile-meta">In custody of workforce</div>
+                                </div>
+                                <div class="tile-footer-bar bar-teal"/>
+                            </div>
+
+                            <!-- Unassigned / Pending Assignment -->
+                            <div class="kpi-tile tile-amber" t-on-click="viewUnassignedAssets">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-amber">
+                                        <i class="fa fa-exclamation-circle"/>
+                                    </div>
+                                    <span class="tile-status-tag">Unassigned</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.assets.unassigned_count"/></div>
+                                    <div class="tile-title">Unassigned Items</div>
+                                    <div class="tile-meta">Require location or staging</div>
+                                </div>
+                                <div class="tile-footer-bar bar-amber"/>
+                            </div>
+                        </div>
+
+                        <!-- Secondary Asset Specific Strip -->
+                        <div class="pill-metrics-grid mb-4">
+                            <div class="pill-metric-item" t-on-click="viewRunningAssets">
+                                <span class="pill-dot dot-green"/>
+                                <span class="pill-name">Active / Running:</span>
+                                <strong class="pill-val"><t t-esc="state.data.assets.running_count"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewDraftAssets">
+                                <span class="pill-dot dot-gray"/>
+                                <span class="pill-name">Draft Assets:</span>
+                                <strong class="pill-val"><t t-esc="state.data.assets.draft_count"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewClosedAssets">
+                                <span class="pill-dot dot-slate"/>
+                                <span class="pill-name">Closed / Disposed:</span>
+                                <strong class="pill-val"><t t-esc="state.data.assets.closed_count"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewVehicles">
+                                <span class="pill-dot dot-indigo"/>
+                                <span class="pill-name">Fleet / Vehicles:</span>
+                                <strong class="pill-val"><t t-esc="state.data.assets.vehicle_count"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewComponentAssets">
+                                <span class="pill-dot dot-rose"/>
+                                <span class="pill-name">Component Items:</span>
+                                <strong class="pill-val"><t t-esc="state.data.assets.component_count"/></strong>
+                            </div>
+                            <t t-if="state.data.assets.pending_handovers &gt; 0">
+                                <div class="pill-metric-item pill-alert" t-on-click="viewHandoverApprovals">
+                                    <i class="fa fa-handshake-o text-warning me-1"/>
+                                    <span class="pill-name">Handover Approvals:</span>
+                                    <strong class="pill-val text-warning"><t t-esc="state.data.assets.pending_handovers"/></strong>
+                                </div>
+                            </t>
+                            <t t-if="state.data.assets.pending_temporary &gt; 0">
+                                <div class="pill-metric-item pill-alert" t-on-click="viewTemporaryApprovals">
+                                    <i class="fa fa-clock-o text-warning me-1"/>
+                                    <span class="pill-name">Temporary Approvals:</span>
+                                    <strong class="pill-val text-warning"><t t-esc="state.data.assets.pending_temporary"/></strong>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Split Asset Section: Categories & Recent Assets -->
+                        <div class="dashboard-split-row mb-4">
+                            <!-- Categories Distribution -->
+                            <div class="split-col-5">
+                                <div class="modern-card h-100">
+                                    <div class="card-head">
+                                        <div class="card-head-title">
+                                            <i class="fa fa-pie-chart text-purple-custom me-2"/>
+                                            <span>Asset Category Breakdown</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-content-body">
+                                        <t t-if="state.data.assets.categories.length === 0">
+                                            <div class="empty-state-notice">
+                                                <i class="fa fa-folder-open-o"/>
+                                                <span>No category breakdown available</span>
+                                            </div>
+                                        </t>
+                                        <t t-foreach="state.data.assets.categories" t-as="cat" t-key="cat.id">
+                                            <div class="cat-bar-item">
+                                                <div class="cat-info-row">
+                                                    <span class="cat-name"><t t-esc="cat.name"/></span>
+                                                    <span class="cat-meta">
+                                                        <strong><t t-esc="cat.count"/> items</strong> (<t t-esc="cat.value_fmt"/>)
+                                                    </span>
+                                                </div>
+                                                <div class="progress-track">
+                                                    <div class="progress-fill-bar" t-attf-style="width: {{cat.perc}}%;"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Asset Live Feed -->
+                            <div class="split-col-7">
+                                <div class="modern-card h-100">
+                                    <div class="card-head">
+                                        <div class="card-head-title">
+                                            <i class="fa fa-list-alt text-teal-custom me-2"/>
+                                            <span>Recently Registered Assets</span>
+                                        </div>
+                                        <button class="card-head-action" t-on-click="viewAllAssets">
+                                            View all <i class="fa fa-arrow-right ms-1"/>
+                                        </button>
+                                    </div>
+                                    <div class="card-content-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="modern-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Tag Number</th>
+                                                        <th>Asset Name</th>
+                                                        <th>Category</th>
+                                                        <th>Location</th>
+                                                        <th>State</th>
+                                                        <th class="text-end">Net Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-if="state.data.assets.recent.length === 0">
+                                                        <tr>
+                                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                                No assets registered yet.
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                    <t t-foreach="state.data.assets.recent" t-as="item" t-key="item.id">
+                                                        <tr class="clickable-row" t-on-click="() => this.openAssetForm(item.id)">
+                                                            <td><span class="badge-tag"><t t-esc="item.tag"/></span></td>
+                                                            <td class="fw-semibold text-dark"><t t-esc="item.name"/></td>
+                                                            <td><span class="text-muted small"><t t-esc="item.category"/></span></td>
+                                                            <td>
+                                                                <span t-attf-class="badge-location loc-{{item.location_key}}">
+                                                                    <t t-esc="item.location"/>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span t-attf-class="state-pill state-{{item.state}}">
+                                                                    <t t-esc="item.state_label"/>
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-end fw-bold"><t t-esc="item.value_fmt"/></td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- ==================================================== -->
+                <!-- SECTION: COMMERCIAL, TOP CUSTOMERS & TOP PRODUCTS    -->
+                <!-- ==================================================== -->
+                <t t-if="state.activeTab === 'all' || state.activeTab === 'sales'">
+                    <div class="dashboard-section-block">
+                        <div class="section-header-row">
+                            <div class="section-title-wrap">
+                                <span class="section-tag bg-tag-emerald">COMMERCIAL ANALYTICS</span>
+                                <h2 class="section-heading">Sales Performance, Top Customers &amp; Top Products</h2>
+                            </div>
+                            <div class="section-actions-wrap">
+                                <button class="sec-link-btn" t-on-click="viewSalesOrders">
+                                    All Orders <i class="fa fa-angle-right ms-1"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- KPI Summary Row -->
+                        <div class="kpi-cards-grid grid-3 mb-4">
+                            <!-- Monthly Confirmed Sales -->
+                            <div class="kpi-tile tile-emerald" t-on-click="viewSalesOrders">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-emerald">
+                                        <i class="fa fa-shopping-bag"/>
+                                    </div>
+                                    <span class="tile-status-tag">Current Month</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.sales.month_total_fmt"/></div>
+                                    <div class="tile-title">Confirmed Sales Volume</div>
+                                    <div class="tile-meta"><t t-esc="state.data.sales.month_count"/> sales transactions</div>
+                                </div>
+                                <div class="tile-footer-bar bar-emerald"/>
+                            </div>
+
+                            <!-- Quotations Active -->
+                            <div class="kpi-tile tile-cyan" t-on-click="viewQuotations">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-cyan">
+                                        <i class="fa fa-file-text-o"/>
+                                    </div>
+                                    <span class="tile-status-tag">Pipeline</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.sales.quotations_count"/></div>
+                                    <div class="tile-title">Open Quotations</div>
+                                    <div class="tile-meta">Active quotes in pipeline</div>
+                                </div>
+                                <div class="tile-footer-bar bar-cyan"/>
+                            </div>
+
+                            <!-- Credit Sales Approvals -->
+                            <div t-att-class="state.data.sales.credit_approval_count &gt; 0 ? 'kpi-tile tile-alert-glow' : 'kpi-tile tile-slate'" t-on-click="viewCreditApprovals">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-alert">
+                                        <i class="fa fa-check-square-o"/>
+                                    </div>
+                                    <span class="tile-status-tag">Finance Approval</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.sales.credit_approval_count"/></div>
+                                    <div class="tile-title">Credit Sales Pending Approval</div>
+                                    <div class="tile-meta">Awaiting Finance Manager sign-off</div>
+                                </div>
+                                <div class="tile-footer-bar bar-alert"/>
+                            </div>
+                        </div>
+
+                        <!-- Top Customers & Top Products Side-by-Side (from Odoo spreadsheet dashboard) -->
+                        <div class="dashboard-split-row mb-4">
+                            <!-- Top Customers Table -->
+                            <div class="split-col-6">
+                                <div class="modern-card h-100">
+                                    <div class="card-head">
+                                        <div class="card-head-title">
+                                            <i class="fa fa-users text-emerald-custom me-2"/>
+                                            <span>Top Customers by Sales Volume</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-content-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="modern-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Customer Name</th>
+                                                        <th class="text-center">Orders</th>
+                                                        <th class="text-end">Total Revenue</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-if="state.data.sales.top_customers.length === 0">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center py-4 text-muted">
+                                                                No customer sales data available.
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                    <t t-foreach="state.data.sales.top_customers" t-as="cust" t-key="cust.id">
+                                                        <tr class="clickable-row" t-on-click="() => this.openPartnerForm(cust.id)">
+                                                            <td class="text-muted fw-bold"><t t-esc="cust_index + 1"/></td>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="avatar-initial-badge me-2">
+                                                                        <t t-esc="cust.name.substring(0, 2).toUpperCase()"/>
+                                                                    </div>
+                                                                    <span class="fw-semibold text-dark"><t t-esc="cust.name"/></span>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <span class="badge-tag"><t t-esc="cust.count"/> orders</span>
+                                                            </td>
+                                                            <td class="text-end fw-bold text-success"><t t-esc="cust.total_fmt"/></td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top Selling Products Table -->
+                            <div class="split-col-6">
+                                <div class="modern-card h-100">
+                                    <div class="card-head">
+                                        <div class="card-head-title">
+                                            <i class="fa fa-star text-amber-custom me-2"/>
+                                            <span>Top Selling Products by Revenue</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-content-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="modern-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Product</th>
+                                                        <th class="text-center">Units Sold</th>
+                                                        <th class="text-end">Total Sales</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-if="state.data.sales.top_products.length === 0">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center py-4 text-muted">
+                                                                No product sales data available.
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                    <t t-foreach="state.data.sales.top_products" t-as="prod" t-key="prod.id">
+                                                        <tr class="clickable-row" t-on-click="() => this.openProductForm(prod.id)">
+                                                            <td class="text-muted fw-bold"><t t-esc="prod_index + 1"/></td>
+                                                            <td>
+                                                                <div class="fw-semibold text-dark"><t t-esc="prod.name"/></div>
+                                                                <small class="text-muted"><t t-esc="prod.code"/></small>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <span class="badge-tag"><t t-esc="prod.qty_fmt"/> units</span>
+                                                            </td>
+                                                            <td class="text-end fw-bold text-success"><t t-esc="prod.revenue_fmt"/></td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6-Month Visual Performance Comparison -->
+                        <div class="modern-card mb-4">
+                            <div class="card-head">
+                                <div class="card-head-title">
+                                    <i class="fa fa-bar-chart text-emerald-custom me-2"/>
+                                    <span>6-Month Corporate Performance: Sales Revenue vs Purchase Inflow</span>
+                                </div>
+                            </div>
+                            <div class="card-content-body">
+                                <div class="chart-bars-container">
+                                    <t t-foreach="state.data.performance" t-as="perf" t-key="perf.label">
+                                        <div class="perf-bar-group">
+                                            <div class="perf-bars-track">
+                                                <!-- Sales Bar -->
+                                                <div class="perf-bar bar-sales" t-attf-style="height: {{perf.sales_percent}}%;" t-att-title="'Sales: ' + perf.sales_fmt"/>
+                                                <!-- Purchases Bar -->
+                                                <div class="perf-bar bar-purchases" t-attf-style="height: {{perf.purchases_percent}}%;" t-att-title="'Purchases: ' + perf.purchases_fmt"/>
+                                            </div>
+                                            <span class="perf-label"><t t-esc="perf.short_label"/></span>
+                                        </div>
+                                    </t>
+                                </div>
+                                <div class="chart-legend-row">
+                                    <div class="legend-item"><span class="legend-box box-sales"/> Confirmed Sales</div>
+                                    <div class="legend-item"><span class="legend-box box-purchases"/> Purchase Orders</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- ==================================================== -->
+                <!-- SECTION: INVENTORY & STOCK VALUATION HUB             -->
+                <!-- ==================================================== -->
+                <t t-if="state.activeTab === 'all' || state.activeTab === 'inventory'">
+                    <div class="dashboard-section-block">
+                        <div class="section-header-row">
+                            <div class="section-title-wrap">
+                                <span class="section-tag bg-tag-blue">LOGISTICS &amp; WORKING CAPITAL</span>
+                                <h2 class="section-heading">Inventory Valuation &amp; Stock Analytics</h2>
+                            </div>
+                            <div class="section-actions-wrap">
+                                <button class="sec-link-btn" t-on-click="viewInventory">
+                                    Inventory Quants <i class="fa fa-angle-right ms-1"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 4-Card Inventory Matrix -->
+                        <div class="kpi-cards-grid grid-4 mb-4">
+                            <div class="kpi-tile tile-blue" t-on-click="viewInventory">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-blue">
+                                        <i class="fa fa-money"/>
+                                    </div>
+                                    <span class="tile-status-tag">Working Capital</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number text-primary"><t t-esc="state.data.inventory.total_valuation_fmt"/></div>
+                                    <div class="tile-title">Total Inventory Valuation</div>
+                                    <div class="tile-meta">Holding stock cost in storage</div>
+                                </div>
+                                <div class="tile-footer-bar bar-blue"/>
+                            </div>
+
+                            <div class="kpi-tile tile-teal" t-on-click="viewInventory">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-teal">
+                                        <i class="fa fa-database"/>
+                                    </div>
+                                    <span class="tile-status-tag">Total Units</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.inventory.total_qty"/></div>
+                                    <div class="tile-title">On-Hand Quantity</div>
+                                    <div class="tile-meta">Physical items in internal warehouses</div>
+                                </div>
+                                <div class="tile-footer-bar bar-teal"/>
+                            </div>
+
+                            <div class="kpi-tile tile-purple" t-on-click="viewProducts">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-purple">
+                                        <i class="fa fa-tags"/>
+                                    </div>
+                                    <span class="tile-status-tag">Product Lines</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.inventory.products_count"/></div>
+                                    <div class="tile-title">Active Products</div>
+                                    <div class="tile-meta">Storable product catalog</div>
+                                </div>
+                                <div class="tile-footer-bar bar-purple"/>
+                            </div>
+
+                            <!-- Low stock alert -->
+                            <div t-att-class="state.data.inventory.low_stock_count &gt; 0 ? 'kpi-tile tile-alert-glow' : 'kpi-tile tile-slate'" t-on-click="viewInventory">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-alert">
+                                        <i class="fa fa-exclamation-triangle"/>
+                                    </div>
+                                    <span class="tile-status-tag">Replenishment</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number text-danger"><t t-esc="state.data.inventory.low_stock_count"/></div>
+                                    <div class="tile-title">Low Stock Watchlist</div>
+                                    <div class="tile-meta">Items requiring reorder or restock</div>
+                                </div>
+                                <div class="tile-footer-bar bar-alert"/>
+                            </div>
+                        </div>
+
+                        <!-- Inventory Split: Top Capital Stock vs Low Stock Watchlist -->
+                        <div class="dashboard-split-row mb-4">
+                            <!-- Top Stock Items by Valuation -->
+                            <div class="split-col-7">
+                                <div class="modern-card h-100">
+                                    <div class="card-head">
+                                        <div class="card-head-title">
+                                            <i class="fa fa-cubes text-blue-custom me-2"/>
+                                            <span>Highest Working Capital Inventory (Top Valued Stock)</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-content-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="modern-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Product Item</th>
+                                                        <th>Category</th>
+                                                        <th class="text-center">On-Hand Qty</th>
+                                                        <th class="text-end">Inventory Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-if="state.data.inventory.top_stock_items.length === 0">
+                                                        <tr>
+                                                            <td colspan="4" class="text-center py-4 text-muted">
+                                                                No stock records found.
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                    <t t-foreach="state.data.inventory.top_stock_items" t-as="item" t-key="item.id">
+                                                        <tr class="clickable-row" t-on-click="() => this.openProductForm(item.id)">
+                                                            <td>
+                                                                <div class="fw-semibold text-dark"><t t-esc="item.name"/></div>
+                                                                <small class="text-muted"><t t-esc="item.code"/></small>
+                                                            </td>
+                                                            <td><span class="text-muted small"><t t-esc="item.category"/></span></td>
+                                                            <td class="text-center"><span class="badge-tag"><t t-esc="item.qty_fmt"/></span></td>
+                                                            <td class="text-end fw-bold text-primary"><t t-esc="item.val_fmt"/></td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Low Stock Alerts / Watchlist -->
+                            <div class="split-col-5">
+                                <div class="modern-card h-100">
+                                    <div class="card-head">
+                                        <div class="card-head-title">
+                                            <i class="fa fa-warning text-warning me-2"/>
+                                            <span>Low Stock Watchlist (&lt;= 15 Units)</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-content-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="modern-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Item</th>
+                                                        <th class="text-center">Remaining</th>
+                                                        <th class="text-center">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <t t-if="state.data.inventory.low_stock_items.length === 0">
+                                                        <tr>
+                                                            <td colspan="3" class="text-center py-4 text-muted">
+                                                                All items have adequate stock levels.
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                    <t t-foreach="state.data.inventory.low_stock_items" t-as="litem" t-key="litem.id">
+                                                        <tr class="clickable-row" t-on-click="() => this.openProductForm(litem.id)">
+                                                            <td>
+                                                                <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;"><t t-esc="litem.name"/></div>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <strong class="text-danger"><t t-esc="litem.qty_fmt"/></strong>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <span class="badge-location loc-neither">Low</span>
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logistics Fulfillment Indicators -->
+                        <div class="pill-metrics-grid mb-4">
+                            <div class="pill-metric-item" t-on-click="viewDeliveries">
+                                <i class="fa fa-paper-plane-o text-success me-2"/>
+                                <span class="pill-name">Ready Deliveries (Outgoing):</span>
+                                <strong class="pill-val text-success"><t t-esc="state.data.inventory.ready_deliveries"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewDeliveries">
+                                <i class="fa fa-clock-o text-warning me-2"/>
+                                <span class="pill-name">Waiting Deliveries:</span>
+                                <strong class="pill-val"><t t-esc="state.data.inventory.waiting_deliveries"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewReceipts">
+                                <i class="fa fa-truck text-info me-2"/>
+                                <span class="pill-name">Incoming Shipments:</span>
+                                <strong class="pill-val"><t t-esc="state.data.inventory.incoming_shipments"/></strong>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- ==================================================== -->
+                <!-- SECTION: PROCUREMENT & PURCHASE ORDERS               -->
+                <!-- ==================================================== -->
+                <t t-if="state.activeTab === 'all' || state.activeTab === 'procurement'">
+                    <div class="dashboard-section-block">
+                        <div class="section-header-row">
+                            <div class="section-title-wrap">
+                                <span class="section-tag bg-tag-indigo">SUPPLY CHAIN</span>
+                                <h2 class="section-heading">Procurement, Local &amp; Foreign Operations</h2>
+                            </div>
+                            <div class="section-actions-wrap">
+                                <button class="sec-link-btn" t-on-click="viewPurchaseOrders">
+                                    All Purchase Orders <i class="fa fa-angle-right ms-1"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="kpi-cards-grid grid-4 mb-4">
+                            <!-- Month Purchase Orders -->
+                            <div class="kpi-tile tile-indigo" t-on-click="viewPurchaseOrders">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-indigo">
+                                        <i class="fa fa-truck"/>
+                                    </div>
+                                    <span class="tile-status-tag">Month Total</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.purchases.month_total_fmt"/></div>
+                                    <div class="tile-title">Purchase Inflow</div>
+                                    <div class="tile-meta"><t t-esc="state.data.purchases.month_count"/> Purchase Orders</div>
+                                </div>
+                                <div class="tile-footer-bar bar-indigo"/>
+                            </div>
+
+                            <!-- Local vs Foreign POs -->
+                            <div class="kpi-tile tile-blue" t-on-click="viewLocalPOs">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-blue">
+                                        <i class="fa fa-map-marker"/>
+                                    </div>
+                                    <span class="tile-status-tag">Local Procurement</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.purchases.local_po_count"/></div>
+                                    <div class="tile-title">Local Purchase Orders</div>
+                                    <div class="tile-meta">Domestic vendor procurement</div>
+                                </div>
+                                <div class="tile-footer-bar bar-blue"/>
+                            </div>
+
+                            <div class="kpi-tile tile-purple" t-on-click="viewForeignPOs">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-purple">
+                                        <i class="fa fa-globe"/>
+                                    </div>
+                                    <span class="tile-status-tag">Foreign Procurement</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.purchases.foreign_po_count"/></div>
+                                    <div class="tile-title">Foreign Purchase Orders</div>
+                                    <div class="tile-meta">Import operations &amp; LCs</div>
+                                </div>
+                                <div class="tile-footer-bar bar-purple"/>
+                            </div>
+
+                            <!-- Pending RFQs -->
+                            <div class="kpi-tile tile-cyan" t-on-click="viewRFQs">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-cyan">
+                                        <i class="fa fa-clock-o"/>
+                                    </div>
+                                    <span class="tile-status-tag">Pending Quotations</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.purchases.rfqs_count"/></div>
+                                    <div class="tile-title">Requests for Quotation</div>
+                                    <div class="tile-meta">Awaiting vendor quotes</div>
+                                </div>
+                                <div class="tile-footer-bar bar-cyan"/>
+                            </div>
+                        </div>
+
+                        <!-- Procurement Customizations Bar -->
+                        <div class="pill-metrics-grid mb-4">
+                            <div class="pill-metric-item" t-on-click="viewForeignPaymentRequests">
+                                <i class="fa fa-money text-info me-2"/>
+                                <span class="pill-name">Foreign Payment Requests:</span>
+                                <strong class="pill-val"><t t-esc="state.data.purchases.pending_foreign_pmt_requests"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewLocalPaymentRequests">
+                                <i class="fa fa-file-text text-teal me-2"/>
+                                <span class="pill-name">Local Payment Requests:</span>
+                                <strong class="pill-val"><t t-esc="state.data.purchases.pending_local_pmt_requests"/></strong>
+                            </div>
+                            <div class="pill-metric-item" t-on-click="viewBillMargins">
+                                <i class="fa fa-percent text-purple me-2"/>
+                                <span class="pill-name">PO Margins Registered:</span>
+                                <strong class="pill-val"><t t-esc="state.data.purchases.margins_count"/></strong>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- ==================================================== -->
+                <!-- SECTION: FINANCE & BANKING (WITH BANK TRANSACTIONS)  -->
+                <!-- ==================================================== -->
+                <t t-if="state.activeTab === 'all' || state.activeTab === 'finance'">
+                    <div class="dashboard-section-block">
+                        <div class="section-header-row">
+                            <div class="section-title-wrap">
+                                <span class="section-tag bg-tag-rose">TREASURY &amp; FINANCE</span>
+                                <h2 class="section-heading">Banking Cash Flow &amp; Invoicing</h2>
+                            </div>
+                            <div class="section-actions-wrap">
+                                <button class="sec-link-btn" t-on-click="viewBankTransactions">
+                                    Open Bank Journal Entries <i class="fa fa-angle-right ms-1"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Finance Quick Metric Tiles -->
+                        <div class="kpi-cards-grid grid-3 mb-4">
+                            <!-- Bank Transactions Count -->
+                            <div class="kpi-tile tile-teal" t-on-click="viewBankTransactions">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-teal">
+                                        <i class="fa fa-university"/>
+                                    </div>
+                                    <span class="tile-status-tag">Customized View</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.finance.bank_transactions_count"/></div>
+                                    <div class="tile-title">Bank Transactions</div>
+                                    <div class="tile-meta">Signed debit/credit entries per bank</div>
+                                </div>
+                                <div class="tile-footer-bar bar-teal"/>
+                            </div>
+
+                            <!-- Overdue Customer Invoices -->
+                            <div class="kpi-tile tile-rose" t-on-click="viewOverdueInvoices">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-rose">
+                                        <i class="fa fa-calendar-times-o"/>
+                                    </div>
+                                    <span class="tile-status-tag">Receivables</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number text-danger"><t t-esc="state.data.finance.overdue_invoices_amount_fmt"/></div>
+                                    <div class="tile-title">Overdue Invoices</div>
+                                    <div class="tile-meta"><t t-esc="state.data.finance.overdue_invoices_count"/> invoices past due date</div>
+                                </div>
+                                <div class="tile-footer-bar bar-rose"/>
+                            </div>
+
+                            <!-- Open Vendor Bills -->
+                            <div class="kpi-tile tile-indigo" t-on-click="viewOpenBills">
+                                <div class="tile-header">
+                                    <div class="tile-icon-box bg-icon-indigo">
+                                        <i class="fa fa-file-text-o"/>
+                                    </div>
+                                    <span class="tile-status-tag">Payables</span>
+                                </div>
+                                <div class="tile-body">
+                                    <div class="tile-number"><t t-esc="state.data.finance.open_bills_amount_fmt"/></div>
+                                    <div class="tile-title">Unpaid Vendor Bills</div>
+                                    <div class="tile-meta"><t t-esc="state.data.finance.open_bills_count"/> bills to be disbursed</div>
+                                </div>
+                                <div class="tile-footer-bar bar-indigo"/>
+                            </div>
+                        </div>
+
+                        <!-- Bank Transactions Live Feed (With signed amounts!) -->
+                        <div class="modern-card mb-4">
+                            <div class="card-head">
+                                <div class="card-head-title">
+                                    <i class="fa fa-university text-teal-custom me-2"/>
+                                    <span>Recent Bank Journal Transactions (Per Bank Journal)</span>
+                                </div>
+                                <button class="card-head-action" t-on-click="viewBankTransactions">
+                                    View All Bank Transactions <i class="fa fa-arrow-right ms-1"/>
+                                </button>
+                            </div>
+                            <div class="card-content-body p-0">
+                                <div class="table-responsive">
+                                    <table class="modern-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Number</th>
+                                                <th>Bank Journal</th>
+                                                <th>Partner</th>
+                                                <th>Reference</th>
+                                                <th class="text-end">Amount (Signed)</th>
+                                                <th class="text-center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="state.data.finance.recent_bank_transactions.length === 0">
+                                                <tr>
+                                                    <td colspan="7" class="text-center py-4 text-muted">
+                                                        No bank journal entries recorded yet.
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                            <t t-foreach="state.data.finance.recent_bank_transactions" t-as="bm" t-key="bm.id">
+                                                <tr class="clickable-row" t-on-click="() => this.openBankMoveForm(bm.id)">
+                                                    <td><span class="text-muted small"><t t-esc="bm.date"/></span></td>
+                                                    <td class="fw-semibold text-dark"><t t-esc="bm.name"/></td>
+                                                    <td><span class="badge-bank"><t t-esc="bm.bank_name"/></span></td>
+                                                    <td><t t-esc="bm.partner_name"/></td>
+                                                    <td><span class="text-muted small"><t t-esc="bm.ref"/></span></td>
+                                                    <td class="text-end">
+                                                        <span t-attf-class="badge-signed-amount {{bm.is_negative ? 'amt-negative' : 'amt-positive'}}">
+                                                            <t t-if="!bm.is_negative">+</t><t t-esc="bm.amount_fmt"/>
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span t-attf-class="state-pill state-{{bm.state}}">
+                                                            <t t-esc="bm.state === 'posted' ? 'Posted' : 'Draft'"/>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+            </div>
+        </div>
+    </t>
+</templates>

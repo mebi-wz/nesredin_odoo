@@ -13,14 +13,24 @@
                        class="oe_avatar ms-3"
                        options="{'convert_to_webp': True, 'zoom': True}"/>
             </xpath>
+            <xpath expr="//div[@name='options']" position="inside">
+                <span name="landed_cost_option" class="d-inline-flex" invisible="type != 'service'">
+                    <field name="landed_cost_ok"/>
+                    <label for="landed_cost_ok"/>
+                </span>
+            </xpath>
+            <xpath expr="//field[@name='default_code']" position="before">
+                <field name="landed_cost_ok" invisible="1"/>
+            </xpath>
             <xpath expr="//field[@name='default_code']" position="attributes">
                 <attribute name="string">Product Code</attribute>
-                <attribute name="required">1</attribute>
+                <attribute name="required">not landed_cost_ok</attribute>
+                <attribute name="invisible">product_variant_count &gt; 1 or landed_cost_ok</attribute>
             </xpath>
             <xpath expr="//field[@name='default_code']" position="after">
-                <field name="part_number" required="1"/>
-                <field name="hs_code" placeholder="e.g. 8708.29.90"/>
-                <field name="hs_description" placeholder="Customs description" invisible="not hs_code"/>
+                <field name="part_number" required="not landed_cost_ok" invisible="landed_cost_ok"/>
+                <field name="hs_code" placeholder="e.g. 8708.29.90" invisible="landed_cost_ok"/>
+                <field name="hs_description" placeholder="Customs description" invisible="not hs_code or landed_cost_ok"/>
             </xpath>
             <xpath expr="//label[@for='list_price']" position="attributes">
                 <attribute name="string">Retail Price</attribute>
@@ -36,7 +46,7 @@
                 </div>
             </xpath>
             <xpath expr="//notebook" position="inside">
-                <page string="Secondary Part Numbers" name="secondary_part_numbers">
+                <page string="Secondary Part Numbers" name="secondary_part_numbers" invisible="landed_cost_ok">
                     <field name="secondary_part_number_ids" domain="[('part_type', '=', 'secondary')]" context="{'default_part_type': 'secondary'}">
                         <list editable="bottom">
                             <field name="name" string="Secondary Part Number" required="1"/>
@@ -62,17 +72,21 @@
                        class="oe_avatar ms-3"
                        options="{'convert_to_webp': True, 'zoom': True}"/>
             </xpath>
+            <xpath expr="//field[@name='default_code']" position="before">
+                <field name="landed_cost_ok" invisible="1"/>
+            </xpath>
             <xpath expr="//field[@name='default_code']" position="attributes">
                 <attribute name="string">Product Code</attribute>
-                <attribute name="required">1</attribute>
+                <attribute name="required">not landed_cost_ok</attribute>
+                <attribute name="invisible">landed_cost_ok</attribute>
             </xpath>
             <xpath expr="//field[@name='default_code']" position="after">
-                <field name="part_number" required="1"/>
-                <field name="hs_code" placeholder="e.g. 8708.29.90"/>
-                <field name="hs_description" placeholder="Customs description" invisible="not hs_code"/>
+                <field name="part_number" required="not landed_cost_ok" invisible="landed_cost_ok"/>
+                <field name="hs_code" placeholder="e.g. 8708.29.90" invisible="landed_cost_ok"/>
+                <field name="hs_description" placeholder="Customs description" invisible="not hs_code or landed_cost_ok"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
-                <page string="Secondary Part Numbers" name="secondary_part_numbers">
+                <page string="Secondary Part Numbers" name="secondary_part_numbers" invisible="landed_cost_ok">
                     <field name="secondary_part_number_ids" domain="[('part_type', '=', 'secondary')]" context="{'default_part_type': 'secondary'}">
                         <list editable="bottom">
                             <field name="name" string="Secondary Part Number" required="1"/>
@@ -153,5 +167,21 @@
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="product_secondary_part_number_view_tree"/>
         <field name="target">new</field>
+    </record>
+
+    <!-- Hide Logistics section & Force Removal Strategy from Product Category Form -->
+    <record id="product_category_form_view_inherit_ibms" model="ir.ui.view">
+        <field name="name">product.category.form.inherit.ibms</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="stock.product_category_form_view_inherit"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='logistics']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='removal_strategy_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
     </record>
 </odoo>

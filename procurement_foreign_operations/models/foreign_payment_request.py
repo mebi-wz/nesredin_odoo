@@ -94,7 +94,26 @@ class ForeignPaymentRequest(models.Model):
         if self.purchase_order_id:
             self.vendor_id = self.purchase_order_id.partner_id
             self.currency_id = self.purchase_order_id.currency_id
-            self.exchange_rate = self.purchase_order_id.currency_rate or 1.0
+            self.exchange_rate = self.purchase_order_id.exchange_rate or 1.0
+
+    def _get_company_currency_amount(self, amount):
+        """Return a request-currency amount in the company's currency.
+
+        Foreign payment requests use the negotiated/manual exchange rate stored on
+        the request. Landed costs, however, are always expressed in the company
+        currency, so their cost lines must be converted before allocation.
+        """
+        self.ensure_one()
+        if self.currency_id == self.company_id.currency_id:
+            return amount
+        if self.exchange_rate > 0:
+            return amount * self.exchange_rate
+        return self.currency_id._convert(
+            amount,
+            self.company_id.currency_id,
+            self.company_id,
+            self.request_date or fields.Date.context_today(self),
+        )
 
     @api.depends('line_ids.amount')
     def _compute_amount(self):
@@ -110,12 +129,14 @@ class ForeignPaymentRequest(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             # Auto-populate fields from PO if not provided (relevant for tests and API)
-            if vals.get('purchase_order_id') and (not vals.get('vendor_id') or not vals.get('currency_id')):
+            if vals.get('purchase_order_id'):
                 po = self.env['purchase.order'].browse(vals['purchase_order_id'])
                 if not vals.get('vendor_id'):
                     vals['vendor_id'] = po.partner_id.id
                 if not vals.get('currency_id'):
                     vals['currency_id'] = po.currency_id.id
+                if 'exchange_rate' not in vals:
+                    vals['exchange_rate'] = po.exchange_rate or 1.0
 
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('foreign.payment.request') or _('New')
@@ -178,7 +199,7 @@ class ForeignPaymentRequest(models.Model):
                             'name': line.description or line.product_id.name,
                             'account_id': account_id,
                             'split_method': 'by_customs_amount',
-                            'price_unit': line.amount,
+                            'price_unit': self._get_company_currency_amount(line.amount),
                         }))
                 if new_cost_lines:
                     draft_landed_cost.write({'cost_lines': new_cost_lines})

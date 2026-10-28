@@ -307,7 +307,7 @@ class PurchaseOrderForeignOps(models.Model):
                         'name': line.description or line.product_id.name,
                         'account_id': account_id,
                         'split_method': 'by_customs_amount',
-                        'price_unit': line.amount,
+                        'price_unit': pr._get_company_currency_amount(line.amount),
                     }))
                     
         if cost_lines:
@@ -988,23 +988,3 @@ class StockLandedCost(models.Model):
                 cost.write({'summary_line_ids': summary_vals})
 
         return True
-
-
-class StockMove(models.Model):
-    _inherit = 'stock.move'
-
-    def _action_done(self, cancel_backorder=False):
-        res = super()._action_done(cancel_backorder=cancel_backorder)
-        for move in res:
-            if move.state == 'done' and move.purchase_line_id:
-                po_line = move.purchase_line_id
-                order = po_line.order_id
-                if order.request_type == 'foreign' and order.exchange_rate:
-                    product = move.product_id
-                    # price_unit_etb is computed on PO line as price_unit * exchange_rate
-                    price_unit_etb = po_line.price_unit_etb or (po_line.price_unit * order.exchange_rate)
-                    # Convert price to product UOM if move's UOM is different
-                    if move.product_uom != product.uom_id:
-                        price_unit_etb = move.product_uom._compute_price(price_unit_etb, product.uom_id)
-                    product.sudo().with_company(move.company_id).write({'standard_price': price_unit_etb})
-        return res
