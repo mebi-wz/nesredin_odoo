@@ -30,14 +30,14 @@
     justify-content: center;
     gap: 12px;
     font-weight: 600;
-    color: #0f766e;
+    color: var(--brand-primary, #5D8DA8);
 }
 
 .nesredin-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(var(--brand-rgb, 15, 118, 110), 0.2);
-    border-top-color: var(--brand-primary, #0f766e);
+    border: 3px solid rgba(var(--brand-rgb, 93, 141, 168), 0.2);
+    border-top-color: var(--brand-primary, #5D8DA8);
     border-radius: 50%;
     animation: nesredin-spin 0.8s linear infinite;
 }
@@ -49,7 +49,7 @@
 /* ── Hero Header ──────────────────────────────────────────────────────────── */
 .nesredin-hero-header {
     position: relative;
-    background: var(--brand-hero-gradient, linear-gradient(135deg, #090d16 0%, #111827 50%, #064e3b 100%));
+    background: var(--brand-hero-gradient, linear-gradient(135deg, #182630 0%, #243742 50%, #355060 100%));
     color: #ffffff;
     padding: 2.2rem 2.5rem 1.8rem 2.5rem;
     overflow: hidden;
@@ -68,7 +68,7 @@
 .glow-1 {
     width: 340px;
     height: 340px;
-    background: radial-gradient(circle, var(--brand-primary, #10b981) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--brand-primary, #5D8DA8) 0%, transparent 70%);
     top: -80px;
     right: 15%;
 }
@@ -76,7 +76,7 @@
 .glow-2 {
     width: 280px;
     height: 280px;
-    background: radial-gradient(circle, var(--brand-secondary, #6366f1) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--brand-secondary, #c3df34) 0%, transparent 70%);
     bottom: -60px;
     left: 8%;
 }
@@ -104,7 +104,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--brand-light, #a7f3d0);
+    color: var(--brand-light, #ebf1f4);
     margin-bottom: 0.6rem;
 }
 
@@ -167,12 +167,12 @@
 }
 
 .hero-action-btn.btn-asset {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(109, 40, 217, 0.4) 100%);
-    border-color: rgba(167, 139, 250, 0.4);
+    background: linear-gradient(135deg, rgba(var(--brand-rgb, 93, 141, 168), 0.3) 0%, rgba(var(--brand-rgb, 93, 141, 168), 0.5) 100%);
+    border-color: rgba(var(--brand-rgb, 93, 141, 168), 0.4);
 }
 
 .hero-action-btn.btn-asset:hover {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.5) 0%, rgba(109, 40, 217, 0.6) 100%);
+    background: linear-gradient(135deg, rgba(var(--brand-rgb, 93, 141, 168), 0.5) 0%, rgba(var(--brand-rgb, 93, 141, 168), 0.7) 100%);
 }
 
 .hero-refresh-btn {
@@ -234,13 +234,13 @@
 }
 
 .spotlight-asset .spotlight-icon-wrap {
-    background: rgba(167, 139, 250, 0.2);
-    color: #c4b5fd;
+    background: rgba(var(--brand-rgb, 93, 141, 168), 0.2);
+    color: var(--brand-primary, #5D8DA8);
 }
 
 .spotlight-revenue .spotlight-icon-wrap {
-    background: rgba(52, 211, 153, 0.2);
-    color: #6ee7b7;
+    background: rgba(var(--brand-rgb, 93, 141, 168), 0.2);
+    color: var(--brand-primary, #5D8DA8);
 }
 
 .spotlight-info {
@@ -346,13 +346,13 @@
 }
 
 .tab-btn:hover {
-    color: #0f766e;
+    color: var(--brand-primary, #5D8DA8);
     background: #f1f5f9;
 }
 
 .tab-btn.active {
-    color: #0f766e;
-    background: rgba(15, 118, 110, 0.08);
+    color: var(--brand-primary, #5D8DA8);
+    background: rgba(var(--brand-rgb, 93, 141, 168), 0.12);
 }
 
 .tab-badge {
@@ -416,7 +416,7 @@
 .sec-link-btn {
     border: none;
     background: transparent;
-    color: #0f766e;
+    color: var(--brand-primary, #5D8DA8);
     font-weight: 600;
     font-size: 0.88rem;
     cursor: pointer;
@@ -426,7 +426,7 @@
 }
 
 .sec-link-btn:hover {
-    color: #0d9488;
+    color: var(--brand-secondary, #c3df34);
 }
 
 /* ── KPI Grid & Tiles ─────────────────────────────────────────────────────── */
@@ -621,8 +621,8 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: rgba(var(--brand-rgb, 94, 71, 102), 0.12);
-    color: var(--brand-primary, #5e4766);
+    background: rgba(var(--brand-rgb, 93, 141, 168), 0.12);
+    color: var(--brand-primary, #5D8DA8);
     font-size: 0.72rem;
     font-weight: 800;
     display: flex;
@@ -660,7 +660,7 @@
 .card-head-action {
     border: none;
     background: transparent;
-    color: #0f766e;
+    color: var(--brand-primary, #5D8DA8);
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
@@ -760,8 +760,8 @@
 .badge-bank {
     font-size: 0.78rem;
     font-weight: 600;
-    background: rgba(20, 184, 166, 0.1);
-    color: #0f766e;
+    background: rgba(var(--brand-rgb, 93, 141, 168), 0.12);
+    color: var(--brand-primary, #5D8DA8);
     padding: 3px 8px;
     border-radius: 6px;
 }

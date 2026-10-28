@@ -47,31 +47,73 @@ class NesredinDashboard(models.AbstractModel):
 
     @api.model
     def _get_brand_colors(self, company):
-        primary = (getattr(company, 'primary_color', None) or "#5e4766").strip()
-        secondary = (getattr(company, 'secondary_color', None) or "#010101").strip()
+        primary = None
+        brand = None
+
+        # 1. Query muk_web_colors / muk_web_theme active theme colors
+        if 'muk_web_colors.color_assets_editor' in self.env:
+            try:
+                editor = self.env['muk_web_colors.color_assets_editor']
+                colors = editor.get_color_variables_values(
+                    '/muk_web_colors/static/src/scss/colors_light.scss',
+                    'web._assets_primary_variables',
+                    ['color_brand', 'color_primary']
+                )
+                if colors.get('color_primary'):
+                    primary = colors['color_primary'].strip()
+                if colors.get('color_brand'):
+                    brand = colors['color_brand'].strip()
+            except Exception:
+                pass
+
+            try:
+                editor = self.env['muk_web_colors.color_assets_editor']
+                theme_vars = editor.get_color_variables_values(
+                    '/muk_web_theme/static/src/scss/colors.scss',
+                    'web._assets_primary_variables',
+                    ['color_appbar_active']
+                )
+                if not primary and theme_vars.get('color_appbar_active'):
+                    primary = theme_vars['color_appbar_active'].strip()
+            except Exception:
+                pass
+
+        # 2. Check company.primary_color if it is set and not the Odoo default purple
+        co_primary = getattr(company, 'primary_color', None)
+        if co_primary and co_primary.strip() and co_primary.strip().lower() not in ('#5e4766', '5e4766'):
+            if not primary:
+                primary = co_primary.strip()
+        co_secondary = getattr(company, 'secondary_color', None)
+        if co_secondary and co_secondary.strip() and co_secondary.strip().lower() not in ('#010101', '010101'):
+            if not brand:
+                brand = co_secondary.strip()
+
+        # Fallbacks to actual Muk theme colors
+        primary = primary or "#5D8DA8"
+        brand = brand or "#c3df34"
         if not primary.startswith("#"):
             primary = "#" + primary
-        if len(primary) != 7:
-            primary = "#5e4766"
+        if not brand.startswith("#"):
+            brand = "#" + brand
 
         try:
             r = int(primary[1:3], 16)
             g = int(primary[3:5], 16)
             b = int(primary[5:7], 16)
         except Exception:
-            r, g, b = 94, 71, 102
-            primary = "#5e4766"
+            r, g, b = 93, 141, 168
+            primary = "#5D8DA8"
 
         rgb = f"{r}, {g}, {b}"
-        dark = f"#{int(r * 0.22):02x}{int(g * 0.22):02x}{int(b * 0.22):02x}"
-        mid_dark = f"#{int(r * 0.45):02x}{int(g * 0.45):02x}{int(b * 0.45):02x}"
+        dark = f"#{int(r * 0.25):02x}{int(g * 0.32):02x}{int(b * 0.38):02x}"
+        mid_dark = f"#{int(r * 0.45):02x}{int(g * 0.54):02x}{int(b * 0.62):02x}"
         light = f"#{min(255, int(r + (255 - r) * 0.88)):02x}{min(255, int(g + (255 - g) * 0.88)):02x}{min(255, int(b + (255 - b) * 0.88)):02x}"
-        hero_grad = f"linear-gradient(135deg, #07090e 0%, {dark} 45%, {primary} 100%)"
-        accent_grad = f"linear-gradient(135deg, {primary} 0%, #8b5cf6 100%)"
+        hero_grad = f"linear-gradient(135deg, #182630 0%, #243742 45%, {mid_dark} 100%)"
+        accent_grad = f"linear-gradient(135deg, {primary} 0%, {brand} 100%)"
 
         return {
             "primary": primary,
-            "secondary": secondary,
+            "secondary": brand,
             "rgb": rgb,
             "dark": dark,
             "mid_dark": mid_dark,
