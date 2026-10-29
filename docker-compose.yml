@@ -25,6 +25,49 @@ services:
       USER: odoo_nesredin
       PASSWORD: odoo_nesredin
 
+    command:
+      - odoo
+      - --database=nesredin_sp
+      - --db-filter=^nesredin_sp$$
+      - --no-database-list
+
+    restart: unless-stopped
+
+    networks:
+      - nesredin_odoo_network
+
+  odoo19_production:
+    image: nesredin_odoo:19.0
+
+    container_name: dp_nesredin_odoo19_production
+
+    depends_on:
+      - db19
+
+    # Keep this port bound to localhost. Access it through an SSH tunnel only.
+    ports:
+      - "127.0.0.1:8094:8069"
+
+    # The shared Odoo data volume stores filestores under each database name,
+    # so nesredin_sp and production remain separated inside the same volume.
+    volumes:
+      - dp_nesredin_odoo19-web-data:/var/lib/odoo
+      - .:/mnt/nesredin_spare_part:rw
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+
+    environment:
+      HOST: db19
+      USER: odoo_nesredin
+      PASSWORD: odoo_nesredin
+
+    command:
+      - odoo
+      - --database=production
+      - --db-filter=^production$$
+      - --no-database-list
+      - --workers=1
+      - --max-cron-threads=1
+
     restart: unless-stopped
 
     networks:
