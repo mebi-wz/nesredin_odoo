@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Action -->
+    <record id="action_report_sale_top_buyers" model="ir.actions.report">
+        <field name="name">Top N Buyers Performance Report</field>
+        <field name="model">sale.top.buyers.analysis</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ibms_sale.report_sale_top_buyers_template</field>
+        <field name="report_file">ibms_sale.report_sale_top_buyers_template</field>
+        <field name="print_report_name">'Top Buyers - %s' % (object.company_id.name)</field>
+    </record>
+
+    <!-- QWeb Template -->
+    <template id="report_sale_top_buyers_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-size: 12px; color: #333;">
+                        
+                        <!-- Header Title -->
+                        <div class="row pb-2 mb-3 border-bottom border-2 border-dark align-items-center">
+                            <div class="col-8">
+                                <h3 class="fw-bold m-0" style="color: #1d3557; text-transform: uppercase;">
+                                    Executive Report: Top <t t-esc="doc.limit_n"/> Buyers Ranking
+                                </h3>
+                                <div class="text-muted small mt-1">
+                                    Ranked by: <strong><t t-esc="dict(doc._fields['metric'].selection).get(doc.metric)"/></strong>
+                                </div>
+                            </div>
+                            <div class="col-4 text-end">
+                                <div class="fw-bold fs-6 text-primary"><t t-esc="doc.company_id.name"/></div>
+                                <div class="text-muted small">
+                                    Period: <strong><t t-esc="doc.date_from"/></strong> to <strong><t t-esc="doc.date_to"/></strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KPI Highlights Cards -->
+                        <div class="row g-2 mb-3 text-center" style="font-size: 11px;">
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <span class="text-muted d-block">Period Total Company Sales</span>
+                                    <span class="fw-bold fs-6 text-dark" t-field="doc.total_company_sales"/>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <span class="text-muted d-block">Top Buyers Total Sales</span>
+                                    <span class="fw-bold fs-6 text-primary" t-field="doc.total_top_buyers_sales"/>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <span class="text-muted d-block">Sales Concentration</span>
+                                    <span class="fw-bold fs-6 text-success"><t t-esc="doc.top_buyers_share"/>%</span>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-light">
+                                    <span class="text-muted d-block">Top Buyers Physical Units</span>
+                                    <span class="fw-bold fs-6 text-info"><t t-esc="'%.2f' % doc.total_top_buyers_units"/></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ranking Table -->
+                        <table class="table table-sm table-bordered align-middle mt-2 mb-3" style="font-size: 11px;">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th style="width: 4%;">#</th>
+                                    <th style="width: 14%;">Customer Code</th>
+                                    <th>Buyer / Company Name</th>
+                                    <th style="width: 8%;">Orders</th>
+                                    <th style="width: 12%;">Volume (Units)</th>
+                                    <th style="width: 16%;">Sales Value (Net)</th>
+                                    <th style="width: 16%;">Revenue (Gross)</th>
+                                    <th style="width: 10%;">% Share</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.line_ids" t-as="line">
+                                    <tr t-att-class="'table-success' if line.rank == 1 else ('table-light' if line.rank in (2, 3) else '')">
+                                        <td class="text-center fw-bold">
+                                            <t t-if="line.rank == 1">🥇 1</t>
+                                            <t t-elif="line.rank == 2">🥈 2</t>
+                                            <t t-elif="line.rank == 3">🥉 3</t>
+                                            <t t-else=""><t t-esc="line.rank"/></t>
+                                        </td>
+                                        <td class="text-muted"><t t-esc="line.partner_ref or '-'"/></td>
+                                        <td class="fw-bold text-dark"><t t-esc="line.partner_id.name"/></td>
+                                        <td class="text-center"><t t-esc="line.order_count"/></td>
+                                        <td class="text-end fw-bold"><t t-esc="'%.2f' % line.total_units"/></td>
+                                        <td class="text-end"><span t-field="line.sales_value"/></td>
+                                        <td class="text-end fw-bold"><span t-field="line.revenue"/></td>
+                                        <td class="text-end fw-bold text-primary"><t t-esc="line.share_percentage"/>%</td>
+                                    </tr>
+                                </t>
+                                <tr class="table-secondary fw-bold">
+                                    <td colspan="4" class="text-end">Top <t t-esc="len(doc.line_ids)"/> Buyers Totals:</td>
+                                    <td class="text-end text-info fs-6"><t t-esc="'%.2f' % doc.total_top_buyers_units"/></td>
+                                    <td class="text-end text-dark fs-6"><span t-field="doc.total_top_buyers_sales"/></td>
+                                    <td class="text-end text-primary fs-6">
+                                        <span t-esc="sum(doc.line_ids.mapped('revenue'))" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                    </td>
+                                    <td class="text-end text-success fs-6"><t t-esc="doc.top_buyers_share"/>%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Executive Sign-off Block -->
+                        <div class="mt-4 pt-3 border-top border-2" style="page-break-inside: avoid; font-size: 11px;">
+                            <div class="row g-3 text-center">
+                                <div class="col-6">
+                                    <div class="p-2 border rounded">
+                                        <div class="fw-bold text-dark mb-1">Prepared by (Sales Analyst)</div>
+                                        <div class="text-muted" style="min-height: 18px;"><t t-esc="user.name"/></div>
+                                        <div class="border-bottom my-3" style="border-style: dashed !important;"/>
+                                        <span class="text-muted small">Signature &amp; Date</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 border rounded">
+                                        <div class="fw-bold text-dark mb-1">Reviewed by (Commercial Director / CFO)</div>
+                                        <div class="text-muted" style="min-height: 18px;">Executive Approval</div>
+                                        <div class="border-bottom my-3" style="border-style: dashed !important;"/>
+                                        <span class="text-muted small">Signature &amp; Date</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

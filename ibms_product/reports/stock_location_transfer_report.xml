@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report Action for Location Stock Transfer -->
+    <record id="action_report_stock_location_transfer" model="ir.actions.report">
+        <field name="name">Location Transfer Slip</field>
+        <field name="model">stock.location.transfer</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">ibms_product.report_stock_location_transfer_template</field>
+        <field name="report_file">ibms_product.report_stock_location_transfer_template</field>
+        <field name="print_report_name">'Transfer Slip - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_stock_location_transfer"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- QWeb Template for Location Stock Transfer Slip -->
+    <template id="report_stock_location_transfer_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-size: 13px; color: #333;">
+                        <!-- Document Header Title -->
+                        <div class="row pb-2 mb-3 border-bottom border-2 border-dark align-items-center">
+                            <div class="col-7">
+                                <h3 class="fw-bold m-0" style="color: #1d3557; text-transform: uppercase;">
+                                    Location Stock Transfer Slip
+                                </h3>
+                                <div class="text-muted small mt-1">Internal Warehouse Goods Movement Document</div>
+                            </div>
+                            <div class="col-5 text-end">
+                                <span class="fs-5 fw-bold text-primary"><t t-esc="doc.name"/></span>
+                                <div>
+                                    <span class="badge px-2 py-1"
+                                          t-attf-style="font-size: 11px; #{'background-color: #6c757d;' if doc.state == 'draft' else 'background-color: #ffc107; color: #000;' if doc.state == 'submitted' else 'background-color: #0dcaf0; color: #000;' if doc.state == 'approved' else 'background-color: #0d6efd;' if doc.state == 'in_transit' else 'background-color: #198754;' if doc.state == 'received' else 'background-color: #dc3545;'}">
+                                        <t t-esc="dict(doc._fields['state'].selection).get(doc.state)"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transfer Info Grid -->
+                        <div class="row g-2 mb-3">
+                            <!-- Source Warehouse / Branch -->
+                            <div class="col-6">
+                                <div class="p-2 border rounded bg-light h-100">
+                                    <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 12px; text-transform: uppercase;">
+                                        <i class="fa fa-arrow-circle-up text-danger me-1"/> From (Source)
+                                    </div>
+                                    <table class="table table-borderless table-sm m-0" style="font-size: 12px;">
+                                        <tr>
+                                            <td class="text-muted p-0" style="width: 35%;">Warehouse:</td>
+                                            <td class="fw-bold p-0"><t t-esc="doc.source_warehouse_id.name"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted p-0">Cost Center:</td>
+                                            <td class="p-0"><t t-esc="doc.source_analytic_account_id.name or '-'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted p-0">Location:</td>
+                                            <td class="p-0"><t t-esc="doc.location_id.complete_name or '-'"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Destination Warehouse / Branch -->
+                            <div class="col-6">
+                                <div class="p-2 border rounded bg-light h-100">
+                                    <div class="fw-bold text-dark border-bottom pb-1 mb-1" style="font-size: 12px; text-transform: uppercase;">
+                                        <i class="fa fa-arrow-circle-down text-success me-1"/> To (Destination)
+                                    </div>
+                                    <table class="table table-borderless table-sm m-0" style="font-size: 12px;">
+                                        <tr>
+                                            <td class="text-muted p-0" style="width: 35%;">Warehouse:</td>
+                                            <td class="fw-bold p-0"><t t-esc="doc.dest_warehouse_id.name"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted p-0">Cost Center:</td>
+                                            <td class="p-0"><t t-esc="doc.dest_analytic_account_id.name or '-'"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-muted p-0">Location:</td>
+                                            <td class="p-0"><t t-esc="doc.location_dest_id.complete_name or '-'"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date & Personnel Details Bar -->
+                        <div class="row g-2 mb-3 text-center" style="font-size: 11px;">
+                            <div class="col-3">
+                                <div class="border rounded p-1">
+                                    <span class="text-muted d-block">Transfer Date</span>
+                                    <span class="fw-bold" t-field="doc.date" t-options='{"widget": "datetime"}'/>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border rounded p-1">
+                                    <span class="text-muted d-block">Requested By</span>
+                                    <span class="fw-bold" t-esc="doc.requested_by_id.name"/>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border rounded p-1">
+                                    <span class="text-muted d-block">Dispatched On</span>
+                                    <span class="fw-bold" t-field="doc.sent_date" t-options='{"widget": "datetime"}'/>
+                                    <span t-if="not doc.sent_date" class="text-muted">-</span>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border rounded p-1">
+                                    <span class="text-muted d-block">Received On</span>
+                                    <span class="fw-bold" t-field="doc.received_date" t-options='{"widget": "datetime"}'/>
+                                    <span t-if="not doc.received_date" class="text-muted">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transferred Products Table -->
+                        <table class="table table-sm table-bordered align-middle mt-2 mb-3" style="font-size: 11px;">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th style="width: 4%;">#</th>
+                                    <th style="width: 7%;">Image</th>
+                                    <th style="width: 14%;">Product Code</th>
+                                    <th style="width: 16%;">Part Number</th>
+                                    <th>Description / Name</th>
+                                    <th style="width: 18%;">Secondary Part #s</th>
+                                    <th style="width: 10%;">Qty</th>
+                                    <th style="width: 8%;">UoM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="total_qty" t-value="0.0"/>
+                                <t t-foreach="doc.line_ids" t-as="line">
+                                    <t t-set="total_qty" t-value="total_qty + line.product_uom_qty"/>
+                                    <tr>
+                                        <td class="text-center fw-bold"><t t-esc="line_index + 1"/></td>
+                                        <td class="text-center p-1">
+                                            <t t-if="line.image_128">
+                                                <img t-att-src="image_data_uri(line.image_128)" style="max-height: 35px; max-width: 35px; object-fit: contain; border-radius: 4px; border: 1px solid #ddd;"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="text-muted small">-</span>
+                                            </t>
+                                        </td>
+                                        <td class="fw-bold text-primary"><t t-esc="line.default_code or '-'"/></td>
+                                        <td class="fw-bold text-dark"><t t-esc="line.part_number or '-'"/></td>
+                                        <td>
+                                            <span class="fw-bold"><t t-esc="line.product_id.name"/></span>
+                                            <div t-if="line.description and line.description != line.product_id.name" class="text-muted small">
+                                                <t t-esc="line.description"/>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <t t-if="line.secondary_parts_display">
+                                                <span class="badge bg-secondary p-1" style="font-size: 9px; white-space: normal; text-align: left;">
+                                                    <t t-esc="line.secondary_parts_display"/>
+                                                </span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="text-muted">-</span>
+                                            </t>
+                                        </td>
+                                        <td class="text-end fw-bold fs-6"><t t-esc="'%.2f' % line.product_uom_qty"/></td>
+                                        <td class="text-center text-muted"><t t-esc="line.product_uom_id.name"/></td>
+                                    </tr>
+                                </t>
+                                <tr class="table-secondary fw-bold">
+                                    <td colspan="6" class="text-end">Total Demand Quantity:</td>
+                                    <td class="text-end text-primary fs-6"><t t-esc="'%.2f' % total_qty"/></td>
+                                    <td class="text-center">Items</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Notes / Instructions -->
+                        <div t-if="doc.note" class="mb-3 p-2 border rounded bg-light" style="font-size: 11px;">
+                            <strong>Instructions / Remarks:</strong>
+                            <p class="m-0 text-muted"><t t-esc="doc.note"/></p>
+                        </div>
+
+                        <!-- 3-Way Official Signatures Block -->
+                        <div class="mt-4 pt-2 border-top border-2" style="page-break-inside: avoid; font-size: 11px;">
+                            <div class="row g-2 text-center">
+                                <!-- 1. Requester -->
+                                <div class="col-4">
+                                    <div class="p-2 border rounded">
+                                        <div class="fw-bold text-dark mb-1">Requested By</div>
+                                        <div class="text-muted" style="min-height: 18px;">
+                                            <t t-esc="doc.requested_by_id.name"/>
+                                        </div>
+                                        <div class="border-bottom my-3" style="border-style: dashed !important;"/>
+                                        <span class="text-muted small">Signature &amp; Date</span>
+                                    </div>
+                                </div>
+                                <!-- 2. Dispatcher / Source Staff -->
+                                <div class="col-4">
+                                    <div class="p-2 border rounded">
+                                        <div class="fw-bold text-dark mb-1">Dispatched (Source Warehouse)</div>
+                                        <div class="text-muted" style="min-height: 18px;">
+                                            <t t-esc="doc.sent_by_id.name or 'Staff Name: ____________'"/>
+                                        </div>
+                                        <div class="border-bottom my-3" style="border-style: dashed !important;"/>
+                                        <span class="text-muted small">Signature &amp; Date</span>
+                                    </div>
+                                </div>
+                                <!-- 3. Receiver / Dest Staff -->
+                                <div class="col-4">
+                                    <div class="p-2 border rounded">
+                                        <div class="fw-bold text-dark mb-1">Received (Dest Warehouse)</div>
+                                        <div class="text-muted" style="min-height: 18px;">
+                                            <t t-esc="doc.received_by_id.name or 'Staff Name: ____________'"/>
+                                        </div>
+                                        <div class="border-bottom my-3" style="border-style: dashed !important;"/>
+                                        <span class="text-muted small">Signature &amp; Date</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

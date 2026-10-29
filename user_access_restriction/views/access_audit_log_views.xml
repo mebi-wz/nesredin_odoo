@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access Audit Log List View -->
+    <record id="view_user_access_audit_log_tree" model="ir.ui.view">
+        <field name="name">user.access.audit.log.tree</field>
+        <field name="model">user.access.audit.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="1" decoration-danger="status == 'blocked'" decoration-info="status == 'allowed'">
+                <field name="attempt_time"/>
+                <field name="user_name"/>
+                <field name="user_login"/>
+                <field name="status" widget="badge" decoration-danger="status == 'blocked'" decoration-success="status == 'allowed'"/>
+                <field name="reason"/>
+                <field name="schedule_summary" optional="show"/>
+                <field name="ip_address" optional="show"/>
+                <field name="user_agent" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Access Audit Log Form View -->
+    <record id="view_user_access_audit_log_form" model="ir.ui.view">
+        <field name="name">user.access.audit.log.form</field>
+        <field name="model">user.access.audit.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="1">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="user_login" string="Blocked User Login"/>
+                        <h2><field name="user_login"/> (<field name="user_name"/>)</h2>
+                    </div>
+                    <group>
+                        <group string="Incident Details">
+                            <field name="attempt_time"/>
+                            <field name="status" widget="badge" decoration-danger="status == 'blocked'"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group string="Network Information">
+                            <field name="ip_address"/>
+                            <field name="user_agent"/>
+                        </group>
+                    </group>
+                    <group string="Security Rejection Diagnostics">
+                        <field name="reason"/>
+                        <field name="schedule_summary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Access Audit Log Search View -->
+    <record id="view_user_access_audit_log_search" model="ir.ui.view">
+        <field name="name">user.access.audit.log.search</field>
+        <field name="model">user.access.audit.log</field>
+        <field name="arch" type="xml">
+            <search string="Search Access Logs">
+                <field name="user_name" filter_domain="['|', ('user_name', 'ilike', self), ('user_login', 'ilike', self)]" string="User / Login"/>
+                <field name="ip_address"/>
+                <field name="reason"/>
+                <filter string="Blocked Incidents" name="filter_blocked" domain="[('status', '=', 'blocked')]"/>
+                <filter string="Today" name="filter_today" domain="[('attempt_time', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <group>
+                    <filter string="User" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Access Audit Log -->
+    <record id="action_user_access_audit_log" model="ir.actions.act_window">
+        <field name="name">Access Restriction Audit Logs</field>
+        <field name="res_model">user.access.audit.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_blocked': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No blocked access attempts recorded yet!
+            </p>
+            <p>
+                When a user tries to access Odoo outside their configured operating hours or date range, the security event is automatically audited here.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit res.users form view to add Access Schedule tab -->
+    <record id="view_res_users_access_schedule_form" model="ir.ui.view">
+        <field name="name">res.users.form.access.schedule</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Access Schedule" name="access_schedule" groups="base.group_system">
+                    <group>
+                        <group string="Enforcement Toggle">
+                            <field name="restrict_access_time" widget="boolean_toggle"/>
+                            <field name="bypass_time_restriction" widget="boolean_toggle" invisible="not restrict_access_time"/>
+                        </group>
+                        <group string="Approved Date Window" invisible="not restrict_access_time">
+                            <field name="access_date_from"/>
+                            <field name="access_date_to"/>
+                            <field name="access_tz"/>
+                        </group>
+                    </group>
+
+                    <group invisible="not restrict_access_time">
+                        <group string="Daily Permitted Hours">
+                            <field name="access_time_from" widget="float_time"/>
+                            <field name="access_time_to" widget="float_time"/>
+                        </group>
+                        <group string="Permitted Days of Week">
+                            <div class="o_row">
+                                <field name="access_mon"/> <span class="me-3">Mon</span>
+                                <field name="access_tue"/> <span class="me-3">Tue</span>
+                                <field name="access_wed"/> <span class="me-3">Wed</span>
+                                <field name="access_thu"/> <span class="me-3">Thu</span>
+                                <field name="access_fri"/> <span class="me-3">Fri</span>
+                                <field name="access_sat"/> <span class="me-3">Sat</span>
+                                <field name="access_sun"/> <span>Sun</span>
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit res.users tree view to show schedule status -->
+    <record id="view_res_users_access_schedule_tree" model="ir.ui.view">
+        <field name="name">res.users.tree.access.schedule</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='login_date']" position="before">
+                <field name="restrict_access_time" string="Time Restricted" optional="show" widget="boolean"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

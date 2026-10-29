@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_data_export_audit_log"
+              name="Data Export Logs"
+              parent="base.menu_users"
+              action="action_data_export_audit_log"
+              sequence="36"
+              groups="base.group_system"/>
+</odoo>

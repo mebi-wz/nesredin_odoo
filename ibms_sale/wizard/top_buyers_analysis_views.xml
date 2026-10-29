@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_top_buyers_analysis_form" model="ir.ui.view">
+        <field name="name">sale.top.buyers.analysis.form</field>
+        <field name="model">sale.top.buyers.analysis</field>
+        <field name="arch" type="xml">
+            <form string="Top N Buyers Analysis">
+                <header>
+                    <button name="action_compute_ranking" string="Calculate Ranking" type="object" class="btn-primary" icon="fa-refresh"/>
+                    <button name="action_print_pdf" string="Print PDF Report" type="object" class="btn-success" icon="fa-print"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Top N Buyers Ranking &amp; Concentration</h2>
+                        <p class="text-muted">Analyze key customer purchasing power by Volume (Units), Sales Value (Untaxed), or Revenue (Gross).</p>
+                    </div>
+
+                    <!-- Configuration Parameters Bar -->
+                    <div class="p-3 mb-3 border rounded bg-light">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-2">
+                                <label for="limit_n" class="fw-bold text-dark"/>
+                                <field name="limit_n" class="form-control fw-bold text-primary"/>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="metric" class="fw-bold text-dark"/>
+                                <field name="metric" class="form-control fw-bold"/>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="period" class="fw-bold text-dark"/>
+                                <field name="period" class="form-control"/>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="date_from" class="small text-muted"/>
+                                <field name="date_from" class="form-control form-control-sm"/>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="date_to" class="small text-muted"/>
+                                <field name="date_to" class="form-control form-control-sm"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI Concentration Highlights -->
+                    <div class="row g-2 mb-3 text-center" invisible="not line_ids">
+                        <div class="col-3">
+                            <div class="p-2 border rounded bg-white shadow-sm">
+                                <span class="text-muted small d-block">Period Total Company Sales</span>
+                                <span class="fw-bold fs-6 text-dark"><field name="total_company_sales" widget="monetary"/></span>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 border rounded bg-white shadow-sm">
+                                <span class="text-muted small d-block">Top N Buyers Total Sales</span>
+                                <span class="fw-bold fs-6 text-primary"><field name="total_top_buyers_sales" widget="monetary"/></span>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 border rounded bg-white shadow-sm">
+                                <span class="text-muted small d-block">Top N Sales Concentration</span>
+                                <span class="fw-bold fs-6 text-success"><field name="top_buyers_share"/>%</span>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-2 border rounded bg-white shadow-sm">
+                                <span class="text-muted small d-block">Top N Physical Units Sold</span>
+                                <span class="fw-bold fs-6 text-info"><field name="total_top_buyers_units"/> Units</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ranking Results Table -->
+                    <field name="line_ids" readonly="1">
+                        <list create="0" delete="0" edit="0" decoration-bf="rank &lt;= 3">
+                            <field name="rank" string="#" decoration-success="rank == 1" decoration-info="rank in (2, 3)"/>
+                            <field name="partner_id" string="Buyer Name"/>
+                            <field name="partner_ref" string="Customer Code" optional="show"/>
+                            <field name="order_count" string="Orders" optional="show"/>
+                            <field name="total_units" string="Volume (Units)" optional="show"/>
+                            <field name="sales_value" string="Sales Value (Untaxed)" widget="monetary"/>
+                            <field name="revenue" string="Revenue (Gross)" widget="monetary"/>
+                            <field name="share_percentage" string="Share (%)" widget="badge" decoration-success="share_percentage &gt; 15" decoration-info="share_percentage &gt; 5"/>
+                            <field name="currency_id" column_invisible="True"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Top Buyers Action Window -->
+    <record id="action_sale_top_buyers_analysis" model="ir.actions.act_window">
+        <field name="name">Top N Buyers Analytics</field>
+        <field name="res_model">sale.top.buyers.analysis</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Calculate and rank your Top N Buyers.
+            </p>
+            <p>
+                Configure the ranking metric (Volume, Sales Value, or Revenue) and time period to immediately analyze customer concentration and purchasing power.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item under Sales > Reporting -->
+    <menuitem id="menu_sale_top_buyers_analysis"
+              name="Top N Buyers Analytics"
+              parent="sale.menu_sale_report"
+              action="action_sale_top_buyers_analysis"
+              sequence="10"/>
+</odoo>

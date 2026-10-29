@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Data Export Audit Log List View -->
+    <record id="view_data_export_audit_log_tree" model="ir.ui.view">
+        <field name="name">data.export.audit.log.tree</field>
+        <field name="model">data.export.audit.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="1">
+                <field name="export_time"/>
+                <field name="user_name"/>
+                <field name="user_login" optional="hide"/>
+                <field name="res_model_name" string="Data Object / Type"/>
+                <field name="record_count" decoration-danger="record_count &gt; 500" decoration-warning="record_count &gt; 100" decoration-info="record_count &lt;= 100"/>
+                <field name="export_format" widget="badge" decoration-success="export_format == 'xlsx'" decoration-warning="export_format == 'csv'"/>
+                <field name="export_mode" optional="show"/>
+                <field name="fields_count" optional="show"/>
+                <field name="ip_address" optional="show"/>
+                <field name="status" widget="badge" decoration-success="status == 'success'" decoration-danger="status == 'failed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Data Export Audit Log Form View -->
+    <record id="view_data_export_audit_log_form" model="ir.ui.view">
+        <field name="name">data.export.audit.log.form</field>
+        <field name="model">data.export.audit.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="1">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="display_name" string="Export Operation"/>
+                        <h3><field name="display_name"/></h3>
+                    </div>
+                    <group>
+                        <group string="Export Details">
+                            <field name="user_id"/>
+                            <field name="user_login"/>
+                            <field name="export_time"/>
+                            <field name="export_format" widget="badge"/>
+                            <field name="status" widget="badge"/>
+                        </group>
+                        <group string="Data Metrics">
+                            <field name="res_model_name"/>
+                            <field name="res_model"/>
+                            <field name="record_count"/>
+                            <field name="fields_count"/>
+                            <field name="export_mode"/>
+                        </group>
+                    </group>
+                    <group string="Network &amp; Device Information">
+                        <field name="ip_address"/>
+                        <field name="user_agent"/>
+                    </group>
+                    <notebook>
+                        <page string="Exported Fields">
+                            <field name="exported_fields" nolabel="1"/>
+                        </page>
+                        <page string="Filter Domain / Search Criteria">
+                            <field name="export_domain" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Data Export Audit Log Search View -->
+    <record id="view_data_export_audit_log_search" model="ir.ui.view">
+        <field name="name">data.export.audit.log.search</field>
+        <field name="model">data.export.audit.log</field>
+        <field name="arch" type="xml">
+            <search string="Search Export Logs">
+                <field name="user_name" filter_domain="['|', ('user_name', 'ilike', self), ('user_login', 'ilike', self)]" string="User / Email"/>
+                <field name="res_model_name" filter_domain="['|', ('res_model_name', 'ilike', self), ('res_model', 'ilike', self)]" string="Model / Object"/>
+                <field name="ip_address"/>
+                <filter string="Today" name="filter_today" domain="[('export_time', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="Large Exports (&gt; 100 records)" name="filter_large" domain="[('record_count', '&gt;', 100)]"/>
+                <filter string="Mass Exports (&gt; 500 records)" name="filter_mass" domain="[('record_count', '&gt;', 500)]"/>
+                <separator/>
+                <filter string="Excel (.xlsx)" name="filter_xlsx" domain="[('export_format', '=', 'xlsx')]"/>
+                <filter string="CSV (.csv)" name="filter_csv" domain="[('export_format', '=', 'csv')]"/>
+                <group>
+                    <filter string="User" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Data Type / Object" name="group_model" context="{'group_by': 'res_model_name'}"/>
+                    <filter string="Format" name="group_format" context="{'group_by': 'export_format'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Window Action -->
+    <record id="action_data_export_audit_log" model="ir.actions.act_window">
+        <field name="name">Data Export Audit Logs</field>
+        <field name="res_model">data.export.audit.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_today': 0}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No data export events recorded yet!
+            </p>
+            <p>
+                Whenever users export data (such as Contacts, Sales Orders, Invoices, or Products) to Excel or CSV, an audit record is automatically created here.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -31,6 +31,8 @@ IBMS Sales Customizations:
         'views/credit_management_views.xml',
         'views/account_move_views.xml',
         'views/res_config_settings_views.xml',
+        'reports/top_buyers_report.xml',
+        'wizard/top_buyers_analysis_views.xml',
         'views/sale_report_views.xml',
     ],
     'installable': True,

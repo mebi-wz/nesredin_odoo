@@ -86,6 +86,11 @@ class MainWarehouseStock(models.Model):
             'target': 'current',
         }
 
+    def action_print_stock_report(self):
+        """Prints official PDF Main Warehouse Stock Sheet."""
+        return self.env.ref('ibms_product.action_report_main_warehouse_stock').report_action(self)
+
+
     def init(self):
         tools.drop_view_if_exists(self.env.cr, self._table)
         self.env.cr.execute("""

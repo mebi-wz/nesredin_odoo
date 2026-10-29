@@ -1,3 +1,5 @@
 # -*- coding: utf-8 -*-
 from . import sale_order_reject_wizard
 from . import sale_report_wizard
+from . import top_buyers_analysis
+

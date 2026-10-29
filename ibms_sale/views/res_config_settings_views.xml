@@ -21,6 +21,26 @@
                     </div>
                 </setting>
             </xpath>
+            <xpath expr="//block[@id='pricing_setting_container']" position="after">
+                <block id="top_buyers_setting_container" string="Top N Buyers Analytics">
+                    <setting id="top_buyers_setting" string="Top Buyers Default Configuration" help="Define default ranking metric, time period, and number of buyers to rank.">
+                        <div class="content-group">
+                            <div class="row mt16">
+                                <label for="top_buyers_limit_n" class="col-lg-5 o_light_label" string="Default Top N Buyers"/>
+                                <field name="top_buyers_limit_n" class="oe_inline text-end" style="max-width: 100px;"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="top_buyers_default_metric" class="col-lg-5 o_light_label" string="Default Metric"/>
+                                <field name="top_buyers_default_metric" class="oe_inline" style="max-width: 250px;"/>
+                            </div>
+                            <div class="row mt8">
+                                <label for="top_buyers_default_period" class="col-lg-5 o_light_label" string="Default Period"/>
+                                <field name="top_buyers_default_period" class="oe_inline" style="max-width: 250px;"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
         </field>
     </record>
 </odoo>

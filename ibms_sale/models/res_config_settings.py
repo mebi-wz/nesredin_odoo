@@ -22,3 +22,19 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
         string="Withholding Tax Threshold (ETB)",
     )
+    top_buyers_limit_n = fields.Integer(
+        related='company_id.top_buyers_limit_n',
+        readonly=False,
+        string="Default Top N Buyers Count",
+    )
+    top_buyers_default_metric = fields.Selection(
+        related='company_id.top_buyers_default_metric',
+        readonly=False,
+        string="Default Ranking Metric",
+    )
+    top_buyers_default_period = fields.Selection(
+        related='company_id.top_buyers_default_period',
+        readonly=False,
+        string="Default Analysis Period",
+    )
+

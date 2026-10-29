@@ -68,7 +68,7 @@
                         <t t-if="doc.report_type in ('daily', 'all')">
                             <div class="mb-4">
                                 <h4 class="fw-bold mb-2" style="color: #1d3557; border-bottom: 2px solid #1d3557; padding-bottom: 4px;">
-                                    <i class="fa fa-calendar me-2"/> Daily Sales Breakdown
+                                    <i class="fa fa-calendar me-2"/> Daily Sales Summary
                                 </h4>
                                 <table class="table table-sm table-striped table-bordered align-middle">
                                     <thead class="table-dark text-center">
@@ -100,6 +100,70 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <!-- Daily Product Details with Images -->
+                            <div class="mb-4">
+                                <h4 class="fw-bold mb-2" style="color: #1d3557; border-bottom: 2px solid #1d3557; padding-bottom: 4px;">
+                                    <i class="fa fa-cubes me-2"/> Daily Sales Item Details (with Product Images)
+                                </h4>
+                                <t t-foreach="data['daily_data']" t-as="d">
+                                    <div class="mb-3" style="page-break-inside: avoid;">
+                                        <div class="p-2 mb-1 bg-light border-start border-4 border-primary rounded-1 d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="fw-bold text-primary fs-6"><i class="fa fa-calendar-check-o me-1"/> <t t-esc="d['date']"/></span>
+                                                <span class="text-muted small ms-2">(<t t-esc="d['orders_count']"/> Orders: <t t-esc="d['customers_display']"/>)</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge bg-success" style="font-size: 11px;">Day Total: <t t-esc="d['total']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></span>
+                                            </div>
+                                        </div>
+                                        <table class="table table-sm table-striped table-bordered align-middle mb-2" style="font-size: 11px;">
+                                            <thead class="table-secondary text-center">
+                                                <tr>
+                                                    <th style="width: 5%;">Image</th>
+                                                    <th style="width: 12%;">Product Code</th>
+                                                    <th style="width: 15%;">Part Number</th>
+                                                    <th>Product Name</th>
+                                                    <th style="width: 18%;">Secondary Part #s</th>
+                                                    <th style="width: 8%;">Qty Sold</th>
+                                                    <th style="width: 10%;">Avg Price</th>
+                                                    <th style="width: 12%;">Total Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="d['products']" t-as="p">
+                                                    <tr>
+                                                        <td class="text-center p-1">
+                                                            <t t-if="p['image_128']">
+                                                                <img t-att-src="image_data_uri(p['image_128'])" style="max-height: 32px; max-width: 32px; object-fit: contain; border-radius: 4px; border: 1px solid #ccc;"/>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span class="text-muted small">-</span>
+                                                            </t>
+                                                        </td>
+                                                        <td class="fw-bold text-primary"><t t-esc="p['product_code']"/></td>
+                                                        <td class="fw-bold text-dark"><t t-esc="p['part_number']"/></td>
+                                                        <td><t t-esc="p['name']"/></td>
+                                                        <td>
+                                                            <t t-if="p['has_secondary']">
+                                                                <span class="badge bg-secondary p-1" style="font-size: 9px; white-space: normal; text-align: left;">
+                                                                    <t t-esc="p['secondary_parts']"/>
+                                                                </span>
+                                                            </t>
+                                                            <t t-else="">
+                                                                <span class="text-muted fst-italic">-</span>
+                                                            </t>
+                                                        </td>
+                                                        <td class="text-end fw-bold"><t t-esc="'%.2f' % p['qty']"/> <span class="text-muted small"><t t-esc="p['uom']"/></span></td>
+                                                        <td class="text-end"><t t-esc="p['avg_price']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                                        <td class="text-end fw-bold text-success"><t t-esc="p['total']" t-options="{'widget': 'monetary', 'display_currency': data['currency']}"/></td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
                             </div>
                         </t>
 

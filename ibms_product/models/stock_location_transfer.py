@@ -342,6 +342,12 @@ class StockLocationTransfer(models.Model):
             'type': 'ir.actions.act_window',
         }
 
+    def action_print_transfer_slip(self):
+        """Prints official PDF Location Stock Transfer Slip / Waybill."""
+        self.ensure_one()
+        return self.env.ref('ibms_product.action_report_stock_location_transfer').report_action(self)
+
+
 
 class StockLocationTransferLine(models.Model):
     _name = 'stock.location.transfer.line'
@@ -359,6 +365,36 @@ class StockLocationTransferLine(models.Model):
         string='Product',
         required=True,
         domain="[('type', '=', 'consu')]"
+    )
+
+    image_1920 = fields.Image(
+        string='Image',
+        related='product_id.image_1920',
+        readonly=True,
+    )
+
+    image_128 = fields.Image(
+        string='Image (Small)',
+        related='product_id.image_128',
+        readonly=True,
+    )
+
+    default_code = fields.Char(
+        string='Product Code',
+        related='product_id.default_code',
+        readonly=True,
+    )
+
+    part_number = fields.Char(
+        string='Part Number',
+        related='product_id.part_number',
+        readonly=True,
+    )
+
+    secondary_parts_display = fields.Char(
+        string='Secondary Part Numbers',
+        related='product_id.secondary_parts_display',
+        readonly=True,
     )
 
     description = fields.Char(
@@ -379,3 +415,4 @@ class StockLocationTransferLine(models.Model):
         related='product_id.uom_id',
         readonly=True
     )
+

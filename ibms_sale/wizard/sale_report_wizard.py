@@ -153,6 +153,7 @@ class SaleReportWizard(models.TransientModel):
                     'untaxed': 0.0,
                     'total': 0.0,
                     'lines_count': 0,
+                    'products': {},
                 }
             g = daily_groups[order_date]
             g['order_ids'].add(line.order_id.id)
@@ -162,9 +163,39 @@ class SaleReportWizard(models.TransientModel):
             g['total'] += line.price_total
             g['lines_count'] += 1
 
+            prod = line.product_id
+            if prod.id not in g['products']:
+                sec_parts = prod.secondary_part_number_ids.filtered(lambda r: r.part_type == 'secondary' and r.name)
+                sec_display_list = [f"{sp.name} ({sp.note})" if sp.note else sp.name for sp in sec_parts]
+                g['products'][prod.id] = {
+                    'product_id': prod.id,
+                    'product_code': prod.default_code or '',
+                    'part_number': prod.part_number or '',
+                    'name': prod.name,
+                    'image_128': prod.image_128,
+                    'secondary_parts': ", ".join(sec_display_list) if sec_display_list else False,
+                    'has_secondary': bool(sec_display_list),
+                    'qty': 0.0,
+                    'uom': line.product_uom_id.name if line.product_uom_id else prod.uom_id.name,
+                    'untaxed': 0.0,
+                    'total': 0.0,
+                }
+            pg = g['products'][prod.id]
+            pg['qty'] += line.product_uom_qty
+            pg['untaxed'] += line.price_subtotal
+            pg['total'] += line.price_total
+
         daily_data = []
         for d in sorted(daily_groups.keys()):
             g = daily_groups[d]
+            products_list = []
+            for pid in sorted(g['products'].keys(), key=lambda x: g['products'][x]['total'], reverse=True):
+                pg = g['products'][pid]
+                avg_price = (pg['untaxed'] / pg['qty']) if pg['qty'] else 0.0
+                products_list.append({
+                    **pg,
+                    'avg_price': avg_price,
+                })
             daily_data.append({
                 'date': d.strftime('%Y-%m-%d'),
                 'orders_count': len(g['order_ids']),
@@ -172,6 +203,7 @@ class SaleReportWizard(models.TransientModel):
                 'qty': g['qty'],
                 'untaxed': g['untaxed'],
                 'total': g['total'],
+                'products': products_list,
             })
 
         # 2. Customer Breakdown

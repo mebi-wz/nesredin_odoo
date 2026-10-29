@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_sale_order_reject_wizard,sale.order.reject.wizard,model_sale_order_reject_wizard,sales_team.group_sale_salesman,1,1,1,1
 access_sale_report_wizard,sale.report.wizard,model_sale_report_wizard,sales_team.group_sale_salesman,1,1,1,1
 access_account_payment_sales_user,account.payment.sales.user,account.model_account_payment,sales_team.group_sale_salesman,1,0,0,0
+access_sale_top_buyers_analysis,sale.top.buyers.analysis,model_sale_top_buyers_analysis,sales_team.group_sale_salesman,1,1,1,1
+access_sale_top_buyers_line,sale.top.buyers.line,model_sale_top_buyers_line,sales_team.group_sale_salesman,1,1,1,1

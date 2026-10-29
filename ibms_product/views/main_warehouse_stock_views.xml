@@ -28,6 +28,9 @@
         <field name="model">main.warehouse.stock</field>
         <field name="arch" type="xml">
             <form string="Main Warehouse Stock Details" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_print_stock_report" type="object" string="Print Stock Sheet" class="btn-primary" icon="fa-print"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_product" type="object" class="oe_stat_button" icon="fa-cube" string="View Product"/>
@@ -67,10 +70,10 @@
         <field name="model">main.warehouse.stock</field>
         <field name="arch" type="xml">
             <search string="Search Main Warehouse Stock">
+                <field name="product_id" string="Product / Code / Part #" filter_domain="['|', '|', '|', ('default_code', 'ilike', self), ('product_id', 'ilike', self), ('part_number', 'ilike', self), ('secondary_parts_display', 'ilike', self)]"/>
                 <field name="default_code" string="Product Code"/>
-                <field name="part_number" string="Primary Part #"/>
+                <field name="part_number" string="Part Number (Primary &amp; Secondary)" filter_domain="['|', ('part_number', 'ilike', self), ('secondary_parts_display', 'ilike', self)]"/>
                 <field name="secondary_parts_display" string="Secondary Part Numbers"/>
-                <field name="product_id" string="Product Name"/>
                 <field name="location_id" string="Location / Rack"/>
                 <group>
                     <filter string="In Stock Only" name="filter_available" domain="[('available_quantity', '&gt;', 0)]"/>

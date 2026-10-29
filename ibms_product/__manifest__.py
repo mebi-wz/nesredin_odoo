@@ -30,6 +30,8 @@ IBMS Product & Inventory Customizations:
         'views/stock_location_transfer_views.xml',
         'views/stock_report_views.xml',
         'views/main_warehouse_stock_views.xml',
+        'reports/stock_location_transfer_report.xml',
+        'reports/main_warehouse_stock_report.xml',
     ],
     'installable': True,
     'application': False,

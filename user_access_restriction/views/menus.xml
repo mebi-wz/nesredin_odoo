@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_user_access_audit_log"
+              name="Access Restriction Logs"
+              parent="base.menu_users"
+              action="action_user_access_audit_log"
+              sequence="35"
+              groups="base.group_system"/>
+</odoo>
