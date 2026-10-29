@@ -6,6 +6,7 @@
     "author": "Consulting",
     "depends": [
         "procurement_base",
+        "procurement_foreign_purchase",
         "procurement_foreign_rfq",
         "stock_landed_costs",
     ],

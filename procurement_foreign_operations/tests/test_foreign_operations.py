@@ -146,6 +146,18 @@ class TestForeignOperations(TransactionCase):
         line.price_unit_usd = 50.0
         self.assertEqual(line.price_subtotal_usd, 500.0, "Subtotal USD should be quantity(10) * unit_usd(50)")
 
+        # Test ETB and Customs fields
+        line.price_unit = 50.0
+        line.order_id.exchange_rate = 120.0
+        line._compute_etb_fields()
+        self.assertEqual(line.price_unit_etb, 6000.0, "Unit Price ETB should be 50 * 120 = 6000")
+        self.assertEqual(line.price_subtotal_etb, 60000.0, "Subtotal ETB should be 10 * 6000 = 60000")
+
+        line.customs_product_cost = 6500.0
+        self.assertEqual(line.customs_total_amount, 65000.0, "Customs Total ETB should be 10 * 6500 = 65000")
+        self.assertEqual(line.cost_difference, 500.0, "Cost difference should be 6500 - 6000 = 500")
+        self.assertEqual(line.cost_difference_total, 5000.0, "Total variance should be 10 * 500 = 5000")
+
     def test_05_lc_expiry_calculation(self):
         """Test the days_to_expiry and is_expired logic"""
         today = fields.Date.today()

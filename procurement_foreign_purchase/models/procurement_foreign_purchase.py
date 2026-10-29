@@ -283,18 +283,38 @@ class PurchaseOrderLine(models.Model):
         string='Customs Product Cost',
         help='The value assigned by customs during import clearance.'
     )
+    customs_total_amount = fields.Float(
+        string='Customs Total (ETB)',
+        compute='_compute_cost_difference',
+        store=True,
+        help='Total Customs Value in ETB (Customs Product Cost * Quantity)'
+    )
     cost_difference = fields.Float(
         string='Cost Difference',
         compute='_compute_cost_difference',
         store=True,
         help='Customs Product Cost - Actual Product Cost'
     )
+    cost_difference_total = fields.Float(
+        string='Total Variance (ETB)',
+        compute='_compute_cost_difference',
+        store=True,
+        help='Total Cost Difference in ETB (Cost Difference * Quantity)'
+    )
 
-    @api.depends('customs_product_cost', 'price_unit')
+    @api.depends('customs_product_cost', 'price_unit', 'product_qty', 'order_id.exchange_rate')
     def _compute_cost_difference(self):
         for rec in self:
             rate = (getattr(rec.order_id, 'exchange_rate', 1.0) if rec.order_id else 1.0) or 1.0
-            rec.cost_difference = (rec.customs_product_cost or 0.0) - (rec.price_unit * rate)
+            unit_actual_etb = (rec.price_unit or 0.0) * rate
+            if rec.customs_product_cost:
+                rec.cost_difference = rec.customs_product_cost - unit_actual_etb
+                rec.customs_total_amount = rec.customs_product_cost * (rec.product_qty or 0.0)
+                rec.cost_difference_total = rec.cost_difference * (rec.product_qty or 0.0)
+            else:
+                rec.cost_difference = 0.0
+                rec.customs_total_amount = 0.0
+                rec.cost_difference_total = 0.0
 
 class ForeignPurchaseRequisitionLine(models.Model):
     _name = 'foreign.purchase.requisition.line'

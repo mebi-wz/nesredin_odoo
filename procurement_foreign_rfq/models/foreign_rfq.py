@@ -37,18 +37,29 @@ class ForeignRFQ(models.Model):
     )
 
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.company.currency_id, tracking=True)
-    exchange_rate = fields.Float(string='Exchange Rate', compute='_compute_exchange_rate', store=True, tracking=True, help='Exchange rate applied if supplier currency differs from payment currency')
+    exchange_rate = fields.Float(
+        string='Exchange Rate',
+        default=1.0,
+        store=True,
+        tracking=True,
+        help='Exchange rate applied if supplier currency differs from payment currency'
+    )
 
-    @api.depends('currency_id', 'date_rfq', 'company_id')
-    def _compute_exchange_rate(self):
+    @api.onchange('currency_id', 'date_rfq')
+    def _onchange_exchange_rate_suggestion(self):
+        """Auto-suggest the live exchange rate when currency or RFQ date changes.
+        This only runs in the UI and never overwrites a manually set value on save."""
         for rec in self:
             if rec.currency_id and rec.company_id:
-                rec.exchange_rate = rec.currency_id._get_conversion_rate(
-                    rec.currency_id,
-                    rec.company_id.currency_id,
-                    rec.company_id,
-                    rec.date_rfq or fields.Date.context_today(rec)
-                )
+                if rec.currency_id == rec.company_id.currency_id:
+                    rec.exchange_rate = 1.0
+                else:
+                    rec.exchange_rate = rec.currency_id._get_conversion_rate(
+                        rec.currency_id,
+                        rec.company_id.currency_id,
+                        rec.company_id,
+                        rec.date_rfq or fields.Date.context_today(rec)
+                    )
             else:
                 rec.exchange_rate = 1.0
     requisition_id = fields.Many2one(
@@ -503,7 +514,10 @@ class PurchaseOrder(models.Model):
         compute="_compute_currency_id_etb",
         store=True,
     )
-    exchange_rate = fields.Float(string='Exchange Rate', compute='_compute_exchange_rate', store=True, readonly=False)
+    # exchange_rate is defined as a plain editable Float in procurement_foreign_purchase.
+    # We intentionally do NOT redeclare it as computed here — doing so would cause Odoo
+    # to overwrite the user's manual value on every save. Instead, we use @api.onchange
+    # to auto-suggest the live rate only when currency or date_order changes.
 
     @api.depends('company_id')
     def _compute_currency_id_etb(self):
@@ -511,16 +525,21 @@ class PurchaseOrder(models.Model):
         for order in self:
             order.currency_id_etb = etb_currency or order.company_id.currency_id
 
-    @api.depends('currency_id', 'date_order', 'company_id')
-    def _compute_exchange_rate(self):
+    @api.onchange('currency_id', 'date_order')
+    def _onchange_exchange_rate_suggestion(self):
+        """Auto-suggest the live exchange rate when currency or order date changes.
+        This only runs in the UI and never overwrites a manually set value on save."""
         for rec in self:
             if rec.currency_id and rec.company_id:
-                rec.exchange_rate = rec.currency_id._get_conversion_rate(
-                    rec.currency_id,
-                    rec.company_id.currency_id,
-                    rec.company_id,
-                    rec.date_order or fields.Datetime.now()
-                )
+                if rec.currency_id == rec.company_id.currency_id:
+                    rec.exchange_rate = 1.0
+                else:
+                    rec.exchange_rate = rec.currency_id._get_conversion_rate(
+                        rec.currency_id,
+                        rec.company_id.currency_id,
+                        rec.company_id,
+                        rec.date_order or fields.Datetime.now()
+                    )
             else:
                 rec.exchange_rate = 1.0
 

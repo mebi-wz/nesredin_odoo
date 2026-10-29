@@ -11,7 +11,7 @@
             <xpath expr="//header" position="inside">
                  <button name="action_create_lc" string="Create LC/TT/CAD" type="object" class="oe_highlight" invisible="request_type != 'foreign' or state in ('purchase', 'done') or lc_count &gt; 0" groups="procurement_foreign_purchase.group_foreign_purchase_operation_manager"/>
                 <button name="action_open_margin_modal" string="Manage Margins" type="object" class="oe_highlight" invisible="request_type != 'foreign' or has_standard_bill"/>
-                <button name="action_draft_landed_cost" string="Draft Landed Cost" type="object" class="oe_highlight" invisible="request_type != 'foreign' or landed_cost_count &gt; 0" groups="account.group_account_invoice"/>
+                <button name="action_draft_landed_cost" string="Draft Landed Cost" type="object" class="oe_highlight" invisible="request_type != 'foreign'" groups="account.group_account_invoice"/>
                 <button name="action_create_payment_request" string="Create Payment" type="object" class="oe_highlight" invisible="request_type != 'foreign' " groups="procurement_foreign_purchase.group_foreign_purchase_operation_manager"/>
             </xpath>
 
@@ -235,12 +235,15 @@
                         <list editable="bottom" create="false" delete="false">
                             <field name="product_id" readonly="1"/>
                             <field name="product_qty" string="Quantity" readonly="1" sum="Total Quantity"/>
-                            <field name="price_unit" string="Actual Product Cost" readonly="1" sum="Total Actual Cost"/>
-                            <field name="exchange_rate_related" string="Exchange Rate"/>
-                            <field name="price_unit_etb" string="Actual Cost (ETB)" readonly="1" sum="Total Actual Cost ETB"/>
-                            <field name="price_subtotal" string="Sub Total" readonly="1" sum="Total Sub Total"/>
-                            <field name="customs_product_cost" sum="Total Customs Cost"/>
-                            <field name="cost_difference" readonly="1" decoration-danger="cost_difference &gt; 0" decoration-success="cost_difference &lt; 0" sum="Total Variance"/>
+                            <field name="price_unit" string="Actual Cost (USD)" readonly="1"/>
+                            <field name="exchange_rate_related" string="Exchange Rate" readonly="1"/>
+                            <field name="price_unit_etb" string="Actual Cost (ETB)" readonly="1"/>
+                            <field name="price_subtotal" string="Subtotal (USD)" readonly="1" sum="Total Subtotal (USD)"/>
+                            <field name="price_subtotal_etb" string="Subtotal (ETB)" readonly="1" sum="Total Subtotal (ETB)"/>
+                            <field name="customs_product_cost" string="Customs Cost/Unit (ETB)"/>
+                            <field name="customs_total_amount" string="Customs Total (ETB)" readonly="1" sum="Total Customs (ETB)"/>
+                            <field name="cost_difference" string="Unit Variance (ETB)" readonly="1" decoration-danger="cost_difference &gt; 0" decoration-success="cost_difference &lt; 0" optional="show"/>
+                            <field name="cost_difference_total" string="Total Variance (ETB)" readonly="1" decoration-danger="cost_difference_total &gt; 0" decoration-success="cost_difference_total &lt; 0" sum="Total Variance (ETB)"/>
                         </list>
                     </field>
                 </page>
