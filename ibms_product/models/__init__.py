@@ -10,3 +10,4 @@ from . import stock_quant
 from . import stock_move_line
 from . import product_secondary_part
 from . import main_warehouse_stock
+from . import stock_picking

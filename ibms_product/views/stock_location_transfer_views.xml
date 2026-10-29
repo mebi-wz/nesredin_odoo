@@ -16,7 +16,8 @@
                 <field name="dest_warehouse_id" string="Destination Warehouse"/>
                 <field name="requested_by_id" string="Requested By" widget="many2one_avatar_user"/>
                 <field name="sent_by_id" string="Sent By" widget="many2one_avatar_user" optional="show"/>
-                <field name="received_by_id" string="Received By" widget="many2one_avatar_user" optional="show"/>
+                <field name="issue_picking_id" string="Issue Picking" optional="show"/>
+                <field name="receive_picking_id" string="Receive Picking" optional="show"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
                 <field name="state" string="Status" widget="badge"
                        decoration-muted="state == 'draft'"
@@ -42,22 +43,10 @@
                             class="btn-primary"
                             invisible="state != 'draft'"/>
 
-                    <!-- Step 1: Manager approves — creates picking, doesn't validate -->
+                    <!-- Step 1: Manager approves — creates Issue picking on WH1 -->
                     <button name="action_approve" type="object" string="Approve"
                             class="btn-success"
                             invisible="state != 'submitted'"/>
-
-                    <!-- Step 2: Source warehouse staff marks items as sent -->
-                    <button name="action_send" type="object" string="Mark as Sent"
-                            class="btn-primary"
-                            confirm="Confirm that all items have been physically packed and dispatched from the source warehouse?"
-                            invisible="state != 'approved'"/>
-
-                    <!-- Step 3: Destination warehouse staff confirms receipt -->
-                    <button name="action_receive" type="object" string="Confirm Receipt"
-                            class="btn-success"
-                            confirm="Confirm that all items have been physically received at the destination warehouse?"
-                            invisible="state != 'in_transit'"/>
 
                     <!-- Cancel (allowed in draft, submitted, approved, in_transit) -->
                     <button name="action_cancel" type="object" string="Cancel"
@@ -72,14 +61,30 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_view_issue_picking"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-arrow-circle-up"
+                                invisible="not issue_picking_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Issue (WH1)</span>
+                            </div>
+                        </button>
+                        <button name="action_view_receive_picking"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-arrow-circle-down"
+                                invisible="not receive_picking_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Receive (WH2)</span>
+                            </div>
+                        </button>
                         <button name="action_view_picking"
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-truck"
-                                invisible="not picking_id">
-                            <div class="o_stat_info">
-                                <span class="o_stat_text">Stock Move</span>
-                            </div>
+                                invisible="picking_count &lt; 1">
+                            <field name="picking_count" widget="statinfo" string="Pickings"/>
                         </button>
                     </div>
                     <div class="oe_title">
@@ -96,6 +101,7 @@
                                    domain="[('analytic_account_id', '=', source_analytic_account_id)]"
                                    options="{'no_create': True}"
                                    readonly="state != 'draft'"/>
+                            <field name="issue_picking_id" readonly="1" invisible="not issue_picking_id"/>
                         </group>
                         <group string="To (Destination)">
                             <field name="dest_analytic_account_id"
@@ -105,6 +111,7 @@
                                    domain="[('analytic_account_id', '=', dest_analytic_account_id)]"
                                    options="{'no_create': True}"
                                    readonly="state != 'draft'"/>
+                            <field name="receive_picking_id" readonly="1" invisible="not receive_picking_id"/>
                         </group>
                     </group>
                     <group>

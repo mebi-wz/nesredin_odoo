@@ -1,8 +1,8 @@
 {
     'name': 'Asset',
     'version': '19.0.1.0.0',
-    'author': 'Hagbes Plc',
-    'website': 'https://hagbes.com',
+    'author': 'Nesredin',
+    'website': 'https://nesredin.com',
     'category': 'Inventory',
     'summary': 'Manage assets with tag numbers, assignment, and warehouse tracking',
     'description': """

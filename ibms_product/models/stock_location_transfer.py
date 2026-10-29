@@ -131,11 +131,38 @@ class StockLocationTransfer(models.Model):
         copy=True
     )
 
-    picking_id = fields.Many2one(
+    issue_picking_id = fields.Many2one(
         'stock.picking',
-        string='Stock Transfer (Picking)',
+        string='Issue Picking (WH1)',
         readonly=True,
         copy=False
+    )
+
+    receive_picking_id = fields.Many2one(
+        'stock.picking',
+        string='Receive Picking (WH2)',
+        readonly=True,
+        copy=False
+    )
+
+    picking_id = fields.Many2one(
+        'stock.picking',
+        string='Primary Stock Move',
+        readonly=True,
+        copy=False
+    )
+
+    picking_ids = fields.Many2many(
+        'stock.picking',
+        compute='_compute_picking_ids',
+        string='Pickings',
+        compute_sudo=True
+    )
+
+    picking_count = fields.Integer(
+        compute='_compute_picking_ids',
+        string='Pickings Count',
+        compute_sudo=True
     )
 
     note = fields.Text(string='Notes')
@@ -155,6 +182,32 @@ class StockLocationTransfer(models.Model):
         for rec in self:
             rec.location_id = rec.source_warehouse_id.lot_stock_id.id if rec.source_warehouse_id else False
             rec.location_dest_id = rec.dest_warehouse_id.lot_stock_id.id if rec.dest_warehouse_id else False
+
+    @api.depends('issue_picking_id', 'receive_picking_id', 'picking_id')
+    def _compute_picking_ids(self):
+        for rec in self:
+            rec_sudo = rec.sudo()
+            pickings = rec_sudo.issue_picking_id | rec_sudo.receive_picking_id | rec_sudo.picking_id
+            rec.picking_ids = pickings
+            rec.picking_count = len(pickings)
+
+    def _get_transit_location(self):
+        self.ensure_one()
+        transit = self.env['stock.location'].sudo().search([
+            ('usage', '=', 'transit'),
+            '|',
+            ('company_id', '=', self.company_id.id),
+            ('company_id', '=', False),
+        ], limit=1)
+        if not transit:
+            transit = self.env.ref('stock.stock_location_inter_wh', raise_if_not_found=False)
+        if not transit:
+            transit = self.env['stock.location'].sudo().search([('usage', '=', 'transit')], limit=1)
+        if not transit:
+            raise ValidationError(
+                _("No transit location found (usage='transit'). Please configure an Inter-Warehouse Transit location in Inventory > Configuration > Locations.")
+            )
+        return transit
 
     @api.onchange('source_analytic_account_id')
     def _onchange_source_analytic_account_id(self):
@@ -212,38 +265,40 @@ class StockLocationTransfer(models.Model):
     def action_approve(self):
         """
         STEP 1 — Manager approves the request.
-        Creates the stock.picking (internal transfer) but does NOT validate it yet.
-        The picking stays in 'Ready' state waiting for the source to physically dispatch.
+        Creates TWO stock.picking records:
+        1. Issue Picking (Source Warehouse): WH1/Stock -> Transit Location (state: Ready)
+        2. Receive Picking (Destination Warehouse): Transit Location -> WH2/Stock (state: Waiting)
         """
         Picking = self.env['stock.picking'].sudo()
         for transfer in self:
             if not transfer.line_ids:
                 raise ValidationError(_("No products specified to transfer!"))
 
-            # Determine picking type (internal transfer of source warehouse)
-            picking_type = transfer.source_warehouse_id.int_type_id
-            if not picking_type:
-                picking_type = self.env['stock.picking.type'].sudo().search([
-                    ('code', '=', 'internal'),
-                    ('warehouse_id', '=', transfer.source_warehouse_id.id)
-                ], limit=1)
-            if not picking_type:
-                picking_type = self.env['stock.picking.type'].sudo().search([
-                    ('code', '=', 'internal'),
-                    ('company_id', '=', transfer.company_id.id)
-                ], limit=1)
+            transit_loc = transfer._get_transit_location()
 
-            if not picking_type:
+            # 1. Source Warehouse Picking Type (Issue / Internal Transfer)
+            source_wh = transfer.source_warehouse_id
+            source_picking_type = source_wh.int_type_id or self.env['stock.picking.type'].sudo().search([
+                ('code', '=', 'internal'),
+                ('warehouse_id', '=', source_wh.id),
+            ], limit=1) or self.env['stock.picking.type'].sudo().search([
+                ('code', '=', 'internal'),
+                ('company_id', '=', transfer.company_id.id),
+            ], limit=1)
+
+            if not source_picking_type:
                 raise ValidationError(
-                    _("No internal transfer operation type found for warehouse %s.") % transfer.source_warehouse_id.name
+                    _("No internal transfer operation type found for source warehouse %s.") % source_wh.name
                 )
 
-            # Create the physical stock.picking — do NOT validate it yet
-            picking_vals = {
-                'picking_type_id': picking_type.id,
+            # 2. Create Issue Picking for Warehouse 1 (Source -> Transit)
+            issue_vals = {
+                'picking_type_id': source_picking_type.id,
                 'location_id': transfer.location_id.id,
-                'location_dest_id': transfer.location_dest_id.id,
-                'origin': transfer.name,
+                'location_dest_id': transit_loc.id,
+                'origin': f"{transfer.name} (Issue)",
+                'location_transfer_id': transfer.id,
+                'transfer_operation_type': 'issue',
                 'company_id': transfer.company_id.id,
                 'move_ids': [
                     (0, 0, {
@@ -252,22 +307,87 @@ class StockLocationTransfer(models.Model):
                         'product_uom_qty': line.product_uom_qty,
                         'product_uom': line.product_uom_id.id,
                         'location_id': transfer.location_id.id,
+                        'location_dest_id': transit_loc.id,
+                        'company_id': transfer.company_id.id,
+                    }) for line in transfer.line_ids
+                ]
+            }
+            issue_picking = Picking.create(issue_vals)
+            issue_picking.action_confirm()
+            issue_picking.action_assign()
+
+            transfer.sudo().write({
+                'issue_picking_id': issue_picking.id,
+                'picking_id': issue_picking.id,
+                'state': 'approved',
+            })
+            transfer.message_post(
+                body=_("Transfer approved. Created Issue Picking <b>%s</b> for %s.") % (
+                    issue_picking.name,
+                    source_wh.name,
+                )
+            )
+
+    def _create_receive_picking(self):
+        """
+        Creates the Receive Picking for Destination Warehouse (Warehouse 2).
+        Called sequentially when items are physically dispatched (action_send).
+        This ensures Warehouse 2's dashboard only shows the incoming transfer once items are in transit.
+        """
+        Picking = self.env['stock.picking'].sudo()
+        for transfer in self:
+            if transfer.receive_picking_id:
+                continue
+
+            transit_loc = transfer._get_transit_location()
+            dest_wh = transfer.dest_warehouse_id
+            dest_picking_type = dest_wh.int_type_id or self.env['stock.picking.type'].sudo().search([
+                ('code', '=', 'internal'),
+                ('warehouse_id', '=', dest_wh.id),
+            ], limit=1) or self.env['stock.picking.type'].sudo().search([
+                ('code', '=', 'internal'),
+                ('company_id', '=', transfer.company_id.id),
+            ], limit=1)
+
+            if not dest_picking_type:
+                raise ValidationError(
+                    _("No internal transfer operation type found for destination warehouse %s.") % dest_wh.name
+                )
+
+            receive_vals = {
+                'picking_type_id': dest_picking_type.id,
+                'location_id': transit_loc.id,
+                'location_dest_id': transfer.location_dest_id.id,
+                'origin': f"{transfer.name} (Receive)",
+                'location_transfer_id': transfer.id,
+                'transfer_operation_type': 'receive',
+                'company_id': transfer.company_id.id,
+                'move_ids': [
+                    (0, 0, {
+                        'description_picking': line.product_id.display_name,
+                        'product_id': line.product_id.id,
+                        'product_uom_qty': line.product_uom_qty,
+                        'product_uom': line.product_uom_id.id,
+                        'location_id': transit_loc.id,
                         'location_dest_id': transfer.location_dest_id.id,
                         'company_id': transfer.company_id.id,
                     }) for line in transfer.line_ids
                 ]
             }
-            picking = Picking.create(picking_vals)
-            picking.action_confirm()
-            picking.action_assign()
+            receive_picking = Picking.create(receive_vals)
+            receive_picking.action_confirm()
+            receive_picking.action_assign()
 
-            transfer.picking_id = picking.id
-            transfer.state = 'approved'
+            transfer.sudo().write({
+                'receive_picking_id': receive_picking.id,
+            })
 
     def action_send(self):
         """
         STEP 2 — Source warehouse staff confirms items have been physically dispatched.
         Only users belonging to the source warehouse (via allowed_warehouse_ids) can do this.
+        Validates the Issue Picking: Source/Stock -> Transit Location.
+        Then creates the Receive Picking on Warehouse 2's dashboard (one after the other).
         """
         for transfer in self:
             user = self.env.user
@@ -276,15 +396,34 @@ class StockLocationTransfer(models.Model):
                 raise ValidationError(
                     _("Only staff from '%s' can mark this transfer as sent.") % transfer.source_warehouse_id.name
                 )
-            transfer.write({
+
+            issue_picking = transfer.issue_picking_id or transfer.picking_id
+            if not issue_picking:
+                raise ValidationError(_("No issue picking found for this transfer."))
+
+            issue_sudo = issue_picking.sudo()
+            if issue_sudo.state not in ('done', 'cancel'):
+                for move in issue_sudo.move_ids:
+                    if move.state not in ('done', 'cancel'):
+                        move.quantity = move.product_uom_qty
+                        move.picked = True
+                issue_sudo.button_validate()
+
+            # Now create Receive Picking for Destination Warehouse (shows on WH2 dashboard)
+            transfer._create_receive_picking()
+
+            transfer.sudo().write({
                 'state': 'in_transit',
                 'sent_by_id': user.id,
                 'sent_date': fields.Datetime.now(),
             })
             transfer.message_post(
-                body=_("📦 Items dispatched from <b>%s</b> by %s.") % (
+                body=_("📦 Items dispatched from <b>%s</b> by %s. Issue picking <b>%s</b> validated. Created Receive Picking <b>%s</b> for %s.") % (
                     transfer.source_warehouse_id.name,
                     user.name,
+                    issue_sudo.name,
+                    transfer.receive_picking_id.name if transfer.receive_picking_id else '-',
+                    transfer.dest_warehouse_id.name,
                 )
             )
 
@@ -292,7 +431,7 @@ class StockLocationTransfer(models.Model):
         """
         STEP 3 — Destination warehouse staff confirms items have been physically received.
         Only users belonging to the destination warehouse (via allowed_warehouse_ids) can do this.
-        Validates the stock.picking to 'done', completing the actual stock movement.
+        Validates the Receive Picking: Transit Location -> Destination/Stock.
         """
         for transfer in self:
             user = self.env.user
@@ -302,25 +441,28 @@ class StockLocationTransfer(models.Model):
                     _("Only staff from '%s' can confirm receipt for this transfer.") % transfer.dest_warehouse_id.name
                 )
 
-            if not transfer.picking_id:
-                raise ValidationError(_("No stock picking found for this transfer. Please contact your manager."))
+            receive_picking = transfer.receive_picking_id or transfer.picking_id
+            if not receive_picking:
+                raise ValidationError(_("No receive stock picking found for this transfer."))
 
-            # Set quantity done on all moves and validate
-            picking_sudo = transfer.picking_id.sudo()
-            for move in picking_sudo.move_ids:
-                move.quantity = move.product_uom_qty
-                move.picked = True
-            picking_sudo.button_validate()
+            receive_sudo = receive_picking.sudo()
+            if receive_sudo.state not in ('done', 'cancel'):
+                for move in receive_sudo.move_ids:
+                    if move.state not in ('done', 'cancel'):
+                        move.quantity = move.product_uom_qty
+                        move.picked = True
+                receive_sudo.button_validate()
 
-            transfer.write({
+            transfer.sudo().write({
                 'state': 'received',
                 'received_by_id': user.id,
                 'received_date': fields.Datetime.now(),
             })
             transfer.message_post(
-                body=_("✅ Items received at <b>%s</b> by %s. Stock transfer completed.") % (
+                body=_("✅ Items received at <b>%s</b> by %s. Receive picking <b>%s</b> validated. Transfer completed.") % (
                     transfer.dest_warehouse_id.name,
                     user.name,
+                    receive_sudo.name,
                 )
             )
 
@@ -328,17 +470,63 @@ class StockLocationTransfer(models.Model):
         for transfer in self:
             if transfer.state == 'received':
                 raise ValidationError(_("A completed (Received) transfer cannot be cancelled."))
+            if transfer.state == 'in_transit':
+                raise ValidationError(
+                    _("Cannot cancel transfer '%s' because goods have already been dispatched from '%s' and are currently In Transit. "
+                      "Please complete the receipt at '%s' or arrange a return transfer.") % (
+                        transfer.name,
+                        transfer.source_warehouse_id.name,
+                        transfer.dest_warehouse_id.name,
+                    )
+                )
+            if transfer.issue_picking_id and transfer.issue_picking_id.state not in ('done', 'cancel'):
+                transfer.issue_picking_id.sudo().action_cancel()
+            if transfer.receive_picking_id and transfer.receive_picking_id.state not in ('done', 'cancel'):
+                transfer.receive_picking_id.sudo().action_cancel()
             if transfer.picking_id and transfer.picking_id.state not in ('done', 'cancel'):
                 transfer.picking_id.sudo().action_cancel()
-            transfer.state = 'cancel'
+            transfer.sudo().write({'state': 'cancel'})
+
+    def action_view_issue_picking(self):
+        self.ensure_one()
+        if not self.issue_picking_id:
+            raise ValidationError(_("No issue picking found."))
+        return {
+            'name': _('Issue Picking - %s') % (self.source_warehouse_id.name),
+            'view_mode': 'form',
+            'res_model': 'stock.picking',
+            'res_id': self.issue_picking_id.id,
+            'type': 'ir.actions.act_window',
+        }
+
+    def action_view_receive_picking(self):
+        self.ensure_one()
+        if not self.receive_picking_id:
+            raise ValidationError(_("No receive picking found."))
+        return {
+            'name': _('Receive Picking - %s') % (self.dest_warehouse_id.name),
+            'view_mode': 'form',
+            'res_model': 'stock.picking',
+            'res_id': self.receive_picking_id.id,
+            'type': 'ir.actions.act_window',
+        }
 
     def action_view_picking(self):
         self.ensure_one()
+        pickings = self.picking_ids
+        if len(pickings) == 1:
+            return {
+                'name': _('Stock Transfer'),
+                'view_mode': 'form',
+                'res_model': 'stock.picking',
+                'res_id': pickings.id,
+                'type': 'ir.actions.act_window',
+            }
         return {
-            'name': _('Stock Transfer'),
-            'view_mode': 'form',
+            'name': _('Stock Pickings'),
+            'view_mode': 'list,form',
             'res_model': 'stock.picking',
-            'res_id': self.picking_id.id,
+            'domain': [('id', 'in', pickings.ids)],
             'type': 'ir.actions.act_window',
         }
 

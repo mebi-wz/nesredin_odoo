@@ -58,6 +58,10 @@
                                             <td class="text-muted p-0">Location:</td>
                                             <td class="p-0"><t t-esc="doc.location_id.complete_name or '-'"/></td>
                                         </tr>
+                                        <tr t-if="doc.issue_picking_id">
+                                            <td class="text-muted p-0">Issue Ref:</td>
+                                            <td class="p-0 fw-bold text-primary"><t t-esc="doc.issue_picking_id.name"/></td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -80,6 +84,10 @@
                                         <tr>
                                             <td class="text-muted p-0">Location:</td>
                                             <td class="p-0"><t t-esc="doc.location_dest_id.complete_name or '-'"/></td>
+                                        </tr>
+                                        <tr t-if="doc.receive_picking_id">
+                                            <td class="text-muted p-0">Receive Ref:</td>
+                                            <td class="p-0 fw-bold text-success"><t t-esc="doc.receive_picking_id.name"/></td>
                                         </tr>
                                     </table>
                                 </div>
